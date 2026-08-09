@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+js/config.local.js
+tmp-*
+*.log
+.DS_Store
+.supabase/
