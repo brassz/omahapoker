@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Login — CLUBEDEJOGOSCAIPIRA</title>
-<link rel="stylesheet" href="css/theme-bacatela.css">
+<link rel="stylesheet" href="css/theme-bacatela.css?v=8">
 <style>
 *{box-sizing:border-box}
 body{
@@ -12,12 +12,16 @@ body{
 }
 .shell{
   width:min(420px,100%);
-  background:#080812;
-  border:2px solid var(--pink);
+  background:#060912;
+  border:2px solid #17c8ff;
   border-radius:18px;
   padding:22px 18px 18px;
-  box-shadow:0 0 24px #ff2bd666,0 18px 40px #000a;
-  animation:rise .45s ease both;
+  box-shadow:0 0 24px #17c8ff88,0 18px 40px #000a;
+  animation:rise .45s ease both, shellNeon 1.6s ease-in-out infinite;
+}
+@keyframes shellNeon{
+  0%,100%{box-shadow:0 0 16px #17c8ff66,0 18px 40px #000a;border-color:#17c8ff}
+  50%{box-shadow:0 0 32px #00eaffcc,0 18px 40px #000a;border-color:#7af0ff}
 }
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .club-logo{
@@ -41,15 +45,16 @@ body{
 }
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
 .tab{
-  border:2px solid var(--violet);border-radius:10px;padding:10px;
+  border:2px solid #0284c7;border-radius:10px;padding:10px;
   font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(180deg,#6726d9,#331173);
-  box-shadow:0 0 10px #9c34ff55;
+  background:linear-gradient(180deg,#0369a1,#0c4a6e);
+  box-shadow:0 0 10px #17c8ff55;
 }
 .tab.active{
-  background:linear-gradient(180deg,#ff2bd6,#9c34ff);
-  border-color:#ff9be0;
-  box-shadow:0 0 16px #ff2bd688;
+  background:linear-gradient(180deg,#0ea5e9,#0369a1);
+  border-color:#7dd3fc;
+  box-shadow:0 0 16px #17c8ffaa;
+  color:#00131b;
 }
 label{display:block;font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--muted)}
 input{
@@ -60,17 +65,18 @@ input{
 input:focus{border-color:var(--blue);box-shadow:0 0 0 2px #17c8ff55}
 .btn{
   width:100%;margin-top:14px;border-radius:12px;
-  padding:13px;font-size:16px;font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00);
-  border:2px solid #9dff76;box-shadow:0 0 16px #62ff00;
+  padding:13px;font-size:16px;font-weight:900;cursor:pointer;color:#00131b;
+  background:linear-gradient(90deg,#0284c7,#22d3ee,#0284c7);
+  border:2px solid #7dd3fc;box-shadow:0 0 16px #17c8ff;
 }
 .btn:disabled{opacity:.6;cursor:wait}
 .msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:var(--muted)}
 .msg.error{color:var(--red)}
 .msg.ok{color:var(--green)}
 .note{
-  margin-top:12px;text-align:center;font-size:11px;color:#ffe700;
-  line-height:1.4;border-top:2px solid var(--pink);padding-top:10px;font-weight:800;
+  margin-top:12px;text-align:center;font-size:11px;color:#7af0ff;
+  line-height:1.4;border-top:2px solid #17c8ff;padding-top:10px;font-weight:800;
+  text-shadow:0 0 10px #17c8ff88;
 }
 .hidden{display:none}
 </style>

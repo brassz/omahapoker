@@ -9,7 +9,7 @@
     const link = document.createElement('link');
     link.id = 'clubThemeBacatela';
     link.rel = 'stylesheet';
-    link.href = new URL('../css/theme-bacatela.css', location.href).href;
+    link.href = new URL('../css/theme-bacatela.css?v=8', location.href).href;
     document.head.appendChild(link);
   }
 
@@ -22,13 +22,23 @@
         position:sticky;top:0;z-index:99999;
         display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;
         padding:6px 8px;margin:0;
-        background:#060912;border-bottom:2px solid #ff2bd6;color:#fff;
+        background:#040810;border-bottom:2px solid #17c8ff;color:#fff;
         font-family:Arial,Helvetica,sans-serif;
-        box-shadow:0 0 14px #ff2bd655;
+        box-shadow:0 0 14px #17c8ff88;
+        animation:clubGatePulse 1.6s ease-in-out infinite;
+      }
+      @keyframes clubGatePulse{
+        0%,100%{box-shadow:0 0 10px #17c8ff55;border-bottom-color:#17c8ff}
+        50%{box-shadow:0 0 22px #00eaffcc;border-bottom-color:#7af0ff}
       }
       #clubGateBar .club-name{
-        font-weight:1000;font-size:12px;letter-spacing:1px;color:#ffd91a;
-        text-shadow:0 0 10px #ffd91a;
+        font-weight:1000;font-size:12px;letter-spacing:1px;color:#17c8ff;
+        text-shadow:0 0 10px #17c8ff;
+        animation:clubNameBlink 1.1s ease-in-out infinite;
+      }
+      @keyframes clubNameBlink{
+        0%,100%{color:#17c8ff;text-shadow:0 0 6px #17c8ff,0 0 14px #00eaff}
+        50%{color:#b8f7ff;text-shadow:0 0 12px #fff,0 0 24px #00eaff}
       }
       #clubGateBar .user{font-size:12px;font-weight:800;text-align:center;opacity:.95}
       #clubGateBar .saldo{color:#17c8ff;font-weight:1000}

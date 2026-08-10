@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../css/theme-bacatela.css?v=5">
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Ronda</title>
@@ -68,9 +68,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <section class="panel">
     <div style="text-align:center;font-weight:900">APOSTA DO JOGADOR</div>
     <div class="row">
-      <input id="bet" type="number" min="1" value="100">
+      <input id="bet" type="number" min="2" max="500" value="100">
     </div>
     <div class="row">
+      <button onclick="setBet(2)">2</button>
       <button onclick="setBet(50)">50</button>
       <button onclick="setBet(100)">100</button>
       <button onclick="setBet(500)">500</button>
@@ -170,7 +171,7 @@ function renderHistory(){
     `<div class="historyItem"><b>${h.winner}</b> venceu — ${h.a} x ${h.b} — aposta ${fmt(h.bet)} — ${h.result}</div>`
   ).join('');
 }
-function setBet(v){document.getElementById('bet').value=v}
+function setBet(v){document.getElementById('bet').value=clubBets.clamp(v)}
 function pick(x){
   picked=x;
   document.getElementById('pickA').classList.toggle('active',x==='A');
@@ -245,8 +246,10 @@ function dealBottom(){
 async function playRound(){
   if(!ready)return alert('Primeiro embaralhe, corte e abra a Carta A e a Carta B.');
   if(!picked)return alert('Escolha Carta A ou Carta B para apostar.');
-  const bet=Math.floor(Number(document.getElementById('bet').value));
-  if(!bet||bet<1)return alert('Informe uma aposta válida.');
+  const check=clubBets.validate(document.getElementById('bet').value);
+  if(!check.ok)return alert(check.message);
+  const bet=check.value;
+  document.getElementById('bet').value=bet;
   if(credits<bet)return alert('Créditos insuficientes.');
 
   document.getElementById('playBtn').disabled=true;
@@ -325,7 +328,8 @@ renderCredits();renderHistory();
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=5"></script>
 <script src="../js/house.js?v=1"></script>
-<script src="../js/gate.js?v=5"></script>
+<script src="../js/bets.js?v=1"></script>
+<script src="../js/gate.js?v=6"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Painel Admin — CLUBEDEJOGOSCAIPIRA</title>
-<link rel="stylesheet" href="css/theme-bacatela.css">
+<link rel="stylesheet" href="css/theme-bacatela.css?v=8">
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh}
@@ -14,8 +14,13 @@ body{margin:0;min-height:100vh}
 .tag{margin:6px 0 0;font-weight:900;color:#fff;text-shadow:0 0 12px var(--gold)}
 .bar{
   display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
-  background:#080812;border:2px solid var(--pink);border-radius:14px;
-  padding:10px 12px;margin-bottom:14px;box-shadow:0 0 14px #ff2bd655;
+  background:#060912;border:2px solid #17c8ff;border-radius:14px;
+  padding:10px 12px;margin-bottom:14px;box-shadow:0 0 14px #17c8ff88;
+  animation:barNeon 1.6s ease-in-out infinite;
+}
+@keyframes barNeon{
+  0%,100%{box-shadow:0 0 12px #17c8ff55;border-color:#17c8ff}
+  50%{box-shadow:0 0 24px #00eaffaa;border-color:#7af0ff}
 }
 .bar strong{display:block}
 .bar small{color:var(--muted);font-weight:800}
@@ -40,7 +45,7 @@ body{margin:0;min-height:100vh}
 .credits{color:var(--gold);font-size:16px;text-shadow:0 0 10px var(--gold)}
 .badge{
   display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:900;
-  border:1px solid var(--pink);color:#fff;background:#ff2bd622;
+  border:1px solid #17c8ff;color:#fff;background:#17c8ff22;
 }
 .actions{display:flex;flex-wrap:wrap;gap:5px}
 .actions input{

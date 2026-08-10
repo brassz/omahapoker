@@ -1,66 +1,96 @@
-/* Tema oficial do clube — baseado no Bacatela */
+/* Tema oficial do clube — azul neon piscando */
 :root{
-  --bg:#020006;
+  --bg:#02060f;
   --blue:#17c8ff;
+  --neon:#00eaff;
+  --neon-soft:#7af0ff;
   --red:#ff3434;
   --gold:#ffd91a;
   --green:#5cff1a;
-  --pink:#ff2bd6;
-  --violet:#9c34ff;
+  --pink:#17c8ff; /* accent legado → azul neon */
+  --violet:#3b82f6;
   --orange:#ff8c15;
-  --panel:#080812;
-  --panel2:#060912;
+  --panel:#060912;
+  --panel2:#040810;
   --muted:#d8e7ff;
 }
 
 html,body{
-  background:radial-gradient(circle at 50% 0,#21003f 0,#090011 35%,#020006 72%)!important;
+  background:radial-gradient(circle at 50% 0,#003a66 0,#020b1a 35%,#02060f 72%)!important;
   color:#fff!important;
   font-family:Arial,Helvetica,sans-serif!important;
 }
 
-/* Títulos neon arco-íris (estilo Bacatela) */
+@keyframes clubNeonBlink{
+  0%,100%{
+    color:#17c8ff;
+    text-shadow:
+      0 0 6px #17c8ff,
+      0 0 16px #00eaff,
+      0 0 32px #0099ffaa;
+    filter:brightness(1);
+  }
+  50%{
+    color:#b8f7ff;
+    text-shadow:
+      0 0 12px #fff,
+      0 0 28px #00eaff,
+      0 0 48px #17c8ff;
+    filter:brightness(1.35);
+  }
+}
+
+@keyframes clubNeonGlow{
+  0%,100%{
+    box-shadow:0 0 10px #17c8ff55,0 0 22px #00eaff33;
+    border-color:#17c8ff;
+  }
+  50%{
+    box-shadow:0 0 18px #17c8ffcc,0 0 36px #00eaff88,0 0 50px #0099ff44;
+    border-color:#7af0ff;
+  }
+}
+
+/* Títulos / marca — azul neon piscando */
 .club-rainbow,
 h1.brand,
 .brand .title,
 .app > h1,
 main.app > h1{
-  background:linear-gradient(90deg,#00eaff,#ffe000,#58ff1c,#ff24d8,#ff7418,#00eaff)!important;
-  background-size:300% 100%!important;
-  -webkit-background-clip:text!important;
-  background-clip:text!important;
-  color:transparent!important;
-  text-shadow:0 0 14px #fff6!important;
-  animation:clubRainbow 3s linear infinite!important;
+  background:none!important;
+  -webkit-background-clip:initial!important;
+  background-clip:initial!important;
+  color:#17c8ff!important;
+  animation:clubNeonBlink 1.1s ease-in-out infinite!important;
   font-weight:1000!important;
   letter-spacing:2px!important;
 }
-@keyframes clubRainbow{to{background-position:300% 0}}
 
 .sub,.tagline,.tag{
   color:#fff!important;
-  text-shadow:0 0 12px var(--gold)!important;
+  text-shadow:0 0 12px #17c8ff88!important;
   font-weight:1000!important;
 }
 
 /* Painéis / cards */
 .panel,.card,.side,.betPanel,.historyPanel,
 .playerBox,.result,.note{
-  background:#080812!important;
-  border:2px solid var(--pink)!important;
-  box-shadow:0 0 14px #ff2bd655!important;
+  background:#060912!important;
+  border:2px solid var(--neon)!important;
+  box-shadow:0 0 14px #17c8ff55!important;
   color:#fff!important;
+  animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 
-/* Botões */
+/* Botões padrão */
 button,.big,.helpBtn,.playBtn,.addBtn,.teamBtn{
   border-radius:9px!important;
   color:#fff!important;
   font-weight:900!important;
   cursor:pointer!important;
-  border:2px solid #a65eff!important;
-  background:linear-gradient(180deg,#6726d9,#331173)!important;
-  box-shadow:0 0 10px #9c34ff55!important;
+  border:2px solid #7dd3fc!important;
+  background:linear-gradient(180deg,#0369a1,#0ea5e9)!important;
+  box-shadow:0 0 12px #17c8ff66!important;
 }
 button:disabled{opacity:.45!important}
 button.big,
@@ -69,9 +99,10 @@ button#new,
 .play,
 #confirmBet,
 #continueHand{
-  background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00)!important;
-  border:2px solid #9dff76!important;
-  box-shadow:0 0 16px #62ff00!important;
+  background:linear-gradient(90deg,#0369a1,#22d3ee,#0369a1)!important;
+  border:2px solid #7dd3fc!important;
+  box-shadow:0 0 16px #17c8ffaa!important;
+  color:#00131b!important;
 }
 #foldHand,
 #logoutBtn,
@@ -79,6 +110,7 @@ button.out{
   background:linear-gradient(180deg,#b40000,#ff3434)!important;
   border:2px solid #ff8a8a!important;
   box-shadow:0 0 12px #ff343455!important;
+  color:#fff!important;
 }
 #lobbyBtn,
 #clubBackLobby,
@@ -87,14 +119,14 @@ button.out{
   border:2px solid #7dd3fc!important;
   color:#00131b!important;
 }
-#turn{background:linear-gradient(180deg,#7c3aed,#ff2bd6)!important;border-color:#f0abfc!important}
-#river{background:linear-gradient(180deg,#ca8a04,#ffd91a)!important;border-color:#fde68a!important;color:#1a1200!important}
+#turn{background:linear-gradient(180deg,#0369a1,#22d3ee)!important;border-color:#7dd3fc!important;color:#00131b!important}
+#river{background:linear-gradient(180deg,#0e7490,#67e8f9)!important;border-color:#a5f3fc!important;color:#00131b!important}
 
 /* Inputs */
 input,select,textarea{
   background:#090b14!important;
   color:#fff!important;
-  border:1px solid #445!important;
+  border:1px solid #334!important;
   border-radius:8px!important;
 }
 input:focus,select:focus,textarea:focus{
@@ -106,17 +138,17 @@ input:focus,select:focus,textarea:focus{
 /* Status / mensagens */
 .status,.msg,.result{
   background:#080a13!important;
-  border:1px solid #555!important;
+  border:1px solid #17c8ff66!important;
   color:#fff!important;
 }
 
 .footer{
-  color:#ffe700!important;
+  color:#7af0ff!important;
   font-weight:900!important;
   letter-spacing:2px!important;
-  border-top:2px solid #ff2bd6!important;
+  border-top:2px solid #17c8ff!important;
   padding-top:7px!important;
-  text-shadow:none!important;
+  text-shadow:0 0 10px #17c8ff88!important;
 }
 
 /* Créditos */
@@ -125,10 +157,14 @@ input:focus,select:focus,textarea:focus{
 /* Barra do clube nos jogos */
 #clubGateBar,
 #userBar{
-  background:#060912!important;
-  border:2px solid var(--pink)!important;
-  box-shadow:0 0 14px #ff2bd655!important;
+  background:#040810!important;
+  border:2px solid var(--neon)!important;
+  box-shadow:0 0 14px #17c8ff66!important;
   color:#fff!important;
+  animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 #clubGateBar .club-name,
-#userBar .club-name{color:var(--gold)!important;text-shadow:0 0 10px var(--gold)!important}
+#userBar .club-name{
+  color:#17c8ff!important;
+  animation:clubNeonBlink 1.1s ease-in-out infinite!important;
+}

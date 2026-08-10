@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../css/theme-bacatela.css?v=6">
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Crep — Banca e Jogador</title>
 <style>
@@ -98,7 +98,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <section class="card">
   <h2>1. Aposta inicial</h2>
   <label for="baseBet">Valor da aposta inicial</label>
-  <input id="baseBet" type="number" min="10" step="10" value="100">
+  <input id="baseBet" type="number" min="2" max="500" step="1" value="100">
 </section>
 
 <section class="card">
@@ -118,7 +118,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
     <p id="pointText">Aguarde a banca definir o ponto.</p>
     <div id="pointPay" class="pay">Pagamento: —</div>
     <label for="pointBet">Valor apostado no ponto</label>
-    <input id="pointBet" type="number" min="0" step="10" value="0" disabled>
+    <input id="pointBet" type="number" min="2" max="500" step="1" value="0" disabled>
   </div>
 </section>
 
@@ -182,8 +182,10 @@ function rateForPoint(p){
 }
 function confirmBase(){
   if(phase!=="idle")return;
-  const value=Math.max(0,Number($("baseBet").value)||0);
-  if(value<10){status("A aposta inicial mínima é 10 créditos.","lose");return}
+  const check=clubBets.validate($("baseBet").value);
+  if(!check.ok){status(check.message,"lose");return}
+  const value=check.value;
+  $("baseBet").value=value;
   if(value>playerBalance){status("O jogador não possui saldo suficiente.","lose");return}
 
   baseBet=value;
@@ -218,8 +220,10 @@ function enablePointBets(){
 }
 function confirmSide(){
   if(phase!=="betting")return;
-  pointBet=Math.max(0,Number($("pointBet").value)||0);
-  if(pointBet===0){status("Informe o valor da aposta no ponto.","lose");return}
+  const check=clubBets.validate($("pointBet").value);
+  if(!check.ok){status(check.message,"lose");return}
+  pointBet=check.value;
+  $("pointBet").value=pointBet;
   if(pointBet>playerBalance){status("O jogador não possui saldo suficiente.","lose");return}
 
   playerBalance-=pointBet;
@@ -340,7 +344,8 @@ update();
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=5"></script>
 <script src="../js/house.js?v=1"></script>
-<script src="../js/gate.js?v=5"></script>
+<script src="../js/bets.js?v=1"></script>
+<script src="../js/gate.js?v=6"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;
