@@ -9,7 +9,7 @@
     const link = document.createElement('link');
     link.id = 'clubThemeBacatela';
     link.rel = 'stylesheet';
-    link.href = new URL('../css/theme-bacatela.css?v=8', location.href).href;
+    link.href = new URL('../css/theme-bacatela.css?v=9', location.href).href;
     document.head.appendChild(link);
   }
 
