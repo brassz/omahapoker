@@ -3,13 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Omaha 5 Cartas</title>
-<meta http-equiv="refresh" content="0; url=login.html">
+<title>CLUBEDEJOGOSCAIPIRA</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
 <script>
-location.replace('login.html');
+(async () => {
+  try {
+    const session = await omahaAuth.getSession();
+    if (!session?.user) {
+      location.replace('login.html');
+      return;
+    }
+    const profile = await omahaAuth.ensureProfile(session.user);
+    if (typeof omahaAuth.routeAfterLogin === 'function') {
+      await omahaAuth.routeAfterLogin(profile);
+    } else if (profile?.is_admin) {
+      location.replace('admin.html');
+    } else {
+      location.replace('lobby.html');
+    }
+  } catch (_) {
+    location.replace('login.html');
+  }
+})();
 </script>
 </head>
 <body>
-<p style="font-family:sans-serif;text-align:center;margin-top:40px">Redirecionando para o login...</p>
+<p style="font-family:Arial,sans-serif;text-align:center;margin-top:40px;color:#334">Abrindo CLUBEDEJOGOSCAIPIRA...</p>
 </body>
 </html>

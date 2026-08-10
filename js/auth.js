@@ -74,14 +74,15 @@
             id: user.id,
             email: user.email,
             display_name: displayName,
+            player_credits: 0,
+            bank_credits: 0,
+            is_admin: false,
           },
           { onConflict: 'id' }
         )
         .select('*')
         .single();
 
-      // Sem policy de insert: o trigger cria o perfil no signup.
-      // Se ainda não existir (race), tenta ler de novo.
       if (error) {
         profile = await this.getProfile(user.id);
         if (profile) return profile;
@@ -90,12 +91,54 @@
       return data;
     },
 
-    async saveCredits(userId, playerCredits, bankCredits) {
+    isAdmin(profile) {
+      return !!(profile && profile.is_admin);
+    },
+
+    async routeAfterLogin(profile) {
+      if (this.isAdmin(profile)) location.replace('admin.html');
+      else location.replace('lobby.html');
+    },
+
+    async listPlayers() {
+      const { data, error } = await client
+        .from('profiles')
+        .select('id,email,display_name,player_credits,is_admin,created_at,updated_at')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminAdjustCredits(userId, delta) {
+      const { data, error } = await client.rpc('admin_adjust_credits', {
+        target_user: userId,
+        delta,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async adminSetCredits(userId, amount) {
+      const { data, error } = await client.rpc('admin_set_credits', {
+        target_user: userId,
+        new_amount: amount,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async adminDeleteUser(userId) {
+      const { error } = await client.rpc('admin_delete_user', {
+        target_user: userId,
+      });
+      if (error) throw error;
+    },
+
+    async saveCredits(userId, playerCredits) {
       const { error } = await client
         .from('profiles')
         .update({
-          player_credits: playerCredits,
-          bank_credits: bankCredits,
+          player_credits: Math.max(0, Number(playerCredits) || 0),
         })
         .eq('id', userId);
       if (error) throw error;
@@ -120,4 +163,6 @@
       if (error) throw error;
     },
   };
+
+  window.clubAuth = window.omahaAuth;
 })();

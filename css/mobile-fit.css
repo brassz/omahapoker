@@ -1,0 +1,258 @@
+/* Encaixa o jogo na tela do celular sem rolagem vertical */
+@media (max-width: 900px) {
+  :root {
+    --gate-h: 40px;
+  }
+
+  html, body {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #clubGateBar {
+    height: var(--gate-h);
+    min-height: var(--gate-h);
+    max-height: var(--gate-h);
+    padding: 2px 6px !important;
+    margin: 0 !important;
+    gap: 4px !important;
+    box-sizing: border-box;
+  }
+  #clubGateBar .club-name { font-size: 9px !important; letter-spacing: 0 !important; }
+  #clubGateBar .user { font-size: 10px !important; line-height: 1.15 !important; }
+  #clubGateBar .saldo { font-size: 10px !important; }
+  #clubGateBar button {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+    border-width: 1px !important;
+  }
+
+  .app, main.app, body > main {
+    height: calc(100dvh - var(--gate-h)) !important;
+    max-height: calc(100dvh - var(--gate-h)) !important;
+    overflow: hidden !important;
+    padding: 2px 4px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+  }
+
+  body:not(:has(#clubGateBar)) .app,
+  body:not(:has(#clubGateBar)) main.app {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+
+  .mobile-hide,
+  .history,
+  .historyPanel,
+  .rules,
+  .footer,
+  .panel.note,
+  .note,
+  #history,
+  ol.history,
+  section.history,
+  #helpModal,
+  .helpModal,
+  .helpBtn,
+  #openHelp {
+    display: none !important;
+  }
+
+  h1, .app > h1, main.app > h1 {
+    font-size: clamp(15px, 4.8vw, 20px) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0.5px !important;
+    flex: 0 0 auto !important;
+  }
+  .sub, .tagline { display: none !important; }
+
+  .panel, .side, .betPanel, .stage {
+    padding: 3px 4px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    border-width: 1px !important;
+    box-shadow: none !important;
+    flex-shrink: 1 !important;
+    min-height: 0 !important;
+  }
+
+  /* Painéis de layout do Crep (não são cartas) */
+  .app > .card {
+    padding: 4px 5px !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    flex-shrink: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .title, h2, h3 {
+    font-size: 10px !important;
+    margin: 0 0 2px !important;
+    line-height: 1.1 !important;
+  }
+
+  label { font-size: 10px !important; margin: 2px 0 !important; }
+  input, select {
+    padding: 4px 6px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    min-height: 0 !important;
+  }
+  button {
+    padding: 5px 6px !important;
+    font-size: 11px !important;
+    border-radius: 7px !important;
+    border-width: 1px !important;
+    line-height: 1.1 !important;
+  }
+
+  .status, .msg, .point, .sum {
+    font-size: 11px !important;
+    padding: 3px 4px !important;
+    min-height: 0 !important;
+    margin: 2px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .credit, #playerCredits, #playerBalance, #playerCredit {
+    font-size: 18px !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  /* ——— CREP ——— */
+  .dashboard { gap: 3px !important; grid-template-columns: repeat(4, 1fr) !important; }
+  .metric { padding: 3px 2px !important; border-radius: 7px !important; }
+  .metric small { font-size: 8px !important; margin: 0 !important; }
+  .metric strong { font-size: 12px !important; }
+  .steps { display: none !important; }
+  .app > .card > h2 { display: none !important; }
+  .dice { gap: 8px !important; margin: 4px 0 !important; }
+  .dice .die {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 30px !important;
+    border-radius: 10px !important;
+  }
+  .controls { gap: 4px !important; }
+  .controls button { flex: 1 1 auto !important; }
+  #reset { display: none !important; }
+  .bet-grid { grid-template-columns: 1fr 1fr !important; gap: 4px !important; }
+  .bet-card { padding: 4px !important; height: auto !important; }
+  .bet-card p, .pay { font-size: 9px !important; margin: 1px 0 !important; }
+  .bet-card h3 { font-size: 10px !important; margin: 0 0 2px !important; }
+  .result { margin: 0 !important; padding: 4px !important; font-size: 11px !important; line-height: 1.25 !important; }
+  #resultCard:not(:has(.result[style*="display: block"])) {
+    display: none !important;
+  }
+
+  /* ——— CAIPIRA ——— */
+  .topGrid { gap: 3px !important; flex: 0 0 auto !important; }
+  .teams { gap: 3px !important; }
+  .teamBtn { min-height: 34px !important; padding: 2px !important; font-size: 9px !important; }
+  .teamIcon { font-size: 13px !important; margin: 0 !important; }
+  .diceWrap { gap: 3px !important; margin-top: 2px !important; }
+  .diceWrap .die {
+    width: auto !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    border-width: 2px !important;
+    padding: 2px !important;
+    font-size: inherit !important;
+  }
+  .dieIcon { font-size: 16px !important; }
+  .dieName { font-size: 9px !important; margin: 0 !important; }
+  .playBtn { font-size: 13px !important; padding: 7px !important; margin: 0 !important; }
+
+  /* ——— RONDA (cartas de baralho) ——— */
+  .controls { grid-template-columns: repeat(4, 1fr) !important; gap: 3px !important; margin: 2px 0 !important; }
+  .stage .card, .cardBox .card, .mainReveal .card {
+    height: 48px !important;
+    min-height: 48px !important;
+    font-size: 18px !important;
+    border-width: 2px !important;
+    padding: 0 !important;
+  }
+  .stage .card small, .cardBox .card small { font-size: 9px !important; }
+  .mainReveal .card { height: 52px !important; max-width: 90px !important; font-size: 20px !important; }
+  .cardLabel { font-size: 9px !important; margin: 0 0 2px !important; }
+  .betChoices { gap: 3px !important; }
+  .choice { padding: 6px 3px !important; font-size: 10px !important; }
+  .bottomCards { gap: 4px !important; }
+
+  /* ——— OMAHA ——— */
+  .app:has(#playerHand) {
+    gap: 1px !important;
+  }
+  .app:has(#playerHand) #userBar {
+    gap: 4px !important;
+    padding: 2px 4px !important;
+  }
+  .app:has(#playerHand) #userBar #userName { font-size: 12px !important; }
+  .app:has(#playerHand) #userBar #userStats { display: none !important; }
+  .app:has(#playerHand) #userBar .club-name { font-size: 9px !important; }
+  .app:has(#playerHand) #creditPanel .title { font-size: 10px !important; }
+  .app:has(#playerHand) #playerCredits { font-size: 16px !important; }
+  .app:has(#playerHand) #creditPanel > div:nth-child(n+4) { display: none !important; }
+  .app:has(#playerHand) .cards,
+  .app:has(#playerHand) .board,
+  .app:has(#playerHand) #playerHand,
+  .app:has(#playerHand) #bankHand {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 2px !important;
+  }
+  .app:has(#playerHand) .card {
+    min-height: 36px !important;
+    height: 36px !important;
+    border-radius: 5px !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  .app:has(#playerHand) .card .rank,
+  .app:has(#playerHand) .rank { font-size: 11px !important; }
+  .app:has(#playerHand) .card .suit,
+  .app:has(#playerHand) .suit { font-size: 12px !important; }
+  .app:has(#playerHand) .actions {
+    gap: 3px !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+  .app:has(#playerHand) .big { font-size: 12px !important; padding: 6px !important; }
+  .app:has(#playerHand) .result { font-size: 10px !important; line-height: 1.2 !important; }
+  .app:has(#playerHand) #decisionBox { margin-top: 2px !important; }
+  .app:has(#playerHand) #decisionBox button { font-size: 11px !important; padding: 5px !important; }
+  .app:has(#playerHand) #status { font-size: 10px !important; padding: 3px !important; }
+}
+
+@media (max-width: 900px) and (max-height: 740px) {
+  h1, .app > h1 { font-size: 14px !important; }
+  .dice .die { width: 42px !important; height: 42px !important; font-size: 26px !important; }
+  .diceWrap .die { height: 44px !important; min-height: 44px !important; width: auto !important; }
+  .stage .card, .cardBox .card { height: 40px !important; min-height: 40px !important; }
+  .app:has(#playerHand) .card { height: 32px !important; min-height: 32px !important; }
+  .dashboard .metric:nth-child(n+3) { display: none !important; }
+  .dashboard { grid-template-columns: 1fr 1fr !important; }
+}
+
+@media (max-width: 900px) and (max-height: 640px) {
+  #clubGateBar .club-name, #clubGateBar .saldo { display: none !important; }
+  .app:has(#playerHand) .card { height: 28px !important; min-height: 28px !important; }
+  .app:has(#playerHand) .card .rank,
+  .app:has(#playerHand) .rank { font-size: 10px !important; }
+  .app:has(#playerHand) .card .suit,
+  .app:has(#playerHand) .suit { font-size: 11px !important; }
+}

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CLUBEDEJOGOSCAIPIRA — Lobby</title>
+<link rel="stylesheet" href="css/theme-bacatela.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+.wrap{width:min(980px,100%);margin:0 auto;padding:14px 10px 28px}
+.hero{text-align:center;padding:8px 6px 14px}
+.club-logo{
+  width:min(160px,40vw);height:auto;aspect-ratio:1;object-fit:contain;
+  display:block;margin:0 auto 8px;
+  filter:drop-shadow(0 0 18px #ff2bd688) drop-shadow(0 0 28px #17c8ff55);
+  animation:floaty 3.2s ease-in-out infinite;
+}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.brand{
+  margin:0;font-size:clamp(28px,7vw,52px);line-height:.95;
+  word-break:break-word;
+}
+.tag{margin:8px 0 0;font-size:clamp(14px,3.5vw,20px)}
+.userbar{
+  display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
+  margin:14px 0 16px;padding:12px;border-radius:16px;
+  background:#080812;border:2px solid var(--pink);
+  box-shadow:0 0 14px #ff2bd655;
+}
+.userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px}
+.userbar strong{display:block;font-size:16px;margin-top:2px}
+.userbar button{
+  border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;
+  box-shadow:0 0 12px #ff343455;
+}
+.section-title{
+  text-align:center;margin:0 0 12px;font-size:14px;font-weight:1000;
+  letter-spacing:3px;color:var(--gold);text-shadow:0 0 12px var(--gold);
+}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.game{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;min-height:180px;padding:16px 12px;text-decoration:none;color:#fff;
+  border-radius:16px;border:2px solid var(--blue);
+  background:#060912;box-shadow:0 0 18px #17c8ff55;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  animation:rise .45s ease both;
+}
+.game:nth-child(2){animation-delay:.05s;border-color:var(--pink);box-shadow:0 0 18px #ff2bd655}
+.game:nth-child(3){animation-delay:.1s;border-color:var(--gold);box-shadow:0 0 18px #ffd91a55}
+.game:nth-child(4){animation-delay:.15s;border-color:var(--green);box-shadow:0 0 18px #5cff1a55}
+.game:nth-child(5){animation-delay:.2s;border-color:var(--orange);box-shadow:0 0 18px #ff8c1555}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.game:hover,.game:focus-visible{
+  transform:translateY(-4px) scale(1.03);
+  border-color:#fff;box-shadow:0 0 24px #fff8,0 0 36px currentColor;
+  outline:none;
+}
+.game img{
+  width:96px;height:96px;object-fit:contain;border-radius:16px;
+  background:#050812;border:2px solid #ffffff22;
+  box-shadow:0 0 16px #ffffff22;
+}
+.game span{
+  font-weight:1000;font-size:18px;letter-spacing:2px;
+  text-shadow:0 0 10px #fff6;
+}
+.foot{
+  margin-top:16px;text-align:center;font-size:11px;font-weight:800;
+  color:#ffe700;border-top:2px solid var(--pink);padding-top:10px;
+}
+.loading{text-align:center;padding:40px 10px;font-weight:900;color:var(--gold)}
+</style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <div class="loading" id="loading">Validando sessão...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script>
+  const GAMES = [
+    { id: 'omaha', name: 'OMAHA', href: 'jogos/omaha.html' },
+    { id: 'crep', name: 'CREP', href: 'jogos/crep.html' },
+    { id: 'bacatela', name: 'BACATELA', href: 'jogos/bacatela.html' },
+    { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
+    { id: 'caipira', name: 'CAIPIRA', href: 'jogos/caipira.html' },
+  ];
+
+  function logoImg(id, className) {
+    return `<img class="${className || ''}" src="assets/logos/${id}.png" alt="${id}" onerror="this.onerror=null;this.src='assets/logos/${id}.svg'">`;
+  }
+
+  async function boot() {
+    const user = await omahaAuth.requireUser('login.html');
+    if (!user) return;
+
+    let profile = null;
+    try { profile = await omahaAuth.ensureProfile(user); } catch (_) {}
+
+    const name = profile?.display_name || user.email || 'Jogador';
+    const credits = Number(profile?.player_credits || 0).toLocaleString('pt-BR');
+    const adminBtn = omahaAuth.isAdmin(profile)
+      ? `<button type="button" id="adminBtn" style="background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff;margin-right:6px">ADMIN</button>`
+      : '';
+
+    document.getElementById('app').innerHTML = `
+      <header class="hero">
+        ${logoImg('club', 'club-logo')}
+        <h1 class="brand club-rainbow">CLUBEDEJOGOSCAIPIRA</h1>
+        <p class="tag">Escolha um jogo</p>
+      </header>
+
+      <section class="userbar">
+        <div>
+          <small>LOGADO COMO</small>
+          <strong id="userName">${name}</strong>
+          <small style="display:block;margin-top:4px;color:#ffd91a;text-shadow:0 0 10px #ffd91a">SALDO: ${credits}</small>
+        </div>
+        <div>
+          ${adminBtn}
+          <button type="button" id="logoutBtn">SAIR</button>
+        </div>
+      </section>
+
+      <h2 class="section-title">★ SALAS DE JOGO ★</h2>
+      <nav class="grid" aria-label="Lista de jogos">
+        ${GAMES.map((g) => `
+          <a class="game" href="${g.href}" aria-label="Abrir ${g.name}">
+            ${logoImg(g.id)}
+            <span>${g.name}</span>
+          </a>
+        `).join('')}
+      </nav>
+      <p class="foot">PEÇA PARA ADICIONAR SALDO AO ADMIN</p>
+    `;
+
+    const adminEl = document.getElementById('adminBtn');
+    if (adminEl) adminEl.onclick = () => location.href = 'admin.html';
+    document.getElementById('logoutBtn').onclick = async () => {
+      try { await omahaAuth.signOut(); } catch (_) {}
+      location.replace('login.html');
+    };
+  }
+
+  boot().catch(() => location.replace('login.html'));
+  </script>
+</body>
+</html>

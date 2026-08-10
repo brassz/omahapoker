@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ronda - Jogo Fictício</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0d1b2a;--line:#1f6feb;--gold:#ffd54a;--green:#39d353;
+  --red:#ff5b5b;--text:#f4f7fb;--muted:#a9b7c6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#06101b,#02070d);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+.app{max-width:1000px;margin:auto;padding:10px}
+h1{text-align:center;margin:4px 0 0;font-size:38px;color:var(--gold);letter-spacing:2px}
+.sub{text-align:center;color:var(--muted);font-weight:700;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.panel{background:var(--panel);border:1px solid #24415f;border-radius:14px;padding:10px;box-shadow:0 0 15px #0008}
+.credit{font-size:27px;font-weight:900;color:var(--green);text-align:center}
+.row{display:flex;gap:6px;margin-top:6px}
+input,select{width:100%;padding:10px;border-radius:9px;border:1px solid #3d5873;background:#06101b;color:#fff;font-size:16px}
+button{border:0;border-radius:10px;padding:11px 10px;font-weight:900;color:white;background:#1f6feb;cursor:pointer}
+button.secondary{background:#6542c7}
+button.green{background:#178f3e}
+button.red{background:#aa2e35}
+button.gold{background:#b38100}
+button:disabled{opacity:.45;cursor:not-allowed}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}
+.stage{background:#07131f;border:2px solid #1c6db3;border-radius:12px;padding:5px;max-width:480px;margin:0 auto}
+.bottomCards{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cardBox{text-align:center}
+.cardLabel{font-weight:900;margin-bottom:6px}
+.card{height:78px;border-radius:12px;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:900;font-size:34px;box-shadow:0 7px 18px #0008;border:3px solid #ddd}
+.card.redSuit{color:#d11919}
+.card.back{background:repeating-linear-gradient(45deg,#173b75,#173b75 10px,#0d2850 10px,#0d2850 20px);color:#fff;border-color:#7aa7ff}
+.card small{font-size:18px}
+.mainReveal{margin-top:6px;text-align:center}
+.mainReveal .card{max-width:125px;margin:auto;height:82px;font-size:28px}
+.status{margin-top:6px;padding:7px;border-radius:10px;background:#03101a;border:1px solid #2a4864;text-align:center;font-weight:800;min-height:44px}
+.betArea{margin-top:10px}
+.betChoices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{padding:12px;border:2px solid transparent}
+.choice.active{border-color:var(--gold);box-shadow:0 0 12px #ffd54a88}
+.history{margin-top:10px}
+.historyItem{padding:7px 0;border-bottom:1px solid #24384b;font-size:13px}
+.footer{text-align:center;color:#ffd54a;font-weight:900;margin-top:10px;font-size:12px}
+@media(max-width:650px){
+  .controls{grid-template-columns:1fr 1fr}
+  .card{height:68px;font-size:22px}
+  .mainReveal .card{height:72px}
+  h1{font-size:32px}
+}
+</style>
+
+<style>
+/* Versão compacta para celular */
+.app{max-width:620px;padding:4px}
+h1{font-size:27px;margin:1px 0;line-height:1}
+.sub{font-size:10px;margin-bottom:4px}
+.grid{gap:4px}
+.panel{padding:5px;border-radius:9px;margin-bottom:4px}
+.credit{font-size:20px}
+.row{gap:3px;margin-top:3px}
+input,select{padding:6px;font-size:13px}
+button{padding:7px 5px;font-size:11px;border-radius:7px}
+.controls{gap:4px;margin:5px 0;grid-template-columns:repeat(4,1fr)}
+.betArea{margin-top:4px}
+.betChoices{gap:4px}
+.choice{padding:7px 3px}
+.stage{padding:4px;max-width:420px;border-radius:10px}
+.bottomCards{gap:4px}
+.cardLabel{font-size:11px;margin-bottom:3px}
+.card{height:62px;font-size:20px;border-width:2px;border-radius:8px}
+.card small{font-size:10px}
+.mainReveal{margin-top:4px}
+.mainReveal .card{max-width:105px;height:66px;font-size:23px}
+.status{margin-top:4px;padding:5px;font-size:11px;min-height:30px}
+.history{margin-top:4px}
+.historyItem{padding:4px 0;font-size:10px}
+.footer{margin-top:4px;font-size:9px}
+@media(max-width:650px){
+  .app{padding:3px}
+  h1{font-size:24px}
+  .grid{grid-template-columns:1fr 1fr}
+  .panel{padding:4px}
+  .credit{font-size:18px}
+  input{padding:5px;font-size:12px}
+  button{padding:6px 3px;font-size:9px}
+  .controls{grid-template-columns:repeat(4,1fr)}
+  .card{height:56px;font-size:18px}
+  .mainReveal .card{height:60px}
+}
+</style>
+
+
+<style>
+/* +1,5 cm aproximadamente, distribuídos entre os blocos */
+.topGrid .panel, .grid .panel{min-height:calc(100% + 4mm);padding-top:6mm;padding-bottom:6mm}
+.betArea{padding-top:5mm;padding-bottom:5mm}
+.stage{padding-top:5mm;padding-bottom:5mm}
+.history{padding-top:4mm;padding-bottom:4mm}
+</style>
+
+</head>
+<body>
+<main class="app">
+  <h1>🃏 RONDA 🃏</h1>
+  <div class="sub">A primeira carta-base que repetir vence</div>
+
+  <section class="grid">
+    <div class="panel">
+      <div style="text-align:center;font-weight:900">CRÉDITOS DO JOGADOR</div>
+      <div class="credit" id="credits">10.000</div>
+      <div class="row">
+        <input id="addCredits" type="number" min="1" placeholder="Adicionar créditos">
+        <button class="green" onclick="addCredit('player')">+ JOGADOR</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div style="text-align:center;font-weight:900">CRÉDITOS DA BANCA</div>
+      <div class="credit" id="bankCredits">10.000</div>
+      <div class="row">
+        <input id="addBankCredits" type="number" min="1" placeholder="Adicionar créditos">
+        <button class="gold" onclick="addCredit('bank')">+ BANCA</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div style="text-align:center;font-weight:900">APOSTA FICTÍCIA DO JOGADOR</div>
+    <div class="row">
+      <input id="bet" type="number" min="1" value="100">
+    </div>
+    <div class="row">
+      <button onclick="setBet(50)">50</button>
+      <button onclick="setBet(100)">100</button>
+      <button onclick="setBet(500)">500</button>
+    </div>
+  </section>
+
+  <section class="panel betArea">
+    <div style="text-align:center;font-weight:900;margin-bottom:7px">ESCOLHA SUA CARTA</div>
+    <div class="betChoices">
+      <button id="pickA" class="choice" onclick="pick('A')">APOSTAR NA CARTA A</button>
+      <button id="pickB" class="choice" onclick="pick('B')">APOSTAR NA CARTA B</button>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="shuffleBtn" class="secondary" onclick="shuffleDeck()">🔀 EMBARALHAR</button>
+    <button id="cutBtn" class="gold" onclick="cutDeck()">✂️ CORTAR</button>
+    <button id="dealBtn" class="green" onclick="dealBottom()">🂠 ABRIR CARTA A E B</button>
+    <button id="playBtn" class="red" onclick="playRound()">▶ VIRAR CARTAS</button>
+  </div>
+
+  <section class="stage">
+    <div class="bottomCards">
+      <div class="cardBox">
+        <div class="cardLabel">CARTA A</div>
+        <div id="cardA" class="card back">?</div>
+      </div>
+      <div class="cardBox">
+        <div class="cardLabel">CARTA B</div>
+        <div id="cardB" class="card back">?</div>
+      </div>
+    </div>
+
+    <div class="mainReveal">
+      <div style="font-weight:900;margin:10px 0 6px">CARTA VIRADA</div>
+      <div id="currentCard" class="card back">RONDA</div>
+    </div>
+
+    <div class="status" id="status">1) Embaralhe  2) Corte  3) Abra Carta A e B  4) Escolha a aposta  5) Vire as cartas.</div>
+  </section>
+
+  <section class="panel history">
+    <div style="font-weight:900;text-align:center;margin-bottom:6px">HISTÓRICO</div>
+    <div id="history">Nenhuma rodada ainda.</div>
+  </section>
+
+  <div class="footer">⚠ JOGADOR X BANCA — SOMENTE CRÉDITOS FICTÍCIOS, SEM DINHEIRO REAL ⚠</div>
+</main>
+
+<script>
+const suits = [
+  {s:'♠', red:false},{s:'♥', red:true},{s:'♦', red:true},{s:'♣', red:false}
+];
+const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let credits = Number(localStorage.getItem('rondaCredits') || 10000);
+let bankCredits = Number(localStorage.getItem('rondaBankCredits') || 10000);
+let history = JSON.parse(localStorage.getItem('rondaHistory') || '[]');
+let deck = [];
+let cardA = null, cardB = null;
+let picked = null;
+let ready = false;
+
+function fmt(n){return Number(n).toLocaleString('pt-BR')}
+function makeDeck(){
+  const d=[];
+  for(const suit of suits) for(const rank of ranks) d.push({rank,suit:suit.s,red:suit.red});
+  return d;
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function save(){
+  localStorage.setItem('rondaCredits',credits);
+  localStorage.setItem('rondaBankCredits',bankCredits);
+  localStorage.setItem('rondaHistory',JSON.stringify(history));
+}
+function renderCredits(){
+  document.getElementById('credits').textContent=fmt(credits);
+  document.getElementById('bankCredits').textContent=fmt(bankCredits);
+}
+function cardHtml(c){
+  if(!c) return '?';
+  return `<div>${c.rank}${c.suit}</div><small>${c.rank} de ${c.suit}</small>`;
+}
+function showCard(id,c){
+  const el=document.getElementById(id);
+  if(!c){el.className='card back';el.innerHTML='?';return}
+  el.className='card'+(c.red?' redSuit':'');
+  el.innerHTML=cardHtml(c);
+}
+function renderHistory(){
+  const box=document.getElementById('history');
+  if(!history.length){box.innerHTML='Nenhuma rodada ainda.';return}
+  box.innerHTML=history.slice(0,10).map(h=>
+    `<div class="historyItem"><b>${h.winner}</b> venceu — ${h.a} x ${h.b} — aposta ${fmt(h.bet)} — ${h.result}</div>`
+  ).join('');
+}
+function addCredit(who){
+  const isBank=who==='bank';
+  const id=isBank?'addBankCredits':'addCredits';
+  const v=Math.floor(Number(document.getElementById(id).value));
+  if(!v||v<1)return alert('Informe uma quantidade de créditos fictícios.');
+  if(isBank) bankCredits+=v;
+  else credits+=v;
+  document.getElementById(id).value='';
+  save();
+  renderCredits();
+}
+function setBet(v){document.getElementById('bet').value=v}
+function pick(x){
+  picked=x;
+  document.getElementById('pickA').classList.toggle('active',x==='A');
+  document.getElementById('pickB').classList.toggle('active',x==='B');
+}
+function shuffleDeck(){
+  deck=shuffle(makeDeck());
+  cardA=null;
+  cardB=null;
+  ready=false;
+  picked=null;
+
+  document.getElementById('pickA').classList.remove('active');
+  document.getElementById('pickB').classList.remove('active');
+
+  showCard('cardA',null);
+  showCard('cardB',null);
+
+  const current=document.getElementById('currentCard');
+  current.className='card back';
+  current.innerHTML='BARALHO<br><small>52 CARTAS</small>';
+
+  document.getElementById('status').textContent='Baralho embaralhado. Agora toque em CORTAR.';
+}
+
+function cutDeck(){
+  if(!Array.isArray(deck) || deck.length!==52){
+    return alert('Primeiro toque em EMBARALHAR.');
+  }
+
+  const cut=Math.floor(Math.random()*31)+10;
+  deck=[...deck.slice(cut),...deck.slice(0,cut)];
+
+  document.getElementById('status').textContent=
+    `Baralho cortado. Agora toque em ABRIR CARTA A E B.`;
+}
+
+function dealBottom(){
+  if(!Array.isArray(deck) || deck.length!==52){
+    return alert('Primeiro embaralhe e corte o baralho.');
+  }
+
+  // Retira duas cartas do fundo do baralho e deixa as duas visíveis.
+  cardA=deck.pop();
+  cardB=deck.pop();
+
+  // Se tiverem o mesmo valor, devolve e sorteia novamente,
+  // para que A e B sejam valores diferentes.
+  let tentativas=0;
+  while(cardA.rank===cardB.rank && tentativas<20){
+    deck.push(cardA);
+    deck.push(cardB);
+    deck=shuffle(deck);
+    cardA=deck.pop();
+    cardB=deck.pop();
+    tentativas++;
+  }
+
+  showCard('cardA',cardA);
+  showCard('cardB',cardB);
+
+  const current=document.getElementById('currentCard');
+  current.className='card back';
+  current.innerHTML=`BARALHO<br><small>${deck.length} CARTAS</small>`;
+
+  ready=true;
+
+  document.getElementById('status').textContent=
+    `Carta A: ${cardA.rank}${cardA.suit} | Carta B: ${cardB.rank}${cardB.suit}. Agora escolha A ou B e toque em VIRAR CARTAS.`;
+}
+
+async function playRound(){
+  if(!ready)return alert('Primeiro embaralhe, corte e abra a Carta A e a Carta B.');
+  if(!picked)return alert('Escolha Carta A ou Carta B para apostar.');
+  const bet=Math.floor(Number(document.getElementById('bet').value));
+  if(!bet||bet<1)return alert('Informe uma aposta fictícia válida.');
+  if(credits<bet)return alert('O jogador não possui créditos fictícios suficientes.');
+  if(bankCredits<bet)return alert('A banca não possui créditos fictícios suficientes para cobrir a rodada.');
+
+  document.getElementById('playBtn').disabled=true;
+  document.getElementById('shuffleBtn').disabled=true;
+  document.getElementById('cutBtn').disabled=true;
+  document.getElementById('dealBtn').disabled=true;
+
+  let winner=null, winningCard=null, turned=0;
+
+  while(deck.length){
+    const c=deck.shift();
+    turned++;
+    showCard('currentCard',c);
+    document.getElementById('status').textContent=
+      `Carta ${turned} virada: ${c.rank}${c.suit}. Procurando ${cardA.rank} ou ${cardB.rank}...`;
+
+    await new Promise(r=>setTimeout(r,650));
+
+    if(c.rank===cardA.rank){
+      winner='A'; winningCard=c; break;
+    }
+    if(c.rank===cardB.rank){
+      winner='B'; winningCard=c; break;
+    }
+  }
+
+  if(!winner){
+    document.getElementById('status').textContent='Nenhuma das cartas repetiu. Embaralhe novamente.';
+    ready=false;
+    document.getElementById('playBtn').disabled=false;
+    document.getElementById('shuffleBtn').disabled=false;
+    document.getElementById('cutBtn').disabled=false;
+    document.getElementById('dealBtn').disabled=false;
+    return;
+  }
+
+  const won=picked===winner;
+  if(won){
+    credits+=bet;
+    bankCredits-=bet;
+  }else{
+    credits-=bet;
+    bankCredits+=bet;
+  }
+
+  const result=won
+    ? `Jogador +${fmt(bet)} / Banca -${fmt(bet)}`
+    : `Jogador -${fmt(bet)} / Banca +${fmt(bet)}`;
+  history.unshift({
+    winner:`CARTA ${winner}`,
+    a:`${cardA.rank}${cardA.suit}`,
+    b:`${cardB.rank}${cardB.suit}`,
+    bet,result
+  });
+
+  save();
+  renderCredits();
+  renderHistory();
+
+  document.getElementById('status').textContent=
+    `🏆 CARTA ${winner} VENCEU! O valor ${winningCard.rank} apareceu primeiro depois de ${turned} carta(s) virada(s). ${won?'O JOGADOR ganhou da BANCA':'A BANCA ganhou do JOGADOR'} ${fmt(bet)} créditos fictícios.`;
+
+  ready=false;
+  document.getElementById('playBtn').disabled=false;
+  document.getElementById('shuffleBtn').disabled=false;
+  document.getElementById('cutBtn').disabled=false;
+  document.getElementById('dealBtn').disabled=false;
+}
+
+renderCredits();renderHistory();
+</script>
+</body>
+</html>

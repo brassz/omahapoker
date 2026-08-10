@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Caipira - Jogo Fictício</title>
+<style>
+:root{
+  --bg:#07150b;--panel:#102318;--line:#2f7d32;--gold:#ffd54a;--green:#47d16c;
+  --red:#ff6262;--text:#f7fff8;--muted:#b9cbbd;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0a1e0e,#030803);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+.app{max-width:900px;margin:auto;padding:8px}
+h1{text-align:center;margin:4px 0 0;font-size:38px;color:var(--gold);letter-spacing:3px}
+.sub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:3px 0 8px}
+.panel{background:var(--panel);border:1px solid #2c5c37;border-radius:14px;padding:9px;margin-bottom:8px;box-shadow:0 4px 18px #0007}
+.topGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.title{font-size:12px;font-weight:900;text-align:center;color:#d9f7df}
+.credit{font-size:28px;font-weight:1000;color:var(--green);text-align:center;margin:4px 0}
+.row{display:flex;gap:5px;margin-top:5px}
+input{width:100%;min-width:0;padding:9px;border-radius:8px;border:1px solid #476c51;background:#061009;color:#fff;font-size:16px}
+button{border:0;border-radius:9px;padding:9px 7px;font-weight:900;color:white;background:#26893f;cursor:pointer}
+button:disabled{opacity:.45}
+.teams{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.teamBtn{background:#132d1d;border:2px solid #355d3e;min-height:58px;font-size:13px}
+.teamBtn.active{border-color:var(--gold);box-shadow:0 0 12px #ffd54a99;background:#31421e}
+.teamIcon{display:block;font-size:21px;margin-bottom:2px}
+.diceWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
+.die{height:105px;background:#fff;color:#132016;border-radius:13px;border:4px solid #e7e7e7;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:1000;box-shadow:0 7px 15px #0008;padding:4px}
+.die.spin{animation:spin .12s linear infinite}
+.dieIcon{font-size:29px;line-height:1}
+.dieName{font-size:13px;margin-top:4px}
+@keyframes spin{0%{transform:rotate(-3deg) scale(.98)}50%{transform:rotate(3deg) scale(1.03)}100%{transform:rotate(-3deg) scale(.98)}}
+.playBtn{width:100%;font-size:20px;background:linear-gradient(90deg,#257a34,#49b95d,#257a34);border:2px solid #72e58a;padding:12px}
+.status{margin-top:7px;background:#061009;border:1px solid #31533a;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:42px}
+.rules{font-size:12px;line-height:1.5;color:#dce8df}
+.historyItem{font-size:12px;padding:5px 0;border-bottom:1px solid #294333}
+.footer{text-align:center;color:var(--gold);font-weight:900;font-size:11px;margin-top:6px}
+@media(max-width:550px){
+  .app{padding:5px}
+  h1{font-size:31px}
+  .topGrid{grid-template-columns:1fr 1fr;gap:5px}
+  .panel{padding:6px;margin-bottom:6px}
+  .teams{grid-template-columns:repeat(3,1fr);gap:4px}
+  .teamBtn{min-height:50px;padding:5px 2px;font-size:10px}
+  .teamIcon{font-size:18px}
+  .diceWrap{gap:4px}
+  .die{height:84px;border-width:2px}
+  .dieIcon{font-size:24px}
+  .dieName{font-size:10px}
+  .playBtn{font-size:16px;padding:10px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>⚽ CAIPIRA ⚽</h1>
+  <div class="sub">JOGO FICTÍCIO COM 3 DADOS E 6 TIMES</div>
+
+  <section class="topGrid">
+    <div class="panel">
+      <div class="title">CRÉDITOS FICTÍCIOS</div>
+      <div id="credits" class="credit">10.000</div>
+      <div class="row">
+        <input id="addCredit" type="number" min="1" placeholder="+ créditos">
+        <button onclick="addCredits()">ADICIONAR</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="title">VALOR DA APOSTA</div>
+      <input id="bet" type="number" min="1" value="100">
+      <div class="row">
+        <button onclick="setBet(50)">50</button>
+        <button onclick="setBet(100)">100</button>
+        <button onclick="setBet(500)">500</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="title" style="margin-bottom:6px">ESCOLHA 1 DOS 6 TIMES</div>
+    <div id="teams" class="teams"></div>
+  </section>
+
+  <section class="panel">
+    <div class="title">RESULTADO DOS 3 DADOS</div>
+    <div class="diceWrap">
+      <div class="die" id="die0"><div class="dieIcon">🎲</div><div class="dieName">DADO 1</div></div>
+      <div class="die" id="die1"><div class="dieIcon">🎲</div><div class="dieName">DADO 2</div></div>
+      <div class="die" id="die2"><div class="dieIcon">🎲</div><div class="dieName">DADO 3</div></div>
+    </div>
+    <div style="margin-top:8px">
+      <button id="play" class="playBtn" onclick="play()">🎲 SORTEAR OS 3 DADOS 🎲</button>
+    </div>
+    <div id="status" class="status">Escolha um time e defina sua aposta fictícia.</div>
+  </section>
+
+  <section class="panel rules">
+    <b>REGRAS:</b> cada dado possui os mesmos 6 times. Se o time escolhido aparecer em 1 dado, você ganha 1 vez o valor apostado; em 2 dados, ganha 2 vezes; em 3 dados, ganha 3 vezes. Se não aparecer, perde somente a aposta da rodada. O valor apostado é devolvido quando há vitória, além do prêmio correspondente.
+  </section>
+
+  <section class="panel">
+    <div class="title">HISTÓRICO</div>
+    <div id="history">Nenhuma rodada ainda.</div>
+  </section>
+
+  <div class="footer">⚠ SOMENTE CRÉDITOS FICTÍCIOS — SEM DINHEIRO REAL E SEM VALOR MONETÁRIO ⚠</div>
+</main>
+
+<script>
+const teams=[
+  {name:'TIME 1',icon:'🔵'},
+  {name:'TIME 2',icon:'🔴'},
+  {name:'TIME 3',icon:'🟢'},
+  {name:'TIME 4',icon:'🟡'},
+  {name:'TIME 5',icon:'🟣'},
+  {name:'TIME 6',icon:'⚪'}
+];
+let credits=Number(localStorage.getItem('caipiraCredits')||10000);
+let chosen=null;
+let history=JSON.parse(localStorage.getItem('caipiraHistory')||'[]');
+
+function fmt(v){return Number(v).toLocaleString('pt-BR')}
+function save(){
+  localStorage.setItem('caipiraCredits',credits);
+  localStorage.setItem('caipiraHistory',JSON.stringify(history));
+}
+function renderCredits(){document.getElementById('credits').textContent=fmt(credits)}
+function renderTeams(){
+  const box=document.getElementById('teams');
+  box.innerHTML=teams.map((t,i)=>`
+    <button class="teamBtn ${chosen===i?'active':''}" onclick="chooseTeam(${i})">
+      <span class="teamIcon">${t.icon}</span>${t.name}
+    </button>`).join('');
+}
+function chooseTeam(i){
+  chosen=i;
+  renderTeams();
+  document.getElementById('status').textContent=`Você escolheu ${teams[i].name}. Agora sorteie os 3 dados.`;
+}
+function setBet(v){document.getElementById('bet').value=v}
+function addCredits(){
+  const el=document.getElementById('addCredit');
+  const v=Math.floor(Number(el.value));
+  if(!v||v<1)return alert('Informe uma quantidade de créditos fictícios.');
+  credits+=v;el.value='';save();renderCredits();
+}
+function renderHistory(){
+  const el=document.getElementById('history');
+  if(!history.length){el.innerHTML='Nenhuma rodada ainda.';return}
+  el.innerHTML=history.slice(0,10).map(h=>
+    `<div class="historyItem"><b>${h.team}</b> apareceu ${h.matches} vez(es) — aposta ${fmt(h.bet)} — ${h.result}</div>`
+  ).join('');
+}
+function showDie(index,team){
+  const d=document.getElementById('die'+index);
+  d.innerHTML=`<div class="dieIcon">${team.icon}</div><div class="dieName">${team.name}</div>`;
+}
+async function play(){
+  if(chosen===null)return alert('Escolha um dos 6 times.');
+  const bet=Math.floor(Number(document.getElementById('bet').value));
+  if(!bet||bet<1)return alert('Informe uma aposta fictícia válida.');
+  if(credits<bet)return alert('Créditos fictícios insuficientes.');
+
+  const btn=document.getElementById('play');
+  btn.disabled=true;
+  credits-=bet;
+  renderCredits();
+
+  const dice=[];
+  for(let i=0;i<3;i++)document.getElementById('die'+i).classList.add('spin');
+
+  for(let k=0;k<12;k++){
+    for(let i=0;i<3;i++){
+      const r=Math.floor(Math.random()*6);
+      showDie(i,teams[r]);
+    }
+    await new Promise(r=>setTimeout(r,80));
+  }
+
+  for(let i=0;i<3;i++){
+    const r=Math.floor(Math.random()*6);
+    dice.push(r);
+    showDie(i,teams[r]);
+    document.getElementById('die'+i).classList.remove('spin');
+  }
+
+  const matches=dice.filter(x=>x===chosen).length;
+  let resultText='';
+
+  if(matches===0){
+    resultText=`Perdeu ${fmt(bet)} créditos`;
+    document.getElementById('status').textContent=
+      `Nenhum dado mostrou ${teams[chosen].name}. Você perdeu ${fmt(bet)} créditos fictícios.`;
+  }else{
+    const prize=bet*matches;
+    credits+=bet+prize;
+    resultText=`Ganhou +${fmt(prize)} créditos`;
+    document.getElementById('status').textContent=
+      `🏆 ${teams[chosen].name} apareceu ${matches} vez(es)! Prêmio: ${matches}x = +${fmt(prize)} créditos fictícios.`;
+  }
+
+  history.unshift({team:teams[chosen].name,matches,bet,result:resultText});
+  save();renderCredits();renderHistory();
+  btn.disabled=false;
+}
+renderCredits();renderTeams();renderHistory();
+</script>
+</body>
+</html>

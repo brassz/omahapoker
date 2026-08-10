@@ -3,78 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Login — Omaha 5 Cartas</title>
+<title>Login — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="css/theme-bacatela.css">
 <style>
-:root{
-  --text:#f7fff9;
-  --muted:#d7e7ff;
-  --gold:#fff36a;
-  --line:#75e7ff;
-  --danger:#ff8a8a;
-}
 *{box-sizing:border-box}
 body{
-  margin:0;min-height:100vh;color:var(--text);
-  font-family:"Trebuchet MS","Segoe UI",sans-serif;
-  background:
-    radial-gradient(circle at 12% 8%,#ff4d6d 0,transparent 24%),
-    radial-gradient(circle at 88% 10%,#5b5bf7 0,transparent 26%),
-    radial-gradient(circle at 15% 88%,#00c98d 0,transparent 25%),
-    radial-gradient(circle at 88% 86%,#ffb000 0,transparent 28%),
-    linear-gradient(145deg,#27105a,#0c6280 48%,#3c146c);
-  background-attachment:fixed;
-  display:grid;place-items:center;padding:16px;
+  margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;
 }
 .shell{
   width:min(420px,100%);
-  background:linear-gradient(180deg,#ffffff18,#00000022);
-  border:2px solid var(--line);
-  border-radius:20px;
+  background:#080812;
+  border:2px solid var(--pink);
+  border-radius:18px;
   padding:22px 18px 18px;
-  box-shadow:0 18px 40px #0007;
+  box-shadow:0 0 24px #ff2bd666,0 18px 40px #000a;
   animation:rise .45s ease both;
 }
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.club-logo{
+  width:96px;height:96px;object-fit:contain;display:block;margin:0 auto 8px;
+  filter:drop-shadow(0 0 16px #17c8ff88);
+}
 .brand{
   text-align:center;margin:0 0 4px;
-  font-size:clamp(28px,7vw,36px);letter-spacing:1px;
-  color:var(--gold);text-shadow:0 2px 0 #a21caf,0 0 16px #ff4fd8;
+  font-size:clamp(24px,7vw,34px);line-height:1.05;
+  word-break:break-word;
 }
-.sub{text-align:center;color:#fff;font-weight:700;font-size:12px;margin:0 0 16px}
+.sub{
+  text-align:center;color:#fff;font-weight:1000;font-size:13px;margin:0 0 16px;
+  text-shadow:0 0 12px var(--gold);
+}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
 .tab{
-  border:2px solid #ffd2ee;border-radius:10px;padding:10px;
+  border:2px solid var(--violet);border-radius:10px;padding:10px;
   font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(135deg,#5b21b6,#312e81);
+  background:linear-gradient(180deg,#6726d9,#331173);
+  box-shadow:0 0 10px #9c34ff55;
 }
-.tab.active{background:linear-gradient(135deg,#ff2f92,#8b5cf6)}
-label{display:block;font-size:12px;font-weight:800;margin:10px 0 4px;color:#e0f2fe}
+.tab.active{
+  background:linear-gradient(180deg,#ff2bd6,#9c34ff);
+  border-color:#ff9be0;
+  box-shadow:0 0 16px #ff2bd688;
+}
+label{display:block;font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--muted)}
 input{
-  width:100%;border:0;border-radius:10px;padding:12px 11px;
+  width:100%;border-radius:10px;padding:12px 11px;
   font-size:15px;font-weight:700;outline:none;
-  background:#0b1b33;color:#fff;border:2px solid #38bdf8;
+  background:#090b14;color:#fff;border:1px solid #445;
 }
-input:focus{border-color:#fff36a;box-shadow:0 0 0 3px #fff36a44}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 2px #17c8ff55}
 .btn{
-  width:100%;margin-top:14px;border:2px solid #ffd2ee;border-radius:12px;
+  width:100%;margin-top:14px;border-radius:12px;
   padding:13px;font-size:16px;font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(135deg,#00b96b,#00a8e8);
+  background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00);
+  border:2px solid #9dff76;box-shadow:0 0 16px #62ff00;
 }
 .btn:disabled{opacity:.6;cursor:wait}
-.msg{
-  min-height:20px;margin-top:10px;text-align:center;
-  font-size:13px;font-weight:800;color:var(--muted);
+.msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:var(--muted)}
+.msg.error{color:var(--red)}
+.msg.ok{color:var(--green)}
+.note{
+  margin-top:12px;text-align:center;font-size:11px;color:#ffe700;
+  line-height:1.4;border-top:2px solid var(--pink);padding-top:10px;font-weight:800;
 }
-.msg.error{color:var(--danger)}
-.msg.ok{color:#86efac}
-.note{margin-top:12px;text-align:center;font-size:11px;color:#c7d2fe;line-height:1.4}
 .hidden{display:none}
 </style>
 </head>
 <body>
   <main class="shell">
-    <h1 class="brand">♠ OMAHA 5 CARTAS ♥</h1>
-    <p class="sub">Entre para salvar créditos e histórico no servidor</p>
+    <img class="club-logo" alt="CLUBEDEJOGOSCAIPIRA" src="assets/logos/club.png" onerror="this.onerror=null;this.src='assets/logos/club.svg'">
+    <h1 class="brand club-rainbow">CLUBEDEJOGOSCAIPIRA</h1>
+    <p class="sub">Entre para acessar o lobby de jogos</p>
 
     <div class="tabs">
       <button class="tab active" id="tabLogin" type="button">ENTRAR</button>
@@ -93,16 +92,16 @@ input:focus{border-color:#fff36a;box-shadow:0 0 0 3px #fff36a44}
       <label for="password">Senha</label>
       <input id="password" name="password" type="password" required minlength="6" placeholder="mínimo 6 caracteres" autocomplete="current-password">
 
-      <button class="btn" id="submitBtn" type="submit">ENTRAR NO JOGO</button>
+      <button class="btn" id="submitBtn" type="submit">ENTRAR NO CLUBE</button>
       <div class="msg" id="msg"></div>
     </form>
 
-    <p class="note">Simulador de estudo — créditos fictícios, sem dinheiro real.</p>
+    <p class="note">Omaha · Crep · Bacatela · Ronda · Caipira</p>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/config.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
   <script>
   let mode = 'login';
   const $ = (id) => document.getElementById(id);
@@ -116,7 +115,7 @@ input:focus{border-color:#fff36a;box-shadow:0 0 0 3px #fff36a44}
     $('tabSignup').classList.toggle('active', signup);
     $('nameField').classList.toggle('hidden', !signup);
     $('password').autocomplete = signup ? 'new-password' : 'current-password';
-    submitBtn.textContent = signup ? 'CRIAR CONTA' : 'ENTRAR NO JOGO';
+    submitBtn.textContent = signup ? 'CRIAR CONTA' : 'ENTRAR NO CLUBE';
     msg.textContent = '';
     msg.className = 'msg';
   }
@@ -124,11 +123,25 @@ input:focus{border-color:#fff36a;box-shadow:0 0 0 3px #fff36a44}
   $('tabLogin').onclick = () => setMode('login');
   $('tabSignup').onclick = () => setMode('signup');
 
+  function goAfterLogin(profile) {
+    if (typeof omahaAuth?.routeAfterLogin === 'function') {
+      return omahaAuth.routeAfterLogin(profile);
+    }
+    // fallback se o navegador ainda estiver com cache antigo do auth.js
+    if (profile && profile.is_admin) location.replace('admin.html');
+    else location.replace('lobby.html');
+  }
+
+  async function goAfterAuth() {
+    if (!window.omahaAuth) throw new Error('Auth não carregou. Atualize a página (Ctrl+F5).');
+    const session = await omahaAuth.getSession();
+    if (!session?.user) return;
+    const profile = await omahaAuth.ensureProfile(session.user);
+    await goAfterLogin(profile);
+  }
+
   (async () => {
-    try {
-      const session = await omahaAuth.getSession();
-      if (session?.user) location.replace('game.html');
-    } catch (_) {}
+    try { await goAfterAuth(); } catch (_) {}
   })();
 
   $('authForm').addEventListener('submit', async (e) => {
@@ -153,7 +166,7 @@ input:focus{border-color:#fff36a;box-shadow:0 0 0 3px #fff36a44}
       } else {
         await omahaAuth.signIn({ email, password });
       }
-      location.replace('game.html');
+      await goAfterAuth();
     } catch (err) {
       msg.className = 'msg error';
       msg.textContent = err?.message || 'Não foi possível autenticar.';

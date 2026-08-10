@@ -7,8 +7,9 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text,
   display_name text,
-  player_credits numeric(14,2) not null default 10000 check (player_credits >= 0),
-  bank_credits numeric(14,2) not null default 10000 check (bank_credits >= 0),
+  player_credits numeric(14,2) not null default 0 check (player_credits >= 0),
+  bank_credits numeric(14,2) not null default 0 check (bank_credits >= 0),
+  is_admin boolean not null default false,
   hands_played integer not null default 0 check (hands_played >= 0),
   hands_won integer not null default 0 check (hands_won >= 0),
   hands_lost integer not null default 0 check (hands_lost >= 0),
@@ -56,11 +57,14 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, display_name)
+  insert into public.profiles (id, email, display_name, player_credits, bank_credits, is_admin)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
+    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
+    0,
+    0,
+    false
   )
   on conflict (id) do nothing;
   return new;
@@ -75,18 +79,31 @@ create trigger on_auth_user_created
 alter table public.profiles enable row level security;
 alter table public.game_hands enable row level security;
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select is_admin from public.profiles where id = auth.uid()),
+    false
+  );
+$$;
+
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
   on public.profiles for select
   to authenticated
-  using (auth.uid() = id);
+  using (auth.uid() = id or public.is_admin());
 
 drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own"
   on public.profiles for update
   to authenticated
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+  using (auth.uid() = id or public.is_admin())
+  with check (auth.uid() = id or public.is_admin());
 
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own"

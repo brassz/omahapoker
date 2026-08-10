@@ -1,0 +1,134 @@
+/* Tema oficial do clube — baseado no Bacatela */
+:root{
+  --bg:#020006;
+  --blue:#17c8ff;
+  --red:#ff3434;
+  --gold:#ffd91a;
+  --green:#5cff1a;
+  --pink:#ff2bd6;
+  --violet:#9c34ff;
+  --orange:#ff8c15;
+  --panel:#080812;
+  --panel2:#060912;
+  --muted:#d8e7ff;
+}
+
+html,body{
+  background:radial-gradient(circle at 50% 0,#21003f 0,#090011 35%,#020006 72%)!important;
+  color:#fff!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+}
+
+/* Títulos neon arco-íris (estilo Bacatela) */
+.club-rainbow,
+h1.brand,
+.brand .title,
+.app > h1,
+main.app > h1{
+  background:linear-gradient(90deg,#00eaff,#ffe000,#58ff1c,#ff24d8,#ff7418,#00eaff)!important;
+  background-size:300% 100%!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  text-shadow:0 0 14px #fff6!important;
+  animation:clubRainbow 3s linear infinite!important;
+  font-weight:1000!important;
+  letter-spacing:2px!important;
+}
+@keyframes clubRainbow{to{background-position:300% 0}}
+
+.sub,.tagline,.tag{
+  color:#fff!important;
+  text-shadow:0 0 12px var(--gold)!important;
+  font-weight:1000!important;
+}
+
+/* Painéis / cards */
+.panel,.card,.side,.betPanel,.historyPanel,
+.playerBox,.result,.note{
+  background:#080812!important;
+  border:2px solid var(--pink)!important;
+  box-shadow:0 0 14px #ff2bd655!important;
+  color:#fff!important;
+}
+
+/* Botões */
+button,.big,.helpBtn,.playBtn,.addBtn,.teamBtn{
+  border-radius:9px!important;
+  color:#fff!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+  border:2px solid #a65eff!important;
+  background:linear-gradient(180deg,#6726d9,#331173)!important;
+  box-shadow:0 0 10px #9c34ff55!important;
+}
+button:disabled{opacity:.45!important}
+button.big,
+button#new,
+.playBtn,
+.play,
+#confirmBet,
+#continueHand{
+  background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00)!important;
+  border:2px solid #9dff76!important;
+  box-shadow:0 0 16px #62ff00!important;
+}
+#foldHand,
+#logoutBtn,
+button.out{
+  background:linear-gradient(180deg,#b40000,#ff3434)!important;
+  border:2px solid #ff8a8a!important;
+  box-shadow:0 0 12px #ff343455!important;
+}
+#lobbyBtn,
+#clubBackLobby,
+#flop{
+  background:linear-gradient(180deg,#0284c7,#17c8ff)!important;
+  border:2px solid #7dd3fc!important;
+  color:#00131b!important;
+}
+#turn{background:linear-gradient(180deg,#7c3aed,#ff2bd6)!important;border-color:#f0abfc!important}
+#river{background:linear-gradient(180deg,#ca8a04,#ffd91a)!important;border-color:#fde68a!important;color:#1a1200!important}
+
+/* Inputs */
+input,select,textarea{
+  background:#090b14!important;
+  color:#fff!important;
+  border:1px solid #445!important;
+  border-radius:8px!important;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none!important;
+  border-color:var(--blue)!important;
+  box-shadow:0 0 0 2px #17c8ff55!important;
+}
+
+/* Status / mensagens */
+.status,.msg,.result{
+  background:#080a13!important;
+  border:1px solid #555!important;
+  color:#fff!important;
+}
+
+.footer{
+  color:#ffe700!important;
+  font-weight:900!important;
+  letter-spacing:2px!important;
+  border-top:2px solid #ff2bd6!important;
+  padding-top:7px!important;
+  text-shadow:none!important;
+}
+
+/* Créditos */
+#playerCredits,.credit{color:var(--blue)!important;text-shadow:0 0 14px var(--blue)!important}
+
+/* Barra do clube nos jogos */
+#clubGateBar,
+#userBar{
+  background:#060912!important;
+  border:2px solid var(--pink)!important;
+  box-shadow:0 0 14px #ff2bd655!important;
+  color:#fff!important;
+}
+#clubGateBar .club-name,
+#userBar .club-name{color:var(--gold)!important;text-shadow:0 0 10px var(--gold)!important}

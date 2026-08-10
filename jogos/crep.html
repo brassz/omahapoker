@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=5">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Crep — Banca e Jogador com Créditos</title>
+<style>
+:root{
+  --bg:#06101d;--panel:#142238;--panel2:#0b1828;--line:#334155;
+  --blue:#38bdf8;--green:#22c55e;--red:#ef4444;--yellow:#facc15;
+  --text:#f8fafc;--muted:#cbd5e1
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;padding:16px;font-family:Arial,Helvetica,sans-serif;
+  color:var(--text);background:linear-gradient(145deg,#06101d,#172554)
+}
+.app{width:min(1000px,100%);margin:auto}
+h1{text-align:center;font-size:clamp(27px,7vw,47px);margin:8px 0 18px}
+h2{margin:0 0 14px}
+.card{
+  background:rgba(20,34,56,.97);border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;padding:18px;margin-bottom:15px;
+  box-shadow:0 14px 36px rgba(0,0,0,.35)
+}
+.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:var(--panel2);border-radius:14px;padding:12px;text-align:center}
+.metric small{display:block;color:var(--muted);margin-bottom:5px}
+.metric strong{font-size:20px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.step{background:var(--panel2);border:2px solid transparent;border-radius:15px;padding:13px;text-align:center;color:var(--muted)}
+.step.active{border-color:var(--yellow);color:white}.step.done{border-color:var(--green);color:white}
+label{display:block;color:var(--muted);margin:8px 0 6px}
+input{
+  width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);
+  background:#071525;color:white;font-size:18px
+}
+.status{text-align:center;font-size:22px;font-weight:bold;min-height:32px}
+.point{text-align:center;color:var(--yellow);font-size:22px;font-weight:bold;margin-top:7px}
+.dice{display:flex;justify-content:center;gap:18px;margin:20px 0}
+.die{
+  width:112px;height:112px;border-radius:20px;background:white;color:#111827;
+  display:grid;place-items:center;font-size:72px;font-weight:900;
+  box-shadow:inset 0 0 0 4px #e2e8f0,0 10px 22px rgba(0,0,0,.3)
+}
+.rolling{animation:shake .12s linear infinite}
+@keyframes shake{0%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}100%{transform:rotate(-6deg)}}
+.sum{text-align:center;font-size:25px;margin:10px 0 18px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{border:0;border-radius:13px;padding:14px 18px;font-size:17px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.yellow{background:var(--yellow);color:#422006}.blue{background:var(--blue);color:#082f49}.gray{background:#475569;color:white}.green{background:var(--green);color:#052e16}
+.bet-grid,.credit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bet-card,.credit-card{background:var(--panel2);border:2px solid transparent;border-radius:17px;padding:15px}
+.bet-card.active{border-color:var(--yellow)}.bet-card.disabled{opacity:.45}
+.pay{font-weight:bold;color:var(--yellow);margin:8px 0}
+.result{display:none;background:var(--panel2);border-radius:15px;padding:14px;line-height:1.65;margin-top:14px}
+.history{max-height:320px;overflow:auto;padding-left:22px;color:var(--muted);line-height:1.55}
+.note{color:#94a3b8;font-size:14px;line-height:1.55}
+.win{color:var(--green)}.lose{color:var(--red)}.continue{color:var(--yellow)}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.quick button{padding:9px 12px;font-size:14px;background:#334155;color:white}
+@media(max-width:800px){.dashboard{grid-template-columns:1fr 1fr}.steps,.credit-grid,.bet-grid{grid-template-columns:1fr}}
+@media(max-width:500px){.dashboard{grid-template-columns:1fr}.die{width:90px;height:90px;font-size:58px}}
+</style>
+<link rel="stylesheet" href="../css/mobile-fit.css?v=6">
+</head>
+<body>
+<main class="app">
+<h1>🎲 Crep — Banca e Jogador</h1>
+
+<section class="card dashboard">
+  <div class="metric"><small>Saldo do jogador</small><strong id="playerBalance">0</strong></div>
+  <div class="metric"><small>Aposta inicial</small><strong id="baseTop">0</strong></div>
+  <div class="metric"><small>Ponto atual</small><strong id="pointTop">—</strong></div>
+  <div class="metric"><small>Rodada</small><strong id="roundTop">0</strong></div>
+</section>
+
+<section class="card steps">
+  <div id="step1" class="step active"><strong>1</strong><br>Aposta inicial</div>
+  <div id="step2" class="step"><strong>2</strong><br>Definir o ponto</div>
+  <div id="step3" class="step"><strong>3</strong><br>Apostar no ponto ou 7</div>
+</section>
+
+<section class="card">
+  <h2>1. Aposta inicial do jogador contra a banca</h2>
+  <label for="baseBet">Valor da aposta inicial</label>
+  <input id="baseBet" type="number" min="10" step="10" value="100">
+  <div class="controls" style="margin-top:14px">
+    <button id="confirmBase" class="yellow">💰 Confirmar aposta inicial</button>
+  </div>
+</section>
+
+<section class="card">
+  <div id="status" class="status">Confirme a aposta inicial para começar.</div>
+  <div id="pointLabel" class="point">Ponto: nenhum</div>
+  <div class="dice">
+    <div id="die1" class="die">⚀</div>
+    <div id="die2" class="die">⚀</div>
+  </div>
+  <div id="sum" class="sum">Soma: 2</div>
+  <div class="controls">
+    <button id="roll" class="blue" disabled>🎲 A banca joga os dados</button>
+    <button id="newRound" class="yellow" disabled>➕ Nova rodada</button>
+    <button id="reset" class="gray">🔄 Reiniciar tudo</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>3. Apostas depois da definição do ponto</h2>
+  <div class="bet-grid">
+    <div id="pointCard" class="bet-card disabled">
+      <h3 id="pointTitle">🎯 Aposta no ponto</h3>
+      <p id="pointText">Aguarde a banca definir o ponto.</p>
+      <div id="pointPay" class="pay">Pagamento: —</div>
+      <label for="pointBet">Valor apostado no ponto</label>
+      <input id="pointBet" type="number" min="0" step="10" value="0" disabled>
+    </div>
+
+    <div id="sevenCard" class="bet-card disabled">
+      <h3>7️⃣ Aposta no número 7</h3>
+      <p>Vence se sair 7 antes de repetir o ponto.</p>
+      <div class="pay">Pagamento: 1 para 1</div>
+      <label for="sevenBet">Valor apostado no 7</label>
+      <input id="sevenBet" type="number" min="0" step="10" value="0" disabled>
+    </div>
+  </div>
+  <div class="controls" style="margin-top:15px">
+    <button id="confirmSide" class="yellow" disabled>✅ Confirmar apostas no ponto/7</button>
+  </div>
+</section>
+
+<section class="card" id="resultCard">
+  <div id="result" class="result"></div>
+</section>
+
+<section class="card mobile-hide">
+  <h2>Histórico</h2>
+  <ol id="history" class="history"></ol>
+</section>
+</main>
+
+<script>
+let playerBalance=0, round=0, point=null, phase="idle", rolling=false;
+let baseBet=0, pointBet=0, sevenBet=0;
+const diceChars=["⚀","⚁","⚂","⚃","⚄","⚅"];
+const $=id=>document.getElementById(id);
+
+function fmt(n){return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2})}
+function status(text,type=""){
+  $("status").textContent=text;
+  $("status").className="status "+type;
+}
+function log(text){
+  const li=document.createElement("li");
+  li.textContent=text;
+  $("history").prepend(li);
+}
+async function persistBalance(){
+  if(window.clubWallet) await clubWallet.set(playerBalance);
+}
+function update(){
+  $("playerBalance").textContent=fmt(playerBalance);
+  $("baseTop").textContent=fmt(baseBet);
+  $("pointTop").textContent=point ?? "—";
+  $("roundTop").textContent=round;
+  $("pointLabel").textContent="Ponto: "+(point ?? "nenhum");
+}
+function setSteps(step){
+  ["step1","step2","step3"].forEach((id,i)=>{
+    $(id).className="step";
+    if(i+1<step) $(id).classList.add("done");
+    if(i+1===step) $(id).classList.add("active");
+  });
+}
+function rateForPoint(p){
+  if(p===6||p===8)return 1;
+  if(p===5||p===9)return 1.5;
+  if(p===4||p===10)return 2;
+  return 0;
+}
+function confirmBase(){
+  if(phase!=="idle")return;
+  const value=Math.max(0,Number($("baseBet").value)||0);
+  if(value<10){status("A aposta inicial mínima é 10 créditos.","lose");return}
+  if(value>playerBalance){status("O jogador não possui saldo suficiente.","lose");return}
+
+  baseBet=value;
+  playerBalance-=baseBet;
+  round++;
+  phase="comeout";
+  $("baseBet").disabled=true;
+  $("confirmBase").disabled=true;
+  $("roll").disabled=false;
+  $("newRound").disabled=true;
+  $("result").style.display="none";
+  setSteps(2);
+  status("Aposta reservada. A banca joga para definir o resultado ou o ponto.","continue");
+  log(`Rodada ${round}: jogador apostou ${fmt(baseBet)} créditos.`);
+  update();
+  persistBalance();
+}
+function enablePointBets(){
+  const rate=rateForPoint(point);
+  phase="betting";
+  $("pointTitle").textContent=`🎯 Apostar no ponto ${point}`;
+  $("pointText").textContent=`Vence se sair ${point} novamente antes do número 7.`;
+  $("pointPay").textContent=rate===1?"Pagamento: 1 para 1":rate===1.5?"Pagamento: 100 paga 150 de lucro":"Pagamento: 100 paga 200 de lucro";
+  $("pointBet").disabled=false;
+  $("sevenBet").disabled=false;
+  $("confirmSide").disabled=false;
+  $("pointCard").classList.remove("disabled");
+  $("sevenCard").classList.remove("disabled");
+  $("pointCard").classList.add("active");
+  $("sevenCard").classList.add("active");
+  $("roll").disabled=true;
+  setSteps(3);
+  status(`O ponto é ${point}. Agora o jogador pode apostar no ponto ou no 7.`,"continue");
+  log(`Rodada ${round}: ponto ${point} definido.`);
+}
+function confirmSide(){
+  if(phase!=="betting")return;
+  pointBet=Math.max(0,Number($("pointBet").value)||0);
+  sevenBet=Math.max(0,Number($("sevenBet").value)||0);
+  const totalSide=pointBet+sevenBet;
+  if(totalSide===0){status("Informe pelo menos uma aposta no ponto ou no 7.","lose");return}
+  if(totalSide>playerBalance){status("O jogador não possui saldo suficiente.","lose");return}
+
+  playerBalance-=totalSide;
+  phase="pointPlay";
+  $("pointBet").disabled=true;
+  $("sevenBet").disabled=true;
+  $("confirmSide").disabled=true;
+  $("roll").disabled=false;
+  status(`Apostas confirmadas. A banca joga até sair ${point} ou 7.`,"continue");
+  log(`Rodada ${round}: ${fmt(pointBet)} no ponto e ${fmt(sevenBet)} no 7.`);
+  update();
+  persistBalance();
+}
+function animate(d1,d2,done){
+  rolling=true;$("roll").disabled=true;
+  $("die1").classList.add("rolling");$("die2").classList.add("rolling");
+  let t=0;
+  const timer=setInterval(()=>{
+    $("die1").textContent=diceChars[Math.floor(Math.random()*6)];
+    $("die2").textContent=diceChars[Math.floor(Math.random()*6)];
+    if(++t>=12){
+      clearInterval(timer);
+      $("die1").classList.remove("rolling");$("die2").classList.remove("rolling");
+      $("die1").textContent=diceChars[d1-1];$("die2").textContent=diceChars[d2-1];
+      rolling=false;done();
+    }
+  },70);
+}
+function showResult(html){
+  $("result").style.display="block";
+  $("result").innerHTML=`<strong>Resultado da rodada ${round}</strong><br>${html}`;
+}
+function finishRound(){
+  phase="finished";
+  point=null;
+  $("roll").disabled=true;
+  $("newRound").disabled=false;
+  $("pointCard").classList.add("disabled");
+  $("sevenCard").classList.add("disabled");
+  $("pointCard").classList.remove("active");
+  $("sevenCard").classList.remove("active");
+  update();
+}
+function immediateResult(playerWins,total){
+  if(playerWins){
+    const profit=baseBet;
+    const returnTotal=baseBet+profit;
+    playerBalance+=returnTotal;
+    status(`Saiu ${total}. O jogador venceu a aposta inicial.`,"win");
+    showResult(`Jogador recebeu ${fmt(returnTotal)} créditos.<br>Lucro do jogador: ${fmt(profit)}.<br>Saldo do jogador: ${fmt(playerBalance)}.`);
+  }else{
+    status(`Saiu ${total}. A banca venceu a aposta inicial.`,"lose");
+    showResult(`Aposta perdida: ${fmt(baseBet)} créditos.<br>Saldo do jogador: ${fmt(playerBalance)}.`);
+  }
+  persistBalance();
+  finishRound();
+}
+function settlePoint(winner,total){
+  const rate=rateForPoint(point);
+  if(winner==="point"){
+    const baseProfit=baseBet;
+    const pointProfit=pointBet*rate;
+    playerBalance+=(baseBet+baseProfit)+(pointBet+pointProfit);
+    status(`Saiu ${total}. O ponto ${point} venceu.`,"win");
+    showResult(`Lucro da aposta inicial: ${fmt(baseProfit)}.<br>Lucro da aposta no ponto: ${fmt(pointProfit)}.<br>Aposta no 7 perdida: ${fmt(sevenBet)}.<br>Saldo do jogador: ${fmt(playerBalance)}.`);
+  }else{
+    const sevenProfit=sevenBet;
+    playerBalance+=sevenBet+sevenProfit;
+    status("Saiu 7 antes do ponto. A aposta no 7 venceu.","win");
+    showResult(`Aposta inicial perdida: ${fmt(baseBet)}.<br>Aposta no ponto perdida: ${fmt(pointBet)}.<br>Lucro no 7: ${fmt(sevenProfit)}.<br>Saldo do jogador: ${fmt(playerBalance)}.`);
+  }
+  persistBalance();
+  finishRound();
+}
+function roll(){
+  if(rolling||!["comeout","pointPlay"].includes(phase))return;
+  const d1=Math.floor(Math.random()*6)+1;
+  const d2=Math.floor(Math.random()*6)+1;
+  const total=d1+d2;
+  animate(d1,d2,()=>{
+    $("sum").textContent="Soma: "+total;
+    log(`Rodada ${round}: ${d1} + ${d2} = ${total}.`);
+    if(phase==="comeout"){
+      if(total===7||total===11) immediateResult(true,total);
+      else if(total===2||total===3||total===12) immediateResult(false,total);
+      else{point=total;update();enablePointBets()}
+    }else{
+      if(total===point) settlePoint("point",total);
+      else if(total===7) settlePoint("seven",total);
+      else{status(`Saiu ${total}. A banca continua até sair ${point} ou 7.`,"continue");$("roll").disabled=false}
+    }
+  });
+}
+function newRound(){
+  baseBet=0;pointBet=0;sevenBet=0;point=null;phase="idle";
+  $("baseBet").value=100;$("baseBet").disabled=false;
+  $("pointBet").value=0;$("sevenBet").value=0;
+  $("pointBet").disabled=true;$("sevenBet").disabled=true;
+  $("confirmBase").disabled=false;$("confirmSide").disabled=true;
+  $("roll").disabled=true;$("newRound").disabled=true;
+  $("result").style.display="none";
+  setSteps(1);
+  status("Confirme a aposta inicial para começar.","");
+  update();
+}
+function resetAll(){
+  round=0;
+  $("history").innerHTML="";
+  $("die1").textContent="⚀";$("die2").textContent="⚀";$("sum").textContent="Soma: 2";
+  newRound();
+}
+$("confirmBase").addEventListener("click",confirmBase);
+$("confirmSide").addEventListener("click",confirmSide);
+$("roll").addEventListener("click",roll);
+$("newRound").addEventListener("click",newRound);
+$("reset").addEventListener("click",resetAll);
+update();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=3"></script>
+<script src="../js/auth.js?v=3"></script>
+<script src="../js/gate.js?v=4"></script>
+<script>
+window.clubWalletReady.then((w)=>{
+  if(!w)return;
+  playerBalance=Number(w.credits||0);
+  update();
+});
+</script>
+</body>
+</html>

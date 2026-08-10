@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Painel Admin — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="css/theme-bacatela.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+.wrap{width:min(1100px,100%);margin:0 auto;padding:14px 10px 30px}
+.hero{text-align:center;margin-bottom:12px}
+.brand{margin:0;font-size:clamp(26px,6vw,42px)}
+.tag{margin:6px 0 0;font-weight:900;color:#fff;text-shadow:0 0 12px var(--gold)}
+.bar{
+  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+  background:#080812;border:2px solid var(--pink);border-radius:14px;
+  padding:10px 12px;margin-bottom:14px;box-shadow:0 0 14px #ff2bd655;
+}
+.bar strong{display:block}
+.bar small{color:var(--muted);font-weight:800}
+.bar button,.actions button{
+  border:0;border-radius:9px;padding:9px 12px;font-weight:900;cursor:pointer;color:#fff;
+}
+.bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
+.bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
+.panel{
+  background:#080812;border:2px solid var(--blue);border-radius:16px;
+  padding:12px;box-shadow:0 0 14px #17c8ff55;margin-bottom:12px;
+}
+.panel h2{margin:0 0 10px;color:var(--gold);text-shadow:0 0 10px var(--gold);font-size:16px;letter-spacing:1px}
+.search{
+  width:100%;padding:11px;border-radius:10px;border:1px solid #445;
+  background:#090b14;color:#fff;font-weight:700;margin-bottom:10px;
+}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px 6px;border-bottom:1px solid #263042;text-align:left;vertical-align:middle}
+.table th{color:var(--muted);font-size:12px;letter-spacing:1px}
+.table td{font-size:13px;font-weight:700}
+.credits{color:var(--gold);font-size:16px;text-shadow:0 0 10px var(--gold)}
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:900;
+  border:1px solid var(--pink);color:#fff;background:#ff2bd622;
+}
+.actions{display:flex;flex-wrap:wrap;gap:5px}
+.actions input{
+  width:90px;padding:8px;border-radius:8px;border:1px solid #445;
+  background:#090b14;color:#fff;font-weight:800;
+}
+.actions .add{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
+.actions .rem{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
+.actions .set{background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff}
+.actions .del{background:linear-gradient(180deg,#4a044e,#9f1239);border:2px solid #fb7185}
+.msg{min-height:22px;text-align:center;font-weight:900;margin:8px 0;color:var(--muted)}
+.msg.ok{color:var(--green)}.msg.err{color:var(--red)}
+.empty{text-align:center;padding:20px;color:var(--muted);font-weight:800}
+@media(max-width:720px){
+  .bar{grid-template-columns:1fr}
+  .table,.table thead,.table tbody,.table th,.table td,.table tr{display:block}
+  .table thead{display:none}
+  .table tr{margin-bottom:12px;border:1px solid #334;border-radius:12px;padding:8px;background:#060912}
+  .table td{border:0;padding:4px 2px}
+  .table td::before{content:attr(data-label);display:block;color:var(--muted);font-size:11px;margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="brand club-rainbow">PAINEL ADMIN</h1>
+      <p class="tag">CLUBEDEJOGOSCAIPIRA · gestão de saldos</p>
+    </header>
+
+    <section class="bar">
+      <div>
+        <small>ADMIN LOGADO</small>
+        <strong id="adminName">...</strong>
+      </div>
+      <button type="button" class="lobby" id="toLobby">LOBBY</button>
+      <button type="button" class="out" id="logoutBtn">SAIR</button>
+    </section>
+
+    <div class="msg" id="msg">Carregando jogadores...</div>
+
+    <section class="panel">
+      <h2>★ JOGADORES</h2>
+      <input class="search" id="search" type="search" placeholder="Buscar por nome ou e-mail...">
+      <div id="list"></div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=4"></script>
+  <script src="js/auth.js?v=4"></script>
+  <script>
+  const $ = (id) => document.getElementById(id);
+  const msg = $('msg');
+  let players = [];
+  let me = null;
+
+  function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
+  function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
+
+  function render() {
+    const q = ($('search').value || '').trim().toLowerCase();
+    const rows = players.filter((p) => {
+      if (p.is_admin) return false;
+      if (!q) return true;
+      return `${p.display_name||''} ${p.email||''}`.toLowerCase().includes(q);
+    });
+
+    if (!rows.length) {
+      $('list').innerHTML = '<div class="empty">Nenhum jogador encontrado.</div>';
+      return;
+    }
+
+    $('list').innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGADOR</th>
+            <th>E-MAIL</th>
+            <th>SALDO</th>
+            <th>AJUSTAR</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((p) => `
+            <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}">
+              <td data-label="JOGADOR">${p.display_name || '—'}</td>
+              <td data-label="E-MAIL">${p.email || '—'}</td>
+              <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
+              <td data-label="AJUSTAR">
+                <div class="actions">
+                  <input type="number" min="1" step="1" value="100" class="amt" aria-label="Valor">
+                  <button type="button" class="add" data-act="add">+ ADD</button>
+                  <button type="button" class="rem" data-act="rem">− REM</button>
+                  <button type="button" class="set" data-act="set">= SET</button>
+                </div>
+              </td>
+              <td data-label="EXCLUIR">
+                <div class="actions">
+                  <button type="button" class="del" data-act="del">EXCLUIR</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function reload() {
+    players = await omahaAuth.listPlayers();
+    render();
+    setMsg(`${players.filter(p=>!p.is_admin).length} jogador(es) · saldo inicial de novas contas = 0`, 'ok');
+  }
+
+  async function boot() {
+    const user = await omahaAuth.requireUser('login.html');
+    if (!user) return;
+    me = await omahaAuth.ensureProfile(user);
+    if (!omahaAuth.isAdmin(me)) {
+      location.replace('lobby.html');
+      return;
+    }
+    $('adminName').textContent = me.display_name || me.email || 'Admin';
+    await reload();
+  }
+
+  $('search').addEventListener('input', render);
+  $('toLobby').onclick = () => location.href = 'lobby.html';
+  $('logoutBtn').onclick = async () => {
+    try { await omahaAuth.signOut(); } catch (_) {}
+    location.replace('login.html');
+  };
+
+  $('list').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    const id = tr?.dataset.id;
+    const act = btn.dataset.act;
+    if (!id) return;
+
+    if (act === 'del') {
+      const nome = tr.dataset.name || 'este jogador';
+      if (!confirm(`Excluir permanentemente ${nome}?\nEssa ação não pode ser desfeita.`)) return;
+      btn.disabled = true;
+      try {
+        await omahaAuth.adminDeleteUser(id);
+        await reload();
+        setMsg(`Usuário ${nome} excluído.`, 'ok');
+      } catch (err) {
+        setMsg(err?.message || 'Falha ao excluir usuário.', 'err');
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    const input = tr.querySelector('.amt');
+    const value = Math.floor(Number(input.value));
+    if (!(value > 0)) {
+      setMsg('Informe um valor válido maior que zero.', 'err');
+      return;
+    }
+
+    btn.disabled = true;
+    try {
+      if (act === 'add') await omahaAuth.adminAdjustCredits(id, value);
+      else if (act === 'rem') await omahaAuth.adminAdjustCredits(id, -value);
+      else await omahaAuth.adminSetCredits(id, value);
+      await reload();
+      setMsg(act === 'set' ? `Saldo definido para ${fmt(value)}.` : `Saldo atualizado (${act === 'add' ? '+' : '-'}${fmt(value)}).`, 'ok');
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao ajustar saldo.', 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  boot().catch(() => location.replace('login.html'));
+  </script>
+</body>
+</html>

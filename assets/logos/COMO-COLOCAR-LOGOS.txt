@@ -1,0 +1,17 @@
+CLUBEDEJOGOSCAIPIRA — Logos do lobby
+====================================
+
+Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
+
+  club.png       → logo geral do clube (topo do lobby e login)
+  omaha.png      → logo do Omaha
+  crep.png       → logo do Crep
+  bacatela.png   → logo da Bacatela
+  ronda.png      → logo da Ronda
+  caipira.png    → logo do Caipira
+
+Tamanho sugerido:
+  - club.png:    512x512 (ou 800x300 se for faixa horizontal)
+  - jogos:       512x512 (quadrado)
+
+Enquanto a PNG não existir, o lobby usa o placeholder .svg do mesmo nome.
