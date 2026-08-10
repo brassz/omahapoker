@@ -203,15 +203,16 @@ function renderNumbers(){const p=state.lastPlayer,b=state.lastBank,w=state.lastW
 function renderHistory(){if(!state.history.length){$('history').innerHTML='Nenhuma rodada ainda.';return}$('history').innerHTML=state.history.slice(0,12).map(h=>`<div class="histItem ${h.winner==='player'?'histP':'histB'}"><div class="histNum">${h.winNum}</div><div>${h.winner==='player'?'JOGADOR':'BANCA'}</div><div>GANHOU</div></div>`).join('')}
 function render(){ $('playerCredit').textContent=fmt(state.player);$('playerNumber').textContent=state.lastPlayer??'—';$('bankNumber').textContent=state.lastBank??'—';$('playerResultBox').classList.toggle('winner',state.lastWinner==='player');$('bankResultBox').classList.toggle('winner',state.lastWinner==='bank');$('playerResultTitle').textContent=state.lastWinner==='player'?'JOGADOR GANHOU!':'JOGADOR';$('bankResultTitle').textContent=state.lastWinner==='bank'?'BANCA GANHOU!':'BANCA';renderNumbers();renderHistory();save()}
 function setBet(v){$('bet').value=v}window.setBet=setBet;function changeBet(d){$('bet').value=Math.max(1,Math.floor(Number($('bet').value)||0)+d)}window.changeBet=changeBet;function maxBet(){$('bet').value=Math.max(1,state.player)}window.maxBet=maxBet;
-$('playBtn').onclick=async()=>{const bet=Math.floor(Number($('bet').value));if(!bet||bet<1)return alert('Informe a aposta em créditos.');if(state.player<bet)return alert('Créditos insuficientes.');let draw=shuffle([...state.nums]),pn=draw[0],bn=draw[1];while(bn===pn)bn=draw[Math.floor(Math.random()*draw.length)];state.lastPlayer=pn;state.lastBank=bn;if(pn>bn){state.player+=bet;state.playerWins++;state.lastWinner='player';state.history.unshift({winner:'player',winNum:pn,pn,bn,bet});$('msg').textContent=`🔵 JOGADOR GANHOU! ${pn} X ${bn} — +${fmt(bet)} créditos.`}else{state.player-=bet;state.bankWins++;state.lastWinner='bank';state.history.unshift({winner:'bank',winNum:bn,pn,bn,bet});$('msg').textContent=`🔴 BANCA GANHOU! ${pn} X ${bn} — jogador perdeu ${fmt(bet)} créditos.`}render();await persistCredits()};
+$('playBtn').onclick=async()=>{const bet=Math.floor(Number($('bet').value));if(!bet||bet<1)return alert('Informe a aposta em créditos.');if(state.player<bet)return alert('Créditos insuficientes.');let draw=shuffle([...state.nums]),pn=draw[0],bn=draw[1];while(bn===pn)bn=draw[Math.floor(Math.random()*draw.length)];const force=window.clubHouse?await clubHouse.nextOutcome():null;if(force==='player'&&pn<=bn){[pn,bn]=[bn,pn];}if(force==='bank'&&pn>=bn){[pn,bn]=[bn,pn];}if(pn===bn){if(force==='player')pn=Math.min(100,bn+1);else bn=Math.min(100,pn+1);}state.lastPlayer=pn;state.lastBank=bn;if(pn>bn){state.player+=bet;state.playerWins++;state.lastWinner='player';state.history.unshift({winner:'player',winNum:pn,pn,bn,bet});$('msg').textContent=`🔵 JOGADOR GANHOU! ${pn} X ${bn} — +${fmt(bet)} créditos.`}else{state.player-=bet;state.bankWins++;state.lastWinner='bank';state.history.unshift({winner:'bank',winNum:bn,pn,bn,bet});$('msg').textContent=`🔴 BANCA GANHOU! ${pn} X ${bn} — jogador perdeu ${fmt(bet)} créditos.`}render();await persistCredits()};
 $('newRound').onclick=()=>{state.lastPlayer=null;state.lastBank=null;state.lastWinner=null;$('msg').textContent='Nova rodada pronta. Escolha a aposta e jogue.';render()};
 $('shuffleBtn').onclick=()=>{state.nums=freshNums();state.lastPlayer=null;state.lastBank=null;state.lastWinner=null;$('msg').textContent='Os 100 números foram embaralhados.';render()};
 load();render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=3"></script>
-<script src="../js/auth.js?v=3"></script>
-<script src="../js/gate.js?v=4"></script>
+<script src="../js/config.js?v=5"></script>
+<script src="../js/auth.js?v=5"></script>
+<script src="../js/house.js?v=1"></script>
+<script src="../js/gate.js?v=5"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

@@ -54,6 +54,26 @@ body{margin:0;min-height:100vh}
 .msg{min-height:22px;text-align:center;font-weight:900;margin:8px 0;color:var(--muted)}
 .msg.ok{color:var(--green)}.msg.err{color:var(--red)}
 .empty{text-align:center;padding:20px;color:var(--muted);font-weight:800}
+.cfgGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfgField label{display:block;font-size:11px;font-weight:900;color:var(--muted);margin-bottom:4px;letter-spacing:.5px}
+.cfgField input[type="number"],.cfgField select{
+  width:100%;padding:10px;border-radius:10px;border:1px solid #445;
+  background:#090b14;color:#fff;font-weight:800;
+}
+.cfgHelp{font-size:12px;font-weight:700;color:#d8e7ff;line-height:1.45;margin:8px 0 12px}
+.cfgStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.cfgStat{background:#060912;border:1px solid #334;border-radius:10px;padding:8px;text-align:center}
+.cfgStat b{display:block;font-size:18px;color:var(--gold);margin-top:2px}
+.cfgStat span{font-size:10px;font-weight:900;color:var(--muted);letter-spacing:.5px}
+.cfgActions{display:flex;flex-wrap:wrap;gap:8px}
+.cfgActions button{
+  border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
+}
+.cfgActions .save{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
+.cfgActions .reset{background:linear-gradient(180deg,#b95b00,#6b2f00);border:2px solid #ff9f32}
+@media(max-width:720px){
+  .cfgGrid,.cfgStats{grid-template-columns:1fr}
+}
 @media(max-width:720px){
   .bar{grid-template-columns:1fr}
   .table,.table thead,.table tbody,.table th,.table td,.table tr{display:block}
@@ -80,7 +100,38 @@ body{margin:0;min-height:100vh}
       <button type="button" class="out" id="logoutBtn">SAIR</button>
     </section>
 
-    <div class="msg" id="msg">Carregando jogadores...</div>
+    <div class="msg" id="msg">Carregando...</div>
+
+    <section class="panel">
+      <h2>★ MANIPULAÇÃO DE APOSTAS</h2>
+      <p class="cfgHelp">
+        Quando ativo, a cada <b>N</b> apostas do clube (todos os jogos),
+        <b>1</b> é vitória do jogador e as demais vão para a banca.
+        O valor de N é editável abaixo.
+      </p>
+      <div class="cfgStats">
+        <div class="cfgStat"><span>STATUS</span><b id="cfgStatus">—</b></div>
+        <div class="cfgStat"><span>APOSTAS CONTADAS</span><b id="cfgCounter">0</b></div>
+        <div class="cfgStat"><span>PRÓXIMA VITÓRIA DO JOGADOR</span><b id="cfgNext">—</b></div>
+      </div>
+      <div class="cfgGrid">
+        <div class="cfgField">
+          <label for="cfgEnabled">Manipulação</label>
+          <select id="cfgEnabled">
+            <option value="1">ATIVA</option>
+            <option value="0">DESATIVADA (jogo justo)</option>
+          </select>
+        </div>
+        <div class="cfgField">
+          <label for="cfgInterval">A cada quantas apostas o jogador vence (N)</label>
+          <input id="cfgInterval" type="number" min="1" step="1" value="20">
+        </div>
+      </div>
+      <div class="cfgActions" style="margin-top:12px">
+        <button type="button" class="save" id="cfgSave">SALVAR CONFIGURAÇÃO</button>
+        <button type="button" class="reset" id="cfgReset">ZERAR CONTADOR</button>
+      </div>
+    </section>
 
     <section class="panel">
       <h2>★ JOGADORES</h2>
@@ -90,16 +141,36 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=4"></script>
-  <script src="js/auth.js?v=4"></script>
+  <script src="js/config.js?v=5"></script>
+  <script src="js/auth.js?v=5"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   let players = [];
   let me = null;
+  let settings = null;
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
+
+  function renderSettings(s) {
+    settings = s || settings;
+    if (!settings) return;
+    const n = Math.max(1, Number(settings.bets_per_player_win) || 20);
+    const c = Number(settings.bet_counter) || 0;
+    const rem = c % n;
+    const nextIn = rem === 0 ? n : (n - rem);
+    $('cfgEnabled').value = settings.enabled ? '1' : '0';
+    $('cfgInterval').value = n;
+    $('cfgStatus').textContent = settings.enabled ? 'ATIVA' : 'OFF';
+    $('cfgCounter').textContent = fmt(c);
+    $('cfgNext').textContent = settings.enabled ? `em ${nextIn} aposta(s)` : '—';
+  }
+
+  async function reloadSettings() {
+    settings = await omahaAuth.getGameSettings();
+    renderSettings(settings);
+  }
 
   function render() {
     const q = ($('search').value || '').trim().toLowerCase();
@@ -166,8 +237,35 @@ body{margin:0;min-height:100vh}
       return;
     }
     $('adminName').textContent = me.display_name || me.email || 'Admin';
-    await reload();
+    await Promise.all([reload(), reloadSettings()]);
   }
+
+  $('cfgSave').onclick = async () => {
+    const enabled = $('cfgEnabled').value === '1';
+    const betsPerPlayerWin = Math.floor(Number($('cfgInterval').value));
+    if (!(betsPerPlayerWin >= 1)) {
+      setMsg('Informe um intervalo N válido (mínimo 1).', 'err');
+      return;
+    }
+    try {
+      const s = await omahaAuth.adminUpdateGameSettings({ enabled, betsPerPlayerWin });
+      renderSettings(s);
+      setMsg(`Manipulação salva: a cada ${betsPerPlayerWin} apostas, 1 vitória do jogador${enabled ? '' : ' (desativada)'}.`, 'ok');
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao salvar configuração. Rode o SQL game-settings.sql no Supabase.', 'err');
+    }
+  };
+
+  $('cfgReset').onclick = async () => {
+    if (!confirm('Zerar o contador de apostas?')) return;
+    try {
+      const s = await omahaAuth.adminResetBetCounter();
+      renderSettings(s);
+      setMsg('Contador de apostas zerado.', 'ok');
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao zerar contador.', 'err');
+    }
+  };
 
   $('search').addEventListener('input', render);
   $('toLobby').onclick = () => location.href = 'lobby.html';

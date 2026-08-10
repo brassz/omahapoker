@@ -269,7 +269,10 @@ function finishRound(){
   $("sevenCard").classList.remove("active");
   update();
 }
-function immediateResult(playerWins,total){
+async function immediateResult(playerWins,total){
+  const force=window.clubHouse?await clubHouse.nextOutcome():null;
+  if(force==="player") playerWins=true;
+  if(force==="bank") playerWins=false;
   if(playerWins){
     const profit=baseBet;
     const returnTotal=baseBet+profit;
@@ -283,7 +286,10 @@ function immediateResult(playerWins,total){
   persistBalance();
   finishRound();
 }
-function settlePoint(winner,total){
+async function settlePoint(winner,total){
+  const force=window.clubHouse?await clubHouse.nextOutcome():null;
+  if(force==="player") winner=(pointBet>=sevenBet)?"point":"seven";
+  if(force==="bank") winner=(pointBet>=sevenBet)?"seven":"point";
   const rate=rateForPoint(point);
   if(winner==="point"){
     const baseProfit=baseBet;
@@ -305,16 +311,16 @@ function roll(){
   const d1=Math.floor(Math.random()*6)+1;
   const d2=Math.floor(Math.random()*6)+1;
   const total=d1+d2;
-  animate(d1,d2,()=>{
+  animate(d1,d2,async()=>{
     $("sum").textContent="Soma: "+total;
     log(`Rodada ${round}: ${d1} + ${d2} = ${total}.`);
     if(phase==="comeout"){
-      if(total===7||total===11) immediateResult(true,total);
-      else if(total===2||total===3||total===12) immediateResult(false,total);
+      if(total===7||total===11) await immediateResult(true,total);
+      else if(total===2||total===3||total===12) await immediateResult(false,total);
       else{point=total;update();enablePointBets()}
     }else{
-      if(total===point) settlePoint("point",total);
-      else if(total===7) settlePoint("seven",total);
+      if(total===point) await settlePoint("point",total);
+      else if(total===7) await settlePoint("seven",total);
       else{status(`Saiu ${total}. A banca continua até sair ${point} ou 7.`,"continue");$("roll").disabled=false}
     }
   });
@@ -345,9 +351,10 @@ $("reset").addEventListener("click",resetAll);
 update();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=3"></script>
-<script src="../js/auth.js?v=3"></script>
-<script src="../js/gate.js?v=4"></script>
+<script src="../js/config.js?v=5"></script>
+<script src="../js/auth.js?v=5"></script>
+<script src="../js/house.js?v=1"></script>
+<script src="../js/gate.js?v=5"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

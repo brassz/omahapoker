@@ -190,8 +190,9 @@ button{padding-top:5px!important;padding-bottom:5px!important}
 <section class="panel note mobile-hide"><b>Regra do Omaha:</b> a mão final usa exatamente <b>2 das suas 5 cartas</b> e exatamente <b>3 cartas comunitárias</b>.</section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=4"></script>
-<script src="../js/auth.js?v=4"></script>
+<script src="../js/config.js?v=5"></script>
+<script src="../js/auth.js?v=5"></script>
+<script src="../js/house.js?v=1"></script>
 <script>
 const ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const suits=[{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}];
@@ -337,7 +338,7 @@ function render(){
   $('turn').disabled=stage!==2 || decision!=='continue' || roundOver;
   $('river').disabled=stage!==3 || decision!=='continue' || roundOver;
   $('decisionBox').style.display=(stage===2 && decision===null && !roundOver)?'block':'none';
-  if(showHands && board.length>=3)evaluate();
+  if(showHands && board.length>=5) void evaluate();
 }
 function newRound(){
   if(activeBet>0){
@@ -455,30 +456,43 @@ function bestOmaha(hand){
   }
   return best;
 }
-function evaluate(){
-  if(!showHands || board.length<5)return;
-  const scores=players.map((hand,i)=>({i,score:bestOmaha(hand),winner:false}));
-  let best=scores[0].score;
-  for(const x of scores.slice(1))if(cmp(x.score,best)>0)best=x.score;
-  scores.forEach(x=>x.winner=cmp(x.score,best)===0);
-  lastResults=scores;
-  const winners=scores.filter(x=>x.winner);
-  let settledResult=null;
-  let settledBet=0;
-  if(activeBet>0){
-    if(winners.length>1){settledBet=settleBet('tie');settledResult='tie';}
-    else if(winners[0].i===0){settledBet=settleBet('player');settledResult='player';}
-    else {settledBet=settleBet('bank');settledResult='bank';}
-  }else{
-    settledResult=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
+let evaluating=false;
+async function evaluate(){
+  if(!showHands || board.length<5 || evaluating)return;
+  evaluating=true;
+  try{
+    const scores=players.map((hand,i)=>({i,score:bestOmaha(hand),winner:false}));
+    let best=scores[0].score;
+    for(const x of scores.slice(1))if(cmp(x.score,best)>0)best=x.score;
+    scores.forEach(x=>x.winner=cmp(x.score,best)===0);
+    let winners=scores.filter(x=>x.winner);
+    let settledResult=null;
+    let settledBet=0;
+    if(activeBet>0){
+      let result=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
+      const force=window.clubHouse?await clubHouse.nextOutcome():null;
+      if(force==='player'||force==='bank'){
+        result=force;
+        scores.forEach(x=>{x.winner=(force==='player'?x.i===0:x.i===1);});
+        winners=scores.filter(x=>x.winner);
+        best=winners[0].score;
+      }
+      settledBet=settleBet(result);
+      settledResult=result;
+    }else{
+      settledResult=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
+    }
+    lastResults=scores;
+    if(settledResult) persistHand(settledResult,{betAmount:settledBet});
+    const nomes=winners.map(x=>x.i===0?'Jogador':'Banca').join(' e ');
+    const cartas=best.cards.map(c=>`${c.r}${c.s}`).join('  ');
+    $('result').innerHTML=`<span class="best">${nomes}</span><br>${best.name}<br>${cartas}<br><span class="note">Usando exatamente 2 cartas da mão + 3 cartas da mesa.</span>`;
+    renderPlayers();
+    const winningBoardCards=scores.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
+    $('board').innerHTML=[0,1,2,3,4].map(i=>cardHtml(board[i],false,winningBoardCards.some(c=>sameCard(c,board[i])),'winBoard')).join('');
+  }finally{
+    evaluating=false;
   }
-  if(settledResult) persistHand(settledResult,{betAmount:settledBet});
-  const nomes=winners.map(x=>x.i===0?'Jogador':'Banca').join(' e ');
-  const cartas=best.cards.map(c=>`${c.r}${c.s}`).join('  ');
-  $('result').innerHTML=`<span class="best">${nomes}</span><br>${best.name}<br>${cartas}<br><span class="note">Usando exatamente 2 cartas da mão + 3 cartas da mesa.</span>`;
-  renderPlayers();
-  const winningBoardCards=scores.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
-  $('board').innerHTML=[0,1,2,3,4].map(i=>cardHtml(board[i],false,winningBoardCards.some(c=>sameCard(c,board[i])),'winBoard')).join('');
 }
 
 document.addEventListener('DOMContentLoaded',async()=>{

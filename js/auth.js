@@ -162,6 +162,27 @@
       const { error } = await client.from('profiles').update(patch).eq('id', userId);
       if (error) throw error;
     },
+
+    async getGameSettings() {
+      const { data, error } = await client.rpc('get_game_settings');
+      if (error) throw error;
+      return data;
+    },
+
+    async adminUpdateGameSettings({ enabled, betsPerPlayerWin }) {
+      const { data, error } = await client.rpc('admin_update_game_settings', {
+        p_enabled: !!enabled,
+        p_bets_per_player_win: Math.max(1, Math.floor(Number(betsPerPlayerWin) || 1)),
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async adminResetBetCounter() {
+      const { data, error } = await client.rpc('admin_reset_bet_counter');
+      if (error) throw error;
+      return data;
+    },
   };
 
   window.clubAuth = window.omahaAuth;
