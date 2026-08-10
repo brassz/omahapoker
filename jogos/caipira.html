@@ -29,10 +29,6 @@ button:disabled{opacity:.45}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px
 }
 .teamBtn.active{border-color:var(--gold);box-shadow:0 0 12px #ffd54a99;background:#31421e}
-.teamLogo{
-  width:42px;height:42px;object-fit:contain;display:block;
-  border-radius:8px;background:#fff;padding:2px;
-}
 .teamName{line-height:1.1}
 .diceWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
 .die{
@@ -41,8 +37,12 @@ button:disabled{opacity:.45}
   text-align:center;font-weight:1000;box-shadow:0 7px 15px #0008;padding:6px
 }
 .die.spin{animation:spin .12s linear infinite}
-.dieLogo{width:48px;height:48px;object-fit:contain;display:block}
-.dieName{font-size:12px;margin-top:4px;line-height:1.1}
+.dieLogo,.teamLogo{
+  width:48px;height:48px;object-fit:contain;display:block;flex:0 0 auto;
+  background:#fff;border-radius:8px;padding:2px;
+}
+.teamLogo{width:42px;height:42px}
+.dieName{font-size:12px;margin-top:4px;line-height:1.1;color:#132016}
 @keyframes spin{0%{transform:rotate(-3deg) scale(.98)}50%{transform:rotate(3deg) scale(1.03)}100%{transform:rotate(-3deg) scale(.98)}}
 .playBtn{width:100%;font-size:20px;background:linear-gradient(90deg,#257a34,#49b95d,#257a34);border:2px solid #72e58a;padding:12px}
 .status{margin-top:7px;background:#061009;border:1px solid #31533a;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:42px}
@@ -93,9 +93,9 @@ button:disabled{opacity:.45}
   <section class="panel">
     <div class="title">RESULTADO DOS 3 DADOS</div>
     <div class="diceWrap">
-      <div class="die" id="die0"><img class="dieLogo" alt="" src="../assets/times/palmeiras.svg"><div class="dieName">DADO 1</div></div>
-      <div class="die" id="die1"><img class="dieLogo" alt="" src="../assets/times/corinthians.svg"><div class="dieName">DADO 2</div></div>
-      <div class="die" id="die2"><img class="dieLogo" alt="" src="../assets/times/saopaulo.svg"><div class="dieName">DADO 3</div></div>
+      <div class="die" id="die0"></div>
+      <div class="die" id="die1"></div>
+      <div class="die" id="die2"></div>
     </div>
     <div style="margin-top:8px">
       <button id="play" class="playBtn" onclick="play()">🎲 SORTEAR OS 3 DADOS 🎲</button>
@@ -125,13 +125,12 @@ const teams=[
 ];
 
 function logoSrc(slug){
-  return `../assets/times/${slug}.png`;
-}
-function logoFallback(slug){
-  return `../assets/times/${slug}.svg`;
+  // Resolve a partir da página do jogo (jogos/caipira.html → ../assets/times/)
+  return new URL(`../assets/times/${slug}.png`, window.location.href).href;
 }
 function logoHtml(slug, className, alt){
-  return `<img class="${className}" alt="${alt}" src="${logoSrc(slug)}" onerror="this.onerror=null;this.src='${logoFallback(slug)}'">`;
+  const src = logoSrc(slug);
+  return `<img class="${className}" alt="${alt||''}" src="${src}" loading="eager" decoding="async">`;
 }
 
 let credits=0;
@@ -167,9 +166,13 @@ function renderHistory(){
     `<div class="historyItem"><b>${h.team}</b> apareceu ${h.matches} vez(es) — aposta ${fmt(h.bet)} — ${h.result}</div>`
   ).join('');
 }
-function showDie(index,team){
+function showDie(index,team,label){
   const d=document.getElementById('die'+index);
-  d.innerHTML=`${logoHtml(team.slug,'dieLogo',team.name)}<div class="dieName">${team.name}</div>`;
+  if(!d||!team)return;
+  d.innerHTML=`${logoHtml(team.slug,'dieLogo',team.name)}<div class="dieName">${label||team.name}</div>`;
+}
+function resetDice(){
+  for(let i=0;i<3;i++) showDie(i, teams[i], 'DADO '+(i+1));
 }
 async function play(){
   if(chosen===null)return alert('Escolha um dos 6 times.');
@@ -230,7 +233,7 @@ async function play(){
   await persistCredits();
   btn.disabled=false;
 }
-renderCredits();renderTeams();renderHistory();
+renderCredits();renderTeams();renderHistory();resetDice();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
