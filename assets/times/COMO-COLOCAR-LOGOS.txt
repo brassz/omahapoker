@@ -1,0 +1,23 @@
+CAIPIRA — Logos dos times
+=========================
+
+Coloque neste pasta as imagens PNG (recomendado) com estes nomes exatos:
+
+  palmeiras.png
+  corinthians.png
+  saopaulo.png
+  flamengo.png
+  fluminense.png
+  vasco.png
+
+Caminho completo no projeto:
+  assets/times/palmeiras.png
+  assets/times/corinthians.png
+  assets/times/saopaulo.png
+  assets/times/flamengo.png
+  assets/times/fluminense.png
+  assets/times/vasco.png
+
+Tamanho sugerido: 256x256 ou 512x512 (quadrado, fundo transparente se possível).
+
+Enquanto a PNG não existir, o jogo usa o placeholder .svg do mesmo nome.

@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../css/theme-bacatela.css?v=5">
-<meta charset="utf-8">
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=6">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Caipira</title>
 <style>
@@ -25,31 +24,41 @@ input{width:100%;min-width:0;padding:9px;border-radius:8px;border:1px solid #476
 button{border:0;border-radius:9px;padding:9px 7px;font-weight:900;color:white;background:#26893f;cursor:pointer}
 button:disabled{opacity:.45}
 .teams{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.teamBtn{background:#132d1d;border:2px solid #355d3e;min-height:58px;font-size:13px}
+.teamBtn{
+  background:#132d1d;border:2px solid #355d3e;min-height:78px;font-size:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px
+}
 .teamBtn.active{border-color:var(--gold);box-shadow:0 0 12px #ffd54a99;background:#31421e}
-.teamIcon{display:block;font-size:21px;margin-bottom:2px}
+.teamLogo{
+  width:42px;height:42px;object-fit:contain;display:block;
+  border-radius:8px;background:#fff;padding:2px;
+}
+.teamName{line-height:1.1}
 .diceWrap{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
-.die{height:105px;background:#fff;color:#132016;border-radius:13px;border:4px solid #e7e7e7;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:1000;box-shadow:0 7px 15px #0008;padding:4px}
+.die{
+  height:110px;background:#fff;color:#132016;border-radius:13px;border:4px solid #e7e7e7;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;font-weight:1000;box-shadow:0 7px 15px #0008;padding:6px
+}
 .die.spin{animation:spin .12s linear infinite}
-.dieIcon{font-size:29px;line-height:1}
-.dieName{font-size:13px;margin-top:4px}
+.dieLogo{width:48px;height:48px;object-fit:contain;display:block}
+.dieName{font-size:12px;margin-top:4px;line-height:1.1}
 @keyframes spin{0%{transform:rotate(-3deg) scale(.98)}50%{transform:rotate(3deg) scale(1.03)}100%{transform:rotate(-3deg) scale(.98)}}
 .playBtn{width:100%;font-size:20px;background:linear-gradient(90deg,#257a34,#49b95d,#257a34);border:2px solid #72e58a;padding:12px}
 .status{margin-top:7px;background:#061009;border:1px solid #31533a;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:42px}
 .rules{font-size:12px;line-height:1.5;color:#dce8df}
 .historyItem{font-size:12px;padding:5px 0;border-bottom:1px solid #294333}
-.footer{text-align:center;color:var(--gold);font-weight:900;font-size:11px;margin-top:6px}
 @media(max-width:550px){
   .app{padding:5px}
   h1{font-size:31px}
   .topGrid{grid-template-columns:1fr 1fr;gap:5px}
   .panel{padding:6px;margin-bottom:6px}
   .teams{grid-template-columns:repeat(3,1fr);gap:4px}
-  .teamBtn{min-height:50px;padding:5px 2px;font-size:10px}
-  .teamIcon{font-size:18px}
+  .teamBtn{min-height:70px;padding:4px 2px;font-size:10px}
+  .teamLogo{width:34px;height:34px}
   .diceWrap{gap:4px}
-  .die{height:84px;border-width:2px}
-  .dieIcon{font-size:24px}
+  .die{height:92px;border-width:2px}
+  .dieLogo{width:40px;height:40px}
   .dieName{font-size:10px}
   .playBtn{font-size:16px;padding:10px}
 }
@@ -58,7 +67,7 @@ button:disabled{opacity:.45}
 <body>
 <main class="app">
   <h1>⚽ CAIPIRA ⚽</h1>
-  <div class="sub">3 DADOS E 6 TIMES</div>
+  <div class="sub">3 DADOS E 6 TIMES DE FUTEBOL</div>
 
   <section class="topGrid">
     <div class="panel">
@@ -84,9 +93,9 @@ button:disabled{opacity:.45}
   <section class="panel">
     <div class="title">RESULTADO DOS 3 DADOS</div>
     <div class="diceWrap">
-      <div class="die" id="die0"><div class="dieIcon">🎲</div><div class="dieName">DADO 1</div></div>
-      <div class="die" id="die1"><div class="dieIcon">🎲</div><div class="dieName">DADO 2</div></div>
-      <div class="die" id="die2"><div class="dieIcon">🎲</div><div class="dieName">DADO 3</div></div>
+      <div class="die" id="die0"><img class="dieLogo" alt="" src="../assets/times/palmeiras.svg"><div class="dieName">DADO 1</div></div>
+      <div class="die" id="die1"><img class="dieLogo" alt="" src="../assets/times/corinthians.svg"><div class="dieName">DADO 2</div></div>
+      <div class="die" id="die2"><img class="dieLogo" alt="" src="../assets/times/saopaulo.svg"><div class="dieName">DADO 3</div></div>
     </div>
     <div style="margin-top:8px">
       <button id="play" class="playBtn" onclick="play()">🎲 SORTEAR OS 3 DADOS 🎲</button>
@@ -94,11 +103,11 @@ button:disabled{opacity:.45}
     <div id="status" class="status">Escolha um time e defina sua aposta.</div>
   </section>
 
-  <section class="panel rules mobile-hide">
+  <section class="panel rules">
     <b>REGRAS:</b> cada dado possui os mesmos 6 times. Se o time escolhido aparecer em 1 dado, você ganha 1 vez o valor apostado; em 2 dados, ganha 2 vezes; em 3 dados, ganha 3 vezes. Se não aparecer, perde somente a aposta da rodada. O valor apostado é devolvido quando há vitória, além do prêmio correspondente.
   </section>
 
-  <section class="panel mobile-hide">
+  <section class="panel">
     <div class="title">HISTÓRICO</div>
     <div id="history">Nenhuma rodada ainda.</div>
   </section>
@@ -107,13 +116,24 @@ button:disabled{opacity:.45}
 
 <script>
 const teams=[
-  {name:'TIME 1',icon:'🔵'},
-  {name:'TIME 2',icon:'🔴'},
-  {name:'TIME 3',icon:'🟢'},
-  {name:'TIME 4',icon:'🟡'},
-  {name:'TIME 5',icon:'🟣'},
-  {name:'TIME 6',icon:'⚪'}
+  {name:'Palmeiras', slug:'palmeiras'},
+  {name:'Corinthians', slug:'corinthians'},
+  {name:'São Paulo', slug:'saopaulo'},
+  {name:'Flamengo', slug:'flamengo'},
+  {name:'Fluminense', slug:'fluminense'},
+  {name:'Vasco', slug:'vasco'}
 ];
+
+function logoSrc(slug){
+  return `../assets/times/${slug}.png`;
+}
+function logoFallback(slug){
+  return `../assets/times/${slug}.svg`;
+}
+function logoHtml(slug, className, alt){
+  return `<img class="${className}" alt="${alt}" src="${logoSrc(slug)}" onerror="this.onerror=null;this.src='${logoFallback(slug)}'">`;
+}
+
 let credits=0;
 let chosen=null;
 let history=JSON.parse(localStorage.getItem('caipiraHistory')||'[]');
@@ -129,8 +149,9 @@ function renderCredits(){document.getElementById('credits').textContent=fmt(cred
 function renderTeams(){
   const box=document.getElementById('teams');
   box.innerHTML=teams.map((t,i)=>`
-    <button class="teamBtn ${chosen===i?'active':''}" onclick="chooseTeam(${i})">
-      <span class="teamIcon">${t.icon}</span>${t.name}
+    <button type="button" class="teamBtn ${chosen===i?'active':''}" onclick="chooseTeam(${i})">
+      ${logoHtml(t.slug,'teamLogo',t.name)}
+      <span class="teamName">${t.name}</span>
     </button>`).join('');
 }
 function chooseTeam(i){
@@ -148,7 +169,7 @@ function renderHistory(){
 }
 function showDie(index,team){
   const d=document.getElementById('die'+index);
-  d.innerHTML=`<div class="dieIcon">${team.icon}</div><div class="dieName">${team.name}</div>`;
+  d.innerHTML=`${logoHtml(team.slug,'dieLogo',team.name)}<div class="dieName">${team.name}</div>`;
 }
 async function play(){
   if(chosen===null)return alert('Escolha um dos 6 times.');
