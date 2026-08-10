@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>CLUBEDEJOGOSCAIPIRA — Lobby</title>
-<link rel="stylesheet" href="css/theme-bacatela.css?v=9">
+<link rel="stylesheet" href="css/theme-bacatela.css?v=10">
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh}
@@ -13,14 +13,9 @@ body{margin:0;min-height:100vh}
 .club-logo{
   width:min(160px,40vw);height:auto;aspect-ratio:1;object-fit:contain;
   display:block;margin:0 auto 8px;
-  filter:drop-shadow(0 0 18px #17c8ff) drop-shadow(0 0 28px #00eaff88);
-  animation:floaty 3.2s ease-in-out infinite, logoNeon 1.3s ease-in-out infinite;
+  animation:floaty 3.2s ease-in-out infinite, clubLogoNeon 2.8s ease-in-out infinite;
 }
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-@keyframes logoNeon{
-  0%,100%{filter:drop-shadow(0 0 12px #17c8ff88) drop-shadow(0 0 22px #00eaff55)}
-  50%{filter:drop-shadow(0 0 22px #17c8ff) drop-shadow(0 0 40px #00eaff)}
-}
 .brand{
   margin:0;font-size:clamp(24px,6vw,48px);line-height:1.1;
   word-break:normal;
@@ -34,13 +29,9 @@ body{margin:0;min-height:100vh}
 .userbar{
   display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
   margin:14px 0 16px;padding:12px;border-radius:16px;
-  background:#060912;border:2px solid #17c8ff;
-  box-shadow:0 0 14px #17c8ff88;
-  animation:barNeon 1.6s ease-in-out infinite;
-}
-@keyframes barNeon{
-  0%,100%{box-shadow:0 0 12px #17c8ff55;border-color:#17c8ff}
-  50%{box-shadow:0 0 24px #00eaffaa;border-color:#7af0ff}
+  background:#0a0614;border:2px solid #ff4fd8;
+  box-shadow:0 0 14px #ff4fd888;
+  animation:clubNeonGlow 2.8s ease-in-out infinite;
 }
 .userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px}
 .userbar strong{display:block;font-size:16px;margin-top:2px}
@@ -48,51 +39,49 @@ body{margin:0;min-height:100vh}
   border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
   background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;
   box-shadow:0 0 12px #ff343455;
+  animation:none!important;
 }
 .section-title{
   text-align:center;margin:0 0 12px;font-size:14px;font-weight:1000;
-  letter-spacing:3px;color:#17c8ff;text-shadow:0 0 12px #17c8ff;
-  animation:clubNeonBlink 1.1s ease-in-out infinite;
+  letter-spacing:3px;color:#ff4fd8;
+  animation:clubNeonBlink 2.4s ease-in-out infinite;
 }
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media(min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .game{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;min-height:180px;padding:16px 12px;text-decoration:none;color:#fff;
-  border-radius:16px;border:2px solid #17c8ff;
-  background:#060912;box-shadow:0 0 18px #17c8ff66;
+  border-radius:16px;border:2px solid #ff4fd8;
+  background:#0a0614;box-shadow:0 0 18px #ff4fd866;
   transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-  animation:rise .45s ease both, gameNeon 1.8s ease-in-out infinite;
+  animation:rise .45s ease both, clubNeonGlow 2.8s ease-in-out infinite;
 }
-.game:nth-child(2){animation-delay:.05s,.1s}
-.game:nth-child(3){animation-delay:.1s,.2s}
-.game:nth-child(4){animation-delay:.15s,.3s}
-.game:nth-child(5){animation-delay:.2s,.4s}
-@keyframes gameNeon{
-  0%,100%{box-shadow:0 0 14px #17c8ff55;border-color:#17c8ff}
-  50%{box-shadow:0 0 26px #00eaffaa;border-color:#7af0ff}
-}
+.game:nth-child(2){animation-delay:.05s,.15s}
+.game:nth-child(3){animation-delay:.1s,.3s}
+.game:nth-child(4){animation-delay:.15s,.45s}
+.game:nth-child(5){animation-delay:.2s,.6s}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .game:hover,.game:focus-visible{
   transform:translateY(-4px) scale(1.03);
-  border-color:#b8f7ff;box-shadow:0 0 28px #17c8ff,0 0 40px #00eaff;
+  border-color:#ffd91a;box-shadow:0 0 28px #ff4fd8,0 0 40px #17c8ff,0 0 50px #5cff1a66;
   outline:none;
 }
 .game img{
   width:96px;height:96px;object-fit:contain;border-radius:16px;
-  background:#050812;border:2px solid #17c8ff44;
-  box-shadow:0 0 16px #17c8ff44;
+  background:#080512;border:2px solid #ff4fd844;
+  box-shadow:0 0 16px #ff4fd844;
 }
 .game span{
   font-weight:1000;font-size:18px;letter-spacing:2px;
-  color:#7af0ff;text-shadow:0 0 10px #17c8ff;
+  color:#ffd91a;
+  animation:clubNeonBlink 2.8s ease-in-out infinite;
 }
 .foot{
   margin-top:16px;text-align:center;font-size:11px;font-weight:800;
-  color:#7af0ff;border-top:2px solid #17c8ff;padding-top:10px;
-  text-shadow:0 0 10px #17c8ff88;
+  color:#ffd91a;border-top:2px solid #ff4fd8;padding-top:10px;
+  animation:clubNeonBlink 3s ease-in-out infinite;
 }
-.loading{text-align:center;padding:40px 10px;font-weight:900;color:#17c8ff}
+.loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff4fd8;animation:clubNeonBlink 2.4s ease-in-out infinite}
 </style>
 </head>
 <body>

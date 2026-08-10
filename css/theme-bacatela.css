@@ -1,22 +1,27 @@
-/* Tema oficial do clube — neon multicolor piscando */
+/* Tema oficial do clube — neon multicolor (principal) */
 :root{
-  --bg:#02060f;
+  --bg:#06040f;
   --blue:#17c8ff;
-  --neon:#00eaff;
-  --neon-soft:#7af0ff;
+  --neon:#ff4fd8;
+  --neon-soft:#ffd91a;
   --red:#ff3434;
   --gold:#ffd91a;
   --green:#5cff1a;
   --pink:#ff4fd8;
   --violet:#a78bfa;
   --orange:#ff8c15;
-  --panel:#060912;
-  --panel2:#040810;
-  --muted:#d8e7ff;
+  --panel:#0a0614;
+  --panel2:#080512;
+  --muted:#e8e0ff;
+  --rainbow:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
 }
 
 html,body{
-  background:radial-gradient(circle at 50% 0,#003a66 0,#020b1a 35%,#02060f 72%)!important;
+  background:
+    radial-gradient(circle at 20% 0,#3a0066 0%,transparent 42%),
+    radial-gradient(circle at 80% 10%,#003a66 0%,transparent 40%),
+    radial-gradient(circle at 50% 100%,#3a2200 0%,transparent 45%),
+    #06040f!important;
   color:#fff!important;
   font-family:Arial,Helvetica,sans-serif!important;
 }
@@ -81,7 +86,21 @@ html,body{
   }
 }
 
-/* Títulos / marca — neon multicolor piscando */
+@keyframes clubRainbowShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+@keyframes clubLogoNeon{
+  0%,100%{filter:drop-shadow(0 0 12px #17c8ff88) drop-shadow(0 0 22px #ff4fd855)}
+  20%{filter:drop-shadow(0 0 16px #ff4fd8) drop-shadow(0 0 28px #ffd91a66)}
+  40%{filter:drop-shadow(0 0 16px #ffd91a) drop-shadow(0 0 28px #5cff1a66)}
+  60%{filter:drop-shadow(0 0 16px #5cff1a) drop-shadow(0 0 28px #ff8c1566)}
+  80%{filter:drop-shadow(0 0 16px #a78bfa) drop-shadow(0 0 28px #17c8ff66)}
+}
+
+/* Títulos / marca — neon multicolor */
 .club-rainbow,
 h1.brand,
 .brand .title,
@@ -90,7 +109,7 @@ main.app > h1{
   background:none!important;
   -webkit-background-clip:initial!important;
   background-clip:initial!important;
-  color:#17c8ff!important;
+  color:#ff4fd8!important;
   animation:clubNeonBlink 2.4s ease-in-out infinite!important;
   font-weight:1000!important;
   letter-spacing:2px!important;
@@ -98,29 +117,32 @@ main.app > h1{
 
 .sub,.tagline,.tag{
   color:#fff!important;
-  text-shadow:0 0 12px #17c8ff88!important;
+  text-shadow:0 0 12px #ff4fd888!important;
   font-weight:1000!important;
+  animation:clubNeonBlink 3.2s ease-in-out infinite!important;
 }
 
 /* Painéis / cards */
 .panel,.card,.side,.betPanel,.historyPanel,
 .playerBox,.result,.note{
-  background:#060912!important;
-  border:2px solid var(--neon)!important;
-  box-shadow:0 0 14px #17c8ff55!important;
+  background:#0a0614!important;
+  border:2px solid #ff4fd8!important;
+  box-shadow:0 0 14px #ff4fd855!important;
   color:#fff!important;
   animation:clubNeonGlow 2.8s ease-in-out infinite!important;
 }
 
-/* Botões padrão */
+/* Botões padrão — gradiente multicolor */
 button,.big,.helpBtn,.playBtn,.addBtn,.teamBtn{
   border-radius:9px!important;
-  color:#fff!important;
+  color:#120018!important;
   font-weight:900!important;
   cursor:pointer!important;
-  border:2px solid #7dd3fc!important;
-  background:linear-gradient(180deg,#0369a1,#0ea5e9)!important;
-  box-shadow:0 0 12px #17c8ff66!important;
+  border:2px solid #fff8!important;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa)!important;
+  background-size:220% 100%!important;
+  animation:clubRainbowShift 3.5s ease infinite!important;
+  box-shadow:0 0 14px #ff4fd866!important;
 }
 button:disabled{opacity:.45!important}
 button.big,
@@ -129,15 +151,19 @@ button#new,
 .play,
 #confirmBet,
 #continueHand{
-  background:linear-gradient(90deg,#0369a1,#22d3ee,#0369a1)!important;
-  border:2px solid #7dd3fc!important;
-  box-shadow:0 0 16px #17c8ffaa!important;
-  color:#00131b!important;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff)!important;
+  background-size:240% 100%!important;
+  animation:clubRainbowShift 2.8s linear infinite!important;
+  border:2px solid #fff!important;
+  box-shadow:0 0 18px #ffd91a88!important;
+  color:#120018!important;
 }
 #foldHand,
 #logoutBtn,
 button.out{
   background:linear-gradient(180deg,#b40000,#ff3434)!important;
+  background-size:auto!important;
+  animation:none!important;
   border:2px solid #ff8a8a!important;
   box-shadow:0 0 12px #ff343455!important;
   color:#fff!important;
@@ -145,56 +171,76 @@ button.out{
 #lobbyBtn,
 #clubBackLobby,
 #flop{
-  background:linear-gradient(180deg,#0284c7,#17c8ff)!important;
-  border:2px solid #7dd3fc!important;
-  color:#00131b!important;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#a78bfa)!important;
+  background-size:200% 100%!important;
+  animation:clubRainbowShift 3s ease infinite!important;
+  border:2px solid #fff8!important;
+  color:#120018!important;
 }
-#turn{background:linear-gradient(180deg,#0369a1,#22d3ee)!important;border-color:#7dd3fc!important;color:#00131b!important}
-#river{background:linear-gradient(180deg,#0e7490,#67e8f9)!important;border-color:#a5f3fc!important;color:#00131b!important}
+#turn{
+  background:linear-gradient(90deg,#ffd91a,#ff8c15,#ff4fd8)!important;
+  background-size:200% 100%!important;
+  animation:clubRainbowShift 3s ease infinite!important;
+  border-color:#fff8!important;
+  color:#120018!important;
+}
+#river{
+  background:linear-gradient(90deg,#5cff1a,#17c8ff,#a78bfa)!important;
+  background-size:200% 100%!important;
+  animation:clubRainbowShift 3s ease infinite!important;
+  border-color:#fff8!important;
+  color:#120018!important;
+}
 
 /* Inputs */
 input,select,textarea{
-  background:#090b14!important;
+  background:#090614!important;
   color:#fff!important;
-  border:1px solid #334!important;
+  border:1px solid #554!important;
   border-radius:8px!important;
 }
 input:focus,select:focus,textarea:focus{
   outline:none!important;
-  border-color:var(--blue)!important;
-  box-shadow:0 0 0 2px #17c8ff55!important;
+  border-color:#ff4fd8!important;
+  box-shadow:0 0 0 2px #ff4fd855,0 0 12px #17c8ff44!important;
 }
 
 /* Status / mensagens */
 .status,.msg,.result{
-  background:#080a13!important;
-  border:1px solid #17c8ff66!important;
+  background:#0a0614!important;
+  border:1px solid #ff4fd866!important;
   color:#fff!important;
+  animation:clubNeonGlow 3.2s ease-in-out infinite!important;
 }
 
 .footer{
-  color:#7af0ff!important;
+  color:#ffd91a!important;
   font-weight:900!important;
   letter-spacing:2px!important;
-  border-top:2px solid #17c8ff!important;
+  border-top:2px solid #ff4fd8!important;
   padding-top:7px!important;
-  text-shadow:0 0 10px #17c8ff88!important;
+  text-shadow:0 0 10px #ff4fd888!important;
+  animation:clubNeonBlink 3s ease-in-out infinite!important;
 }
 
 /* Créditos */
-#playerCredits,.credit{color:var(--blue)!important;text-shadow:0 0 14px var(--blue)!important}
+#playerCredits,.credit{
+  color:#ffd91a!important;
+  text-shadow:0 0 14px #ffd91a!important;
+  animation:clubNeonBlink 2.8s ease-in-out infinite!important;
+}
 
 /* Barra do clube nos jogos */
 #clubGateBar,
 #userBar{
-  background:#040810!important;
-  border:2px solid var(--neon)!important;
-  box-shadow:0 0 14px #17c8ff66!important;
+  background:#0a0614!important;
+  border:2px solid #ff4fd8!important;
+  box-shadow:0 0 14px #ff4fd866!important;
   color:#fff!important;
   animation:clubNeonGlow 2.8s ease-in-out infinite!important;
 }
 #clubGateBar .club-name,
 #userBar .club-name{
-  color:#17c8ff!important;
+  color:#ff4fd8!important;
   animation:clubNeonBlink 2.4s ease-in-out infinite!important;
 }

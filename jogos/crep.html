@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../css/theme-bacatela.css?v=9">
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=10">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Crep — Banca e Jogador</title>
 <style>
@@ -45,10 +45,35 @@ input{
 .point{text-align:center;color:var(--yellow);font-size:14px;font-weight:bold;margin:2px 0 4px}
 .dice{display:flex;justify-content:center;gap:12px;margin:8px 0}
 .die{
-  width:72px;height:72px;border-radius:14px;background:linear-gradient(160deg,#fff,#ffe4e4);
-  color:#c8102e;display:grid;place-items:center;font-size:44px;font-weight:900;
-  box-shadow:inset 0 0 0 3px #ff6b6b,0 0 16px #ff343488,0 6px 14px rgba(0,0,0,.35)
+  --pip:#000;
+  width:72px;height:72px;border-radius:12px;
+  background:#ff0000;
+  border:3px solid #b00000;
+  box-shadow:inset 0 2px 0 #ff6666,0 6px 14px rgba(0,0,0,.4);
+  position:relative;font-size:0;color:transparent;user-select:none;
 }
+.die::before,.die::after{
+  content:"";position:absolute;width:13px;height:13px;border-radius:50%;
+  background:#000;box-shadow:none;display:block;transform:none
+}
+/* 1 */
+.die[data-face="1"]::before{top:50%;left:50%;transform:translate(-50%,-50%)}
+.die[data-face="1"]::after{display:none}
+/* 2 */
+.die[data-face="2"]::before{top:12px;left:12px}
+.die[data-face="2"]::after{bottom:12px;right:12px}
+/* 3 */
+.die[data-face="3"]::before{top:12px;left:12px;box-shadow:29px 29px 0 #000}
+.die[data-face="3"]::after{top:50%;left:50%;transform:translate(-50%,-50%)}
+/* 4 */
+.die[data-face="4"]::before{top:12px;left:12px;box-shadow:29px 0 0 #000}
+.die[data-face="4"]::after{bottom:12px;left:12px;box-shadow:29px 0 0 #000}
+/* 5 */
+.die[data-face="5"]::before{top:12px;left:12px;box-shadow:29px 0 0 #000,14.5px 14.5px 0 #000}
+.die[data-face="5"]::after{bottom:12px;left:12px;box-shadow:29px 0 0 #000}
+/* 6 */
+.die[data-face="6"]::before{top:10px;left:12px;box-shadow:29px 0 0 #000,0 19px 0 #000,29px 19px 0 #000}
+.die[data-face="6"]::after{bottom:10px;left:12px;box-shadow:29px 0 0 #000}
 .rolling{animation:shake .12s linear infinite}
 @keyframes shake{0%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}100%{transform:rotate(-6deg)}}
 .sum{text-align:center;font-size:16px;margin:4px 0 8px;font-weight:800}
@@ -105,8 +130,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <div id="status" class="status">Confirme a aposta inicial para começar.</div>
   <div id="pointLabel" class="point">Ponto: nenhum</div>
   <div class="dice">
-    <div id="die1" class="die">⚀</div>
-    <div id="die2" class="die">⚀</div>
+    <div id="die1" class="die" data-face="1"></div>
+    <div id="die2" class="die" data-face="1"></div>
   </div>
   <div id="sum" class="sum">Soma: 2</div>
 </section>
@@ -144,7 +169,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <script>
 let playerBalance=0, round=0, point=null, phase="idle", rolling=false;
 let baseBet=0, pointBet=0;
-const diceChars=["⚀","⚁","⚂","⚃","⚄","⚅"];
+function setDie(el,n){el.dataset.face=String(Math.max(1,Math.min(6,n|0)))}
 const $=id=>document.getElementById(id);
 
 function fmt(n){return Number(n).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2})}
@@ -241,12 +266,12 @@ function animate(d1,d2,done){
   $("die1").classList.add("rolling");$("die2").classList.add("rolling");
   let t=0;
   const timer=setInterval(()=>{
-    $("die1").textContent=diceChars[Math.floor(Math.random()*6)];
-    $("die2").textContent=diceChars[Math.floor(Math.random()*6)];
+    setDie($("die1"),1+Math.floor(Math.random()*6));
+    setDie($("die2"),1+Math.floor(Math.random()*6));
     if(++t>=12){
       clearInterval(timer);
       $("die1").classList.remove("rolling");$("die2").classList.remove("rolling");
-      $("die1").textContent=diceChars[d1-1];$("die2").textContent=diceChars[d2-1];
+      setDie($("die1"),d1);setDie($("die2"),d2);
       rolling=false;done();
     }
   },70);

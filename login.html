@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Login — CLUBEDEJOGOSCAIPIRA</title>
-<link rel="stylesheet" href="css/theme-bacatela.css?v=9">
+<link rel="stylesheet" href="css/theme-bacatela.css?v=10">
 <style>
 *{box-sizing:border-box}
 body{
@@ -12,21 +12,17 @@ body{
 }
 .shell{
   width:min(420px,100%);
-  background:#060912;
-  border:2px solid #17c8ff;
+  background:#0a0614;
+  border:2px solid #ff4fd8;
   border-radius:18px;
   padding:22px 18px 18px;
-  box-shadow:0 0 24px #17c8ff88,0 18px 40px #000a;
-  animation:rise .45s ease both, shellNeon 1.6s ease-in-out infinite;
-}
-@keyframes shellNeon{
-  0%,100%{box-shadow:0 0 16px #17c8ff66,0 18px 40px #000a;border-color:#17c8ff}
-  50%{box-shadow:0 0 32px #00eaffcc,0 18px 40px #000a;border-color:#7af0ff}
+  box-shadow:0 0 24px #ff4fd888,0 18px 40px #000a;
+  animation:rise .45s ease both, clubNeonGlow 2.8s ease-in-out infinite;
 }
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .club-logo{
   width:96px;height:96px;object-fit:contain;display:block;margin:0 auto 8px;
-  filter:drop-shadow(0 0 16px #17c8ff88);
+  animation:clubLogoNeon 2.8s ease-in-out infinite;
 }
 .brand{
   text-align:center;margin:0 0 4px;
@@ -41,42 +37,47 @@ body{
 }
 .sub{
   text-align:center;color:#fff;font-weight:1000;font-size:13px;margin:0 0 16px;
-  text-shadow:0 0 12px var(--gold);
 }
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
 .tab{
-  border:2px solid #0284c7;border-radius:10px;padding:10px;
-  font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(180deg,#0369a1,#0c4a6e);
-  box-shadow:0 0 10px #17c8ff55;
+  border:2px solid #fff6;border-radius:10px;padding:10px;
+  font-weight:900;cursor:pointer;color:#120018;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#a78bfa);
+  background-size:200% 100%;
+  animation:clubRainbowShift 3.5s ease infinite;
+  box-shadow:0 0 10px #ff4fd855;
 }
 .tab.active{
-  background:linear-gradient(180deg,#0ea5e9,#0369a1);
-  border-color:#7dd3fc;
-  box-shadow:0 0 16px #17c8ffaa;
-  color:#00131b;
+  background:linear-gradient(90deg,#ffd91a,#5cff1a,#17c8ff,#ff4fd8);
+  background-size:220% 100%;
+  animation:clubRainbowShift 2.6s linear infinite;
+  border-color:#fff;
+  box-shadow:0 0 18px #ffd91a88;
+  color:#120018;
 }
 label{display:block;font-size:12px;font-weight:800;margin:10px 0 4px;color:var(--muted)}
 input{
   width:100%;border-radius:10px;padding:12px 11px;
   font-size:15px;font-weight:700;outline:none;
-  background:#090b14;color:#fff;border:1px solid #445;
+  background:#090614;color:#fff;border:1px solid #554;
 }
-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px #17c8ff55}
+input:focus{border-color:#ff4fd8;box-shadow:0 0 0 2px #ff4fd855,0 0 12px #17c8ff44}
 .btn{
   width:100%;margin-top:14px;border-radius:12px;
-  padding:13px;font-size:16px;font-weight:900;cursor:pointer;color:#00131b;
-  background:linear-gradient(90deg,#0284c7,#22d3ee,#0284c7);
-  border:2px solid #7dd3fc;box-shadow:0 0 16px #17c8ff;
+  padding:13px;font-size:16px;font-weight:900;cursor:pointer;color:#120018;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
+  background-size:240% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;
+  border:2px solid #fff;box-shadow:0 0 18px #ff4fd8aa;
 }
 .btn:disabled{opacity:.6;cursor:wait}
 .msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:var(--muted)}
 .msg.error{color:var(--red)}
 .msg.ok{color:var(--green)}
 .note{
-  margin-top:12px;text-align:center;font-size:11px;color:#7af0ff;
-  line-height:1.4;border-top:2px solid #17c8ff;padding-top:10px;font-weight:800;
-  text-shadow:0 0 10px #17c8ff88;
+  margin-top:12px;text-align:center;font-size:11px;color:#ffd91a;
+  line-height:1.4;border-top:2px solid #ff4fd8;padding-top:10px;font-weight:800;
+  animation:clubNeonBlink 3s ease-in-out infinite;
 }
 .hidden{display:none}
 </style>
