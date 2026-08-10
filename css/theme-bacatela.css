@@ -2,8 +2,8 @@
 :root{
   --bg:#06040f;
   --blue:#17c8ff;
-  --neon:#ff4fd8;
-  --neon-soft:#ffd91a;
+  --neon:#17c8ff;
+  --neon-soft:#7af0ff;
   --red:#ff3434;
   --gold:#ffd91a;
   --green:#5cff1a;
@@ -59,30 +59,15 @@ html,body{
   }
 }
 
+/* Bordas de boxes — azul neon piscando */
 @keyframes clubNeonGlow{
   0%,100%{
     box-shadow:0 0 10px #17c8ff55,0 0 22px #00eaff33;
     border-color:#17c8ff;
   }
-  16%{
-    box-shadow:0 0 14px #ff4fd866,0 0 28px #ff2eb644;
-    border-color:#ff4fd8;
-  }
-  33%{
-    box-shadow:0 0 14px #ffd91a66,0 0 28px #ffb80044;
-    border-color:#ffd91a;
-  }
   50%{
-    box-shadow:0 0 14px #5cff1a66,0 0 28px #39ff1444;
-    border-color:#5cff1a;
-  }
-  66%{
-    box-shadow:0 0 14px #ff8c1566,0 0 28px #ff6a0044;
-    border-color:#ff8c15;
-  }
-  83%{
-    box-shadow:0 0 14px #a78bfa66,0 0 28px #8b5cf644;
-    border-color:#a78bfa;
+    box-shadow:0 0 18px #17c8ffcc,0 0 36px #00eaff88,0 0 50px #0099ff44;
+    border-color:#7af0ff;
   }
 }
 
@@ -122,14 +107,14 @@ main.app > h1{
   animation:clubNeonBlink 3.2s ease-in-out infinite!important;
 }
 
-/* Painéis / cards */
+/* Painéis / cards — borda azul neon */
 .panel,.card,.side,.betPanel,.historyPanel,
 .playerBox,.result,.note{
   background:#0a0614!important;
-  border:2px solid #ff4fd8!important;
-  box-shadow:0 0 14px #ff4fd855!important;
+  border:2px solid #17c8ff!important;
+  box-shadow:0 0 14px #17c8ff55!important;
   color:#fff!important;
-  animation:clubNeonGlow 2.8s ease-in-out infinite!important;
+  animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 
 /* Botões padrão — gradiente multicolor */
@@ -201,26 +186,25 @@ input,select,textarea{
 }
 input:focus,select:focus,textarea:focus{
   outline:none!important;
-  border-color:#ff4fd8!important;
-  box-shadow:0 0 0 2px #ff4fd855,0 0 12px #17c8ff44!important;
+  border-color:#17c8ff!important;
+  box-shadow:0 0 0 2px #17c8ff55!important;
 }
 
 /* Status / mensagens */
 .status,.msg,.result{
   background:#0a0614!important;
-  border:1px solid #ff4fd866!important;
+  border:1px solid #17c8ff66!important;
   color:#fff!important;
-  animation:clubNeonGlow 3.2s ease-in-out infinite!important;
+  animation:clubNeonGlow 1.8s ease-in-out infinite!important;
 }
 
 .footer{
-  color:#ffd91a!important;
+  color:#7af0ff!important;
   font-weight:900!important;
   letter-spacing:2px!important;
-  border-top:2px solid #ff4fd8!important;
+  border-top:2px solid #17c8ff!important;
   padding-top:7px!important;
-  text-shadow:0 0 10px #ff4fd888!important;
-  animation:clubNeonBlink 3s ease-in-out infinite!important;
+  text-shadow:0 0 10px #17c8ff88!important;
 }
 
 /* Créditos */
@@ -234,10 +218,10 @@ input:focus,select:focus,textarea:focus{
 #clubGateBar,
 #userBar{
   background:#0a0614!important;
-  border:2px solid #ff4fd8!important;
-  box-shadow:0 0 14px #ff4fd866!important;
+  border:2px solid #17c8ff!important;
+  box-shadow:0 0 14px #17c8ff66!important;
   color:#fff!important;
-  animation:clubNeonGlow 2.8s ease-in-out infinite!important;
+  animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 #clubGateBar .club-name,
 #userBar .club-name{

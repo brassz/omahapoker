@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>CLUBEDEJOGOSCAIPIRA — Lobby</title>
-<link rel="stylesheet" href="css/theme-bacatela.css?v=10">
+<link rel="stylesheet" href="css/theme-bacatela.css?v=11">
 <style>
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh}
@@ -29,9 +29,9 @@ body{margin:0;min-height:100vh}
 .userbar{
   display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
   margin:14px 0 16px;padding:12px;border-radius:16px;
-  background:#0a0614;border:2px solid #ff4fd8;
-  box-shadow:0 0 14px #ff4fd888;
-  animation:clubNeonGlow 2.8s ease-in-out infinite;
+  background:#0a0614;border:2px solid #17c8ff;
+  box-shadow:0 0 14px #17c8ff88;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
 }
 .userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px}
 .userbar strong{display:block;font-size:16px;margin-top:2px}
@@ -51,25 +51,25 @@ body{margin:0;min-height:100vh}
 .game{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;min-height:180px;padding:16px 12px;text-decoration:none;color:#fff;
-  border-radius:16px;border:2px solid #ff4fd8;
-  background:#0a0614;box-shadow:0 0 18px #ff4fd866;
+  border-radius:16px;border:2px solid #17c8ff;
+  background:#0a0614;box-shadow:0 0 18px #17c8ff66;
   transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-  animation:rise .45s ease both, clubNeonGlow 2.8s ease-in-out infinite;
+  animation:rise .45s ease both, clubNeonGlow 1.6s ease-in-out infinite;
 }
-.game:nth-child(2){animation-delay:.05s,.15s}
-.game:nth-child(3){animation-delay:.1s,.3s}
-.game:nth-child(4){animation-delay:.15s,.45s}
-.game:nth-child(5){animation-delay:.2s,.6s}
+.game:nth-child(2){animation-delay:.05s,.1s}
+.game:nth-child(3){animation-delay:.1s,.2s}
+.game:nth-child(4){animation-delay:.15s,.3s}
+.game:nth-child(5){animation-delay:.2s,.4s}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .game:hover,.game:focus-visible{
   transform:translateY(-4px) scale(1.03);
-  border-color:#ffd91a;box-shadow:0 0 28px #ff4fd8,0 0 40px #17c8ff,0 0 50px #5cff1a66;
+  border-color:#7af0ff;box-shadow:0 0 28px #17c8ff,0 0 40px #00eaff;
   outline:none;
 }
 .game img{
   width:96px;height:96px;object-fit:contain;border-radius:16px;
-  background:#080512;border:2px solid #ff4fd844;
-  box-shadow:0 0 16px #ff4fd844;
+  background:#080512;border:2px solid #17c8ff44;
+  box-shadow:0 0 16px #17c8ff44;
 }
 .game span{
   font-weight:1000;font-size:18px;letter-spacing:2px;
@@ -78,8 +78,8 @@ body{margin:0;min-height:100vh}
 }
 .foot{
   margin-top:16px;text-align:center;font-size:11px;font-weight:800;
-  color:#ffd91a;border-top:2px solid #ff4fd8;padding-top:10px;
-  animation:clubNeonBlink 3s ease-in-out infinite;
+  color:#7af0ff;border-top:2px solid #17c8ff;padding-top:10px;
+  text-shadow:0 0 10px #17c8ff88;
 }
 .loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff4fd8;animation:clubNeonBlink 2.4s ease-in-out infinite}
 </style>
