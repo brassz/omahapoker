@@ -18,8 +18,13 @@ body{margin:0;min-height:100vh}
 }
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .brand{
-  margin:0;font-size:clamp(28px,7vw,52px);line-height:.95;
-  word-break:break-word;
+  margin:0;font-size:clamp(24px,6vw,48px);line-height:1.1;
+  word-break:normal;
+  overflow-wrap:normal;
+}
+.brand .brand-line{
+  display:inline-block;
+  white-space:nowrap;
 }
 .tag{margin:8px 0 0;font-size:clamp(14px,3.5vw,20px)}
 .userbar{
@@ -112,7 +117,7 @@ body{margin:0;min-height:100vh}
     document.getElementById('app').innerHTML = `
       <header class="hero">
         ${logoImg('club', 'club-logo')}
-        <h1 class="brand club-rainbow">CLUBEDEJOGOSCAIPIRA</h1>
+        <h1 class="brand club-rainbow"><span class="brand-line">CLUBEDEJOGOS</span><span class="brand-line">CAIPIRA</span></h1>
         <p class="tag">Escolha um jogo</p>
       </header>
 

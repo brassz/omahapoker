@@ -26,8 +26,14 @@ body{
 }
 .brand{
   text-align:center;margin:0 0 4px;
-  font-size:clamp(24px,7vw,34px);line-height:1.05;
-  word-break:break-word;
+  font-size:clamp(20px,5.6vw,30px);line-height:1.15;
+  word-break:normal;
+  overflow-wrap:normal;
+  letter-spacing:1px;
+}
+.brand .brand-line{
+  display:inline-block;
+  white-space:nowrap;
 }
 .sub{
   text-align:center;color:#fff;font-weight:1000;font-size:13px;margin:0 0 16px;
@@ -72,7 +78,7 @@ input:focus{border-color:var(--blue);box-shadow:0 0 0 2px #17c8ff55}
 <body>
   <main class="shell">
     <img class="club-logo" alt="CLUBEDEJOGOSCAIPIRA" src="assets/logos/club.png" onerror="this.onerror=null;this.src='assets/logos/club.svg'">
-    <h1 class="brand club-rainbow">CLUBEDEJOGOSCAIPIRA</h1>
+    <h1 class="brand club-rainbow"><span class="brand-line">CLUBEDEJOGOS</span><span class="brand-line">CAIPIRA</span></h1>
     <p class="sub">Entre para acessar o lobby de jogos</p>
 
     <div class="tabs">
