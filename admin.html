@@ -180,7 +180,6 @@ body{margin:0;min-height:100vh}
   function render() {
     const q = ($('search').value || '').trim().toLowerCase();
     const rows = players.filter((p) => {
-      if (p.is_admin) return false;
       if (!q) return true;
       return `${p.display_name||''} ${p.email||''}`.toLowerCase().includes(q);
     });
@@ -203,8 +202,8 @@ body{margin:0;min-height:100vh}
         </thead>
         <tbody>
           ${rows.map((p) => `
-            <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}">
-              <td data-label="JOGADOR">${p.display_name || '—'}</td>
+            <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}" data-admin="${p.is_admin ? '1' : '0'}">
+              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}</td>
               <td data-label="E-MAIL">${p.email || '—'}</td>
               <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
               <td data-label="AJUSTAR">
@@ -217,7 +216,9 @@ body{margin:0;min-height:100vh}
               </td>
               <td data-label="EXCLUIR">
                 <div class="actions">
-                  <button type="button" class="del" data-act="del">EXCLUIR</button>
+                  ${p.is_admin
+                    ? '<span class="badge">protegido</span>'
+                    : '<button type="button" class="del" data-act="del">EXCLUIR</button>'}
                 </div>
               </td>
             </tr>
@@ -230,13 +231,9 @@ body{margin:0;min-height:100vh}
   async function reload() {
     try {
       players = await omahaAuth.listPlayers();
-      const clients = players.filter((p) => !p.is_admin);
+      const admins = players.filter((p) => p.is_admin).length;
       render();
-      if (!clients.length && players.length) {
-        setMsg(`0 jogador(es) · ${players.length} conta(s) admin oculta(s). Confira se os clientes têm is_admin = false.`, 'err');
-      } else {
-        setMsg(`${clients.length} jogador(es) · saldo inicial de novas contas = 0`, 'ok');
-      }
+      setMsg(`${players.length} conta(s) · ${admins} admin · saldo inicial de novas contas = 0`, 'ok');
     } catch (err) {
       players = [];
       render();
