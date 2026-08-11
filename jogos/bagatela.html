@@ -304,6 +304,17 @@ body{
   40%,60%{transform:rotate(90deg)}
 }
 
+/* Mobile: mesa ~15% menor */
+@media (max-width:900px){
+  .table-wrapper{
+    width:85%;
+    max-width:85%;
+    margin-left:auto;
+    margin-right:auto;
+    padding:10px;
+  }
+}
+
 /* Mobile: pedir landscape */
 @media (max-width:900px) and (orientation:portrait){
   .rotate-hint{display:flex}
@@ -328,7 +339,7 @@ body{
   .hud{gap:4px;margin-bottom:4px}
   .hud-item{min-width:72px;padding:4px 8px}
   .hud-value{font-size:14px}
-  .table-wrapper{padding:6px;border-radius:12px}
+  .table-wrapper{width:85%;max-width:85%;padding:5px;border-radius:12px}
   .instructions{font-size:10px;margin-top:4px}
   .back{margin-top:4px;padding:6px 12px;font-size:12px}
   .result{margin-top:4px;padding:6px 12px}
