@@ -56,6 +56,12 @@ body{margin:0;min-height:100vh}
 .actions .rem{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
 .actions .set{background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff}
 .actions .del{background:linear-gradient(180deg,#4a044e,#9f1239);border:2px solid #fb7185}
+.actions .pay{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
+.actions .rej{background:linear-gradient(180deg,#b95b00,#6b2f00);border:2px solid #ff9f32}
+.badge.pending{border-color:#ffd91a;background:#ffd91a22;color:#ffd91a}
+.badge.paid{border-color:#5cff1a;background:#5cff1a22;color:#5cff1a}
+.badge.rejected{border-color:#ff6262;background:#ff626222;color:#ff6262}
+.pixKey{word-break:break-all;color:#7af0ff;font-size:12px}
 .msg{min-height:22px;text-align:center;font-weight:900;margin:8px 0;color:var(--muted)}
 .msg.ok{color:var(--green)}.msg.err{color:var(--red)}
 .empty{text-align:center;padding:20px;color:var(--muted);font-weight:800}
@@ -139,6 +145,15 @@ body{margin:0;min-height:100vh}
     </section>
 
     <section class="panel">
+      <h2>★ SAQUES PIX</h2>
+      <p class="cfgHelp">
+        Solicitações dos jogadores. Prazo informado ao cliente: <b>até 2 horas</b>.
+        Ao marcar como PAGO, o valor já foi debitado na solicitação. Ao RECUSAR, o saldo volta para o jogador.
+      </p>
+      <div id="withdrawList"><div class="empty">Carregando saques...</div></div>
+    </section>
+
+    <section class="panel">
       <h2>★ JOGADORES</h2>
       <input class="search" id="search" type="search" placeholder="Buscar por nome ou e-mail...">
       <div id="list"></div>
@@ -147,16 +162,81 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=8"></script>
+  <script src="js/auth.js?v=10"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   let players = [];
+  let withdrawals = [];
   let me = null;
   let settings = null;
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
+  function statusBadge(s){
+    const label = s==='pending'?'PENDENTE':s==='paid'?'PAGO':s==='rejected'?'RECUSADO':s;
+    return `<span class="badge ${s||''}">${label}</span>`;
+  }
+  function fmtDate(v){
+    try { return new Date(v).toLocaleString('pt-BR'); } catch(_) { return v || '—'; }
+  }
+
+  function renderWithdrawals() {
+    const box = $('withdrawList');
+    if (!withdrawals.length) {
+      box.innerHTML = '<div class="empty">Nenhuma solicitação de saque.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGADOR</th>
+            <th>VALOR</th>
+            <th>CHAVE PIX</th>
+            <th>STATUS</th>
+            <th>DATA</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${withdrawals.map((w) => `
+            <tr data-wid="${w.id}">
+              <td data-label="JOGADOR">${w.display_name || '—'}<br><small style="color:#889">${w.email || ''}</small></td>
+              <td data-label="VALOR"><span class="credits">${fmt(w.amount)}</span></td>
+              <td data-label="CHAVE PIX"><span class="pixKey">${w.pix_key || '—'}</span></td>
+              <td data-label="STATUS">${statusBadge(w.status)}</td>
+              <td data-label="DATA">${fmtDate(w.created_at)}</td>
+              <td data-label="AÇÕES">
+                ${w.status === 'pending' ? `
+                  <div class="actions">
+                    <button type="button" class="pay" data-wact="paid">PAGO</button>
+                    <button type="button" class="rej" data-wact="rej">RECUSAR</button>
+                  </div>
+                ` : (w.admin_note ? `<small style="color:#889">${w.admin_note}</small>` : '—')}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function reloadWithdrawals() {
+    try {
+      withdrawals = await omahaAuth.adminListWithdrawals();
+      renderWithdrawals();
+      const pending = withdrawals.filter((w) => w.status === 'pending').length;
+      if (pending) setMsg(`${pending} saque(s) pendente(s) para pagar.`, 'ok');
+    } catch (err) {
+      withdrawals = [];
+      renderWithdrawals();
+      const tip = /admin_list_withdrawals|function|schema cache/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/withdrawals.sql no Supabase.'
+        : '';
+      if (tip) setMsg((err?.message || 'Falha ao listar saques.') + tip, 'err');
+    }
+  }
 
   function renderSettings(s) {
     settings = s || settings;
@@ -253,7 +333,7 @@ body{margin:0;min-height:100vh}
       return;
     }
     $('adminName').textContent = me.display_name || me.email || 'Admin';
-    await Promise.all([reload(), reloadSettings()]);
+    await Promise.all([reload(), reloadSettings(), reloadWithdrawals()]);
   }
 
   $('cfgSave').onclick = async () => {
@@ -330,6 +410,34 @@ body{margin:0;min-height:100vh}
       setMsg(act === 'set' ? `Saldo definido para ${fmt(value)}.` : `Saldo atualizado (${act === 'add' ? '+' : '-'}${fmt(value)}).`, 'ok');
     } catch (err) {
       setMsg(err?.message || 'Falha ao ajustar saldo.', 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('withdrawList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-wact]');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    const id = tr?.dataset.wid;
+    const act = btn.dataset.wact;
+    if (!id) return;
+
+    if (act === 'paid' && !confirm('Confirmar que o PIX foi pago ao cliente?')) return;
+    if (act === 'rej' && !confirm('Recusar saque e devolver o valor ao saldo do jogador?')) return;
+
+    btn.disabled = true;
+    try {
+      if (act === 'paid') {
+        await omahaAuth.adminMarkWithdrawalPaid(id);
+        setMsg('Saque marcado como pago.', 'ok');
+      } else if (act === 'rej') {
+        await omahaAuth.adminRejectWithdrawal(id, 'Recusado pelo admin');
+        setMsg('Saque recusado. Saldo devolvido ao jogador.', 'ok');
+      }
+      await Promise.all([reloadWithdrawals(), reload()]);
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao processar saque.', 'err');
     } finally {
       btn.disabled = false;
     }

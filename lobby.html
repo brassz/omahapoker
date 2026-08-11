@@ -18,13 +18,9 @@ body{margin:0;min-height:100vh}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .brand{
   margin:0;font-size:clamp(24px,6vw,48px);line-height:1.1;
-  word-break:normal;
-  overflow-wrap:normal;
+  word-break:normal;overflow-wrap:normal;
 }
-.brand .brand-line{
-  display:inline-block;
-  white-space:nowrap;
-}
+.brand .brand-line{display:inline-block;white-space:nowrap}
 .tag{margin:8px 0 0;font-size:clamp(14px,3.5vw,20px)}
 .userbar{
   display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
@@ -41,11 +37,16 @@ body{margin:0;min-height:100vh}
 .userbar .saldo-line{
   color:#ffd91a;text-shadow:0 0 10px #ffd91a;font-weight:1000;font-size:13px
 }
+.userbar .actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .userbar button{
   border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
   background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;
-  box-shadow:0 0 12px #ff343455;
-  animation:none!important;
+  box-shadow:0 0 12px #ff343455;animation:none!important;
+}
+.userbar button.wallet{
+  color:#120018;
+  background:linear-gradient(90deg,#17c8ff,#ffd91a,#5cff1a);
+  border:2px solid #fff8;
 }
 .section-title{
   text-align:center;margin:0 0 12px;font-size:14px;font-weight:1000;
@@ -78,8 +79,7 @@ body{margin:0;min-height:100vh}
   box-shadow:0 0 16px #17c8ff44;
 }
 .game span{
-  font-weight:1000;font-size:18px;letter-spacing:2px;
-  color:#ffd91a;
+  font-weight:1000;font-size:18px;letter-spacing:2px;color:#ffd91a;
   animation:clubNeonBlink 2.8s ease-in-out infinite;
 }
 .foot{
@@ -88,6 +88,39 @@ body{margin:0;min-height:100vh}
   text-shadow:0 0 10px #17c8ff88;
 }
 .loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff4fd8;animation:clubNeonBlink 2.4s ease-in-out infinite}
+
+.modal{
+  display:none;position:fixed;inset:0;z-index:9999;padding:16px;
+  background:#000a;align-items:center;justify-content:center;
+}
+.modal.open{display:flex}
+.modal-card{
+  width:min(420px,100%);background:#0a0614;border:2px solid #17c8ff;border-radius:18px;
+  padding:18px 16px;box-shadow:0 0 28px #17c8ff88;animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.modal-card h2{margin:0 0 6px;text-align:center;font-size:22px}
+.modal-card .balance{
+  text-align:center;font-size:28px;font-weight:1000;color:#ffd91a;
+  text-shadow:0 0 12px #ffd91a;margin:8px 0 14px;
+}
+.modal-card label{display:block;font-size:12px;font-weight:900;color:#d8e7ff;margin:10px 0 4px}
+.modal-card input{
+  width:100%;padding:12px;border-radius:10px;border:1px solid #445;
+  background:#090614;color:#fff;font-weight:800;font-size:15px;
+}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.modal-actions button{
+  border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;color:#fff;
+}
+.modal-actions .primary{
+  color:#120018;background:linear-gradient(90deg,#17c8ff,#5cff1a);border:2px solid #fff8;
+}
+.modal-actions .ghost{background:#1a2233;border:2px solid #445}
+.modal-msg{min-height:40px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.4}
+.modal-msg.ok{color:#5cff1a}.modal-msg.err{color:#ff6262}
+.wd-list{margin-top:12px;max-height:140px;overflow:auto;font-size:12px;color:#d8e7ff}
+.wd-item{padding:6px 0;border-bottom:1px solid #263042;font-weight:700}
+.wd-item b{color:#ffd91a}
 </style>
 </head>
 <body>
@@ -95,12 +128,37 @@ body{margin:0;min-height:100vh}
     <div class="loading" id="loading">Validando sessão...</div>
   </div>
 
+  <div class="modal" id="walletModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-labelledby="walletTitle">
+      <h2 id="walletTitle" class="club-rainbow">CARTEIRA</h2>
+      <div style="text-align:center;font-size:12px;font-weight:800;color:#7af0ff">Seu saldo disponível</div>
+      <div class="balance" id="walletBalance">0</div>
+
+      <button type="button" id="btnShowWithdraw" class="primary" style="width:100%;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;color:#120018;background:linear-gradient(90deg,#17c8ff,#ffd91a);border:2px solid #fff8">SOLICITAR SAQUE</button>
+
+      <div id="withdrawForm" style="display:none">
+        <label for="wdAmount">Valor do saque</label>
+        <input id="wdAmount" type="number" min="2" step="1" placeholder="Ex: 100">
+        <label for="wdPix">Chave PIX</label>
+        <input id="wdPix" type="text" maxlength="120" placeholder="CPF, e-mail, telefone ou chave aleatória">
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="wdCancel">CANCELAR</button>
+          <button type="button" class="primary" id="wdSubmit">SOLICITAR</button>
+        </div>
+      </div>
+
+      <div class="modal-msg" id="walletMsg"></div>
+      <div class="wd-list" id="wdHistory"></div>
+      <button type="button" id="walletClose" style="width:100%;margin-top:10px;border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer;color:#fff;background:#334;border:2px solid #556">FECHAR</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=3"></script>
-  <script src="js/auth.js?v=3"></script>
+  <script src="js/config.js?v=5"></script>
+  <script src="js/auth.js?v=10"></script>
   <script>
   const GAMES = [
-    { id: 'omaha', name: 'CUCURUTI', href: 'jogos/omaha.html' },
+    { id: 'omaha', name: 'CUCURUTI/OMAHA5', href: 'jogos/omaha.html' },
     { id: 'crep', name: 'CREP', href: 'jogos/crep.html' },
     { id: 'bacatela', name: 'BACATELA', href: 'jogos/bacatela.html' },
     { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
@@ -108,21 +166,73 @@ body{margin:0;min-height:100vh}
     { id: '21', name: '21', href: 'jogos/21.html' },
   ];
 
+  let currentCredits = 0;
+  let currentUser = null;
+
   function logoImg(id, className) {
     return `<img class="${className || ''}" src="assets/logos/${id}.png" alt="${id}" onerror="this.onerror=null;this.src='assets/logos/${id}.svg'">`;
   }
+  function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
+  function setWalletMsg(text, type='') {
+    const el = document.getElementById('walletMsg');
+    el.textContent = text;
+    el.className = 'modal-msg ' + type;
+  }
+  function statusLabel(s){
+    if(s==='pending') return 'PENDENTE';
+    if(s==='paid') return 'PAGO';
+    if(s==='rejected') return 'RECUSADO';
+    return s;
+  }
+
+  async function refreshWallet() {
+    if (!currentUser) return;
+    const profile = await omahaAuth.getProfile(currentUser.id);
+    currentCredits = Number(profile?.player_credits || 0);
+    document.getElementById('walletBalance').textContent = fmt(currentCredits);
+    const saldoLine = document.getElementById('saldoLine');
+    if (saldoLine) saldoLine.textContent = 'SALDO: ' + fmt(currentCredits);
+
+    try {
+      const list = await omahaAuth.listMyWithdrawals();
+      const box = document.getElementById('wdHistory');
+      if (!list.length) {
+        box.innerHTML = '<div class="wd-item">Nenhum saque ainda.</div>';
+      } else {
+        box.innerHTML = list.slice(0, 8).map((w) =>
+          `<div class="wd-item"><b>${fmt(w.amount)}</b> · ${statusLabel(w.status)} · PIX: ${w.pix_key}</div>`
+        ).join('');
+      }
+    } catch (_) {
+      document.getElementById('wdHistory').innerHTML = '';
+    }
+  }
+
+  function openWallet() {
+    document.getElementById('withdrawForm').style.display = 'none';
+    document.getElementById('btnShowWithdraw').style.display = '';
+    setWalletMsg('');
+    document.getElementById('walletModal').classList.add('open');
+    document.getElementById('walletModal').setAttribute('aria-hidden', 'false');
+    refreshWallet().catch(() => {});
+  }
+  function closeWallet() {
+    document.getElementById('walletModal').classList.remove('open');
+    document.getElementById('walletModal').setAttribute('aria-hidden', 'true');
+  }
 
   async function boot() {
-    const user = await omahaAuth.requireUser('login.html');
-    if (!user) return;
+    currentUser = await omahaAuth.requireUser('login.html');
+    if (!currentUser) return;
 
     let profile = null;
-    try { profile = await omahaAuth.ensureProfile(user); } catch (_) {}
+    try { profile = await omahaAuth.ensureProfile(currentUser); } catch (_) {}
 
-    const name = profile?.display_name || user.email || 'Jogador';
-    const credits = Number(profile?.player_credits || 0).toLocaleString('pt-BR');
+    const name = profile?.display_name || currentUser.email || 'Jogador';
+    currentCredits = Number(profile?.player_credits || 0);
+    const credits = fmt(currentCredits);
     const adminBtn = omahaAuth.isAdmin(profile)
-      ? `<button type="button" id="adminBtn" style="background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff;margin-right:6px">ADMIN</button>`
+      ? `<button type="button" id="adminBtn" style="background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff">ADMIN</button>`
       : '';
 
     document.getElementById('app').innerHTML = `
@@ -136,9 +246,10 @@ body{margin:0;min-height:100vh}
         <div class="user-meta">
           <small>LOGADO COMO</small>
           <strong id="userName">${name}</strong>
-          <small class="saldo-line">SALDO: ${credits}</small>
+          <small class="saldo-line" id="saldoLine">SALDO: ${credits}</small>
         </div>
-        <div>
+        <div class="actions">
+          <button type="button" class="wallet" id="walletBtn">CARTEIRA</button>
           ${adminBtn}
           <button type="button" id="logoutBtn">SAIR</button>
         </div>
@@ -158,11 +269,58 @@ body{margin:0;min-height:100vh}
 
     const adminEl = document.getElementById('adminBtn');
     if (adminEl) adminEl.onclick = () => location.href = 'admin.html';
+    document.getElementById('walletBtn').onclick = openWallet;
     document.getElementById('logoutBtn').onclick = async () => {
       try { await omahaAuth.signOut(); } catch (_) {}
       location.replace('login.html');
     };
   }
+
+  document.getElementById('walletClose').onclick = closeWallet;
+  document.getElementById('walletModal').addEventListener('click', (e) => {
+    if (e.target.id === 'walletModal') closeWallet();
+  });
+  document.getElementById('btnShowWithdraw').onclick = () => {
+    document.getElementById('withdrawForm').style.display = '';
+    document.getElementById('btnShowWithdraw').style.display = 'none';
+    setWalletMsg('Informe o valor e a chave PIX para solicitar o saque.');
+  };
+  document.getElementById('wdCancel').onclick = () => {
+    document.getElementById('withdrawForm').style.display = 'none';
+    document.getElementById('btnShowWithdraw').style.display = '';
+    setWalletMsg('');
+  };
+  document.getElementById('wdSubmit').onclick = async () => {
+    const amount = Math.floor(Number(document.getElementById('wdAmount').value));
+    const pix = (document.getElementById('wdPix').value || '').trim();
+    const btn = document.getElementById('wdSubmit');
+    if (!(amount >= 2)) {
+      setWalletMsg('Valor mínimo de saque: 2.', 'err');
+      return;
+    }
+    if (amount > currentCredits) {
+      setWalletMsg('Saldo insuficiente.', 'err');
+      return;
+    }
+    if (pix.length < 5) {
+      setWalletMsg('Informe uma chave PIX válida.', 'err');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      await omahaAuth.requestWithdrawal(amount, pix);
+      document.getElementById('wdAmount').value = '';
+      document.getElementById('wdPix').value = '';
+      document.getElementById('withdrawForm').style.display = 'none';
+      document.getElementById('btnShowWithdraw').style.display = '';
+      setWalletMsg('Solicitação enviada! O prazo de pagamento é de até 2 horas.', 'ok');
+      await refreshWallet();
+    } catch (err) {
+      setWalletMsg(err?.message || 'Falha ao solicitar saque. Rode o SQL withdrawals.sql no Supabase.', 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  };
 
   boot().catch(() => location.replace('login.html'));
   </script>

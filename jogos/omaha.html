@@ -3,11 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Cucuruti</title>
+<title>Cucuruti/Omaha5</title>
 <link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
 <style>
 :root{--bg:#07120c;--panel:#102218;--line:#2d6b45;--gold:#ffd65a;--green:#3ddc84;--red:#ff6b6b;--text:#f7fff9;--muted:#b8c9be}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#173927,#07120c 55%,#030705);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}.app{max-width:900px;margin:auto;padding:8px}h1{text-align:center;color:var(--gold);margin:5px 0 2px;font-size:34px;letter-spacing:2px}.sub{text-align:center;color:var(--muted);font-weight:700;font-size:12px;margin-bottom:8px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px;box-shadow:0 5px 16px #0008}.players{display:grid;grid-template-columns:1fr;gap:7px}.playerBox{border-radius:12px;padding:5px}.playerBox:nth-child(1){background:#10233f;border:2px solid #2f8cff;box-shadow:0 0 14px #2f8cff33}.playerBox:nth-child(2){background:#3a1717;border:2px solid #ff5a5a;box-shadow:0 0 14px #ff5a5a33}.playerBox.winner{border-color:var(--gold);box-shadow:0 0 14px #ffd65a66}.playerName{text-align:center;font-weight:1000;color:#fff;margin-bottom:5px;font-size:16px}.playerResult{text-align:center;font-size:12px;margin-top:5px;color:var(--muted)}.title{text-align:center;font-size:12px;font-weight:900;color:#d9f8e4;margin-bottom:4px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.card{background:#fff;color:#111;border-radius:8px;min-height:64px;height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:1000;border:2px solid #ddd;box-shadow:0 3px 8px #0007;padding:2px}.card.red{color:#c51f1f}.rank{font-size:18px;line-height:1}.suit{font-size:17px;line-height:1.1}.back{background:linear-gradient(135deg,#1c5c37,#0d2f1f);color:#d7ffe5;border-color:#4e9f70}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.actions button,.big{border:0;border-radius:10px;padding:11px 8px;font-weight:900;font-size:14px;cursor:pointer;background:#2e8b57;color:#fff}.actions button.secondary{background:#355a46}.actions button.gold{background:#9c7914}.big{width:100%;font-size:18px;background:linear-gradient(90deg,#27844e,#48c878,#27844e);border:2px solid #6fe59a}.status{background:#07120c;border:1px solid #31553f;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:44px}.result{font-size:14px;line-height:1.45}.best{color:var(--gold);font-weight:1000}.note{font-size:12px;color:var(--muted);line-height:1.45}.footer{text-align:center;color:var(--gold);font-size:11px;font-weight:900;margin-top:6px}@media(max-width:560px){h1{font-size:28px}.card{min-height:52px;height:52px}.rank{font-size:15px}.suit{font-size:14px}.actions{grid-template-columns:1fr}.app{padding:5px}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#173927,#07120c 55%,#030705);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}.app{max-width:900px;margin:auto;padding:8px}h1{text-align:center;color:var(--gold);margin:5px 0 2px;font-size:34px;letter-spacing:2px}.sub{text-align:center;color:var(--muted);font-weight:700;font-size:12px;margin-bottom:8px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px;box-shadow:0 5px 16px #0008}.players{display:grid;grid-template-columns:1fr;gap:7px}.playerBox{border-radius:12px;padding:5px}.playerBox:nth-child(1){background:#10233f;border:2px solid #2f8cff;box-shadow:0 0 14px #2f8cff33}.playerBox:nth-child(2){background:#3a1717;border:2px solid #ff5a5a;box-shadow:0 0 14px #ff5a5a33}.playerBox.winner{border-color:var(--gold);box-shadow:0 0 14px #ffd65a66}.playerName{text-align:center;font-weight:1000;color:#fff;margin-bottom:5px;font-size:16px}.playerResult{text-align:center;font-size:12px;margin-top:5px;color:var(--muted)}.title{text-align:center;font-size:12px;font-weight:900;color:#d9f8e4;margin-bottom:4px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.playing-card{
+  position:relative;background:#fff!important;color:#111!important;
+  border-radius:8px;min-height:78px;height:78px;
+  border:1.5px solid #c8c8c8!important;box-shadow:0 3px 8px #0007;
+  font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  overflow:hidden;padding:0;animation:none!important;
+}
+.playing-card .corner{
+  position:absolute;top:3px;left:4px;display:flex;flex-direction:column;align-items:center;
+  line-height:1;z-index:1;
+}
+.playing-card .corner.br{
+  top:auto;left:auto;bottom:3px;right:4px;transform:rotate(180deg);
+}
+.playing-card .corner .rank{font-size:13px;font-weight:800;color:inherit}
+.playing-card .corner .pip{font-size:12px;color:inherit;margin-top:1px}
+.playing-card .center-suit{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:28px;line-height:1;color:inherit;
+}
+.playing-card.black{color:#111!important}
+.playing-card.red{color:#d40000!important}
+.playing-card.back{
+  background:
+    repeating-linear-gradient(45deg,#1a3a6e 0 6px,#24508f 6px 12px)!important;
+  color:transparent!important;border-color:#0f274d!important;
+}
+.playing-card.back::after{
+  content:'';position:absolute;inset:5px;border:2px solid #6ea0d8;border-radius:5px;
+  background:radial-gradient(circle at 50% 50%,#2c5fa0 0,#163a6e 70%);
+}
+@media(max-width:560px){
+  .playing-card{min-height:62px;height:62px}
+  .playing-card .corner .rank{font-size:11px}
+  .playing-card .corner .pip{font-size:10px}
+  .playing-card .center-suit{font-size:22px}
+  h1{font-size:28px}
+  .actions{grid-template-columns:1fr}
+  .app{padding:5px}
+}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.actions button,.big{border:0;border-radius:10px;padding:11px 8px;font-weight:900;font-size:14px;cursor:pointer;background:#2e8b57;color:#fff}
+.actions button.secondary{background:#355a46}
+.actions button.gold{background:#9c7914}
+.big{width:100%;font-size:18px;background:linear-gradient(90deg,#27844e,#48c878,#27844e);border:2px solid #6fe59a}
+.status{background:#07120c;border:1px solid #31553f;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:44px}
+.result{font-size:14px;line-height:1.45}
+.best{color:var(--gold);font-weight:1000}
+.note{font-size:12px;color:var(--muted);line-height:1.45}
+.footer{text-align:center;color:var(--gold);font-size:11px;font-weight:900;margin-top:6px}
 </style>
 
 <style>
@@ -45,7 +95,7 @@ h1{
   color:white;
   text-shadow:0 2px 3px #0009;
 }
-.card{
+.playing-card{
   box-shadow:0 5px 12px #0007;
 }
 button{
@@ -81,14 +131,14 @@ button#river{
 
 
 <style>
-.card.winCard{transform:translateY(-3px) scale(1.03);border-radius:12px!important;}
-.card.winPlayer{outline:4px solid #ff1f1f!important;outline-offset:1px!important;border:3px solid #b00000!important;box-shadow:0 0 0 3px #ff6b6b,0 0 16px #ff1f1f!important;}
-.card.winBoard{outline:4px solid #0066ff!important;outline-offset:1px!important;border:3px solid #0047b3!important;box-shadow:0 0 0 3px #00a8ff,0 0 16px #0066ff!important;}
-.card.winBank{outline:4px solid #00b84a!important;outline-offset:1px!important;border:3px solid #00752f!important;box-shadow:0 0 0 3px #63e68f,0 0 16px #00b84a!important;}
+.playing-card.winCard{transform:translateY(-3px) scale(1.03);border-radius:10px!important;}
+.playing-card.winPlayer{outline:3px solid #ff1f1f!important;outline-offset:1px!important;box-shadow:0 0 0 2px #ff6b6b,0 0 14px #ff1f1f!important;}
+.playing-card.winBoard{outline:3px solid #0066ff!important;outline-offset:1px!important;box-shadow:0 0 0 2px #00a8ff,0 0 14px #0066ff!important;}
+.playing-card.winBank{outline:3px solid #00b84a!important;outline-offset:1px!important;box-shadow:0 0 0 2px #63e68f,0 0 14px #00b84a!important;}
 </style>
 </head>
 <body><main class="app">
-<h1>♠ CUCURUTI ♥</h1>
+<h1>♠ CUCURUTI/OMAHA5 ♥</h1>
 <div class="sub">JOGADOR X BANCA</div>
 
 <section class="panel" id="userBar" style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center">
@@ -140,7 +190,7 @@ button#river{
 <div id="status" class="status" style="margin-top:8px">Toque em Nova Rodada para distribuir 5 cartas para o Jogador e 5 cartas para a Banca.</div></section>
 
 <section class="panel result" style="background:#163329;border-color:#34d399"><div class="title" style="color:#bfffe5">RESULTADO DA MESA</div><div id="result">Aguardando cartas suficientes.</div></section>
-<section class="panel note mobile-hide"><b>Regra do Cucuruti:</b> a mão final usa exatamente <b>2 das suas 5 cartas</b> e exatamente <b>3 cartas comunitárias</b>.</section>
+<section class="panel note mobile-hide"><b>Regra do Cucuruti/Omaha5:</b> a mão final usa exatamente <b>2 das suas 5 cartas</b> e exatamente <b>3 cartas comunitárias</b>.</section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
@@ -278,9 +328,14 @@ function shuffle(a){
 }
 function sameCard(a,b){return a&&b&&a.r===b.r&&a.s===b.s}
 function cardHtml(c,hidden=false,win=false,winType=''){
-  if(hidden || !c) return '<div class="card back">🂠</div>';
+  if(hidden || !c) return '<div class="playing-card back" aria-hidden="true"></div>';
   const winClass=win?`winCard ${winType}`:'';
-  return `<div class="card ${c.red?'red':''} ${winClass}"><div class="rank">${c.r}</div><div class="suit">${c.s}</div></div>`;
+  const colorClass=c.red?'red':'black';
+  return `<div class="playing-card ${colorClass} ${winClass}">
+    <div class="corner"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+    <div class="center-suit">${c.s}</div>
+    <div class="corner br"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+  </div>`;
 }
 function renderPlayers(){
   if(stage===0){
@@ -522,7 +577,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 .helpCard h2{color:#64b5f6;text-align:center}.helpCard h3{color:#81c784;margin-bottom:4px}.helpCard li{margin:5px 0}.closeHelp{width:100%;background:#d32f2f!important;margin-top:12px}
 </style>
 <div id="helpModal" class="helpModal"><div class="helpCard">
-<h2>❓ COMO JOGAR — CUCURUTI</h2>
+<h2>❓ COMO JOGAR — CUCURUTI/OMAHA5</h2>
 <p><b>Objetivo:</b> formar uma mão de poker melhor que a da Banca usando obrigatoriamente <b>2 das suas 5 cartas</b> e <b>3 das 5 cartas comunitárias</b>.</p>
 <h3>1. Créditos</h3><p>Use os créditos do seu saldo para jogar. A banca não tem saldo limitado.</p>
 <h3>2. Aposta</h3><p>Digite o valor e toque em <b>CONFIRMAR</b>. A aposta é debitada e só então as cartas da mesa aparecem.</p>

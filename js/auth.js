@@ -181,6 +181,44 @@
       if (error) throw error;
       return data;
     },
+
+    async requestWithdrawal(amount, pixKey) {
+      const { data, error } = await client.rpc('request_withdrawal', {
+        p_amount: Number(amount),
+        p_pix_key: String(pixKey || '').trim(),
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async listMyWithdrawals() {
+      const { data, error } = await client.rpc('list_my_withdrawals');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminListWithdrawals() {
+      const { data, error } = await client.rpc('admin_list_withdrawals');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminMarkWithdrawalPaid(id) {
+      const { data, error } = await client.rpc('admin_mark_withdrawal_paid', {
+        p_id: id,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async adminRejectWithdrawal(id, note) {
+      const { data, error } = await client.rpc('admin_reject_withdrawal', {
+        p_id: id,
+        p_note: note || null,
+      });
+      if (error) throw error;
+      return data;
+    },
   };
 
   window.clubAuth = window.omahaAuth;
