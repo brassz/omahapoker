@@ -126,14 +126,18 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <input id="baseBet" type="number" min="2" max="500" step="1" value="100">
 </section>
 
-<section class="card">
+<section class="card" id="tableCard" style="display:none">
   <div id="status" class="status">Confirme a aposta inicial para começar.</div>
   <div id="pointLabel" class="point">Ponto: nenhum</div>
   <div class="dice">
     <div id="die1" class="die" data-face="1"></div>
     <div id="die2" class="die" data-face="1"></div>
   </div>
-  <div id="sum" class="sum">Soma: 2</div>
+  <div id="sum" class="sum">Soma: —</div>
+</section>
+
+<section class="card" id="preTableCard">
+  <div class="status">Confirme a aposta inicial para revelar a mesa e jogar os dados.</div>
 </section>
 
 <section class="card">
@@ -222,8 +226,12 @@ function confirmBase(){
   $("roll").disabled=false;
   $("newRound").disabled=true;
   $("result").style.display="none";
+  $("tableCard").style.display="";
+  $("preTableCard").style.display="none";
+  setDie($("die1"),1);setDie($("die2"),1);
+  $("sum").textContent="Soma: —";
   setSteps(2);
-  status("Aposta reservada. Jogue os dados para definir o resultado ou o ponto.","continue");
+  status("Aposta confirmada e debitada. Jogue os dados para definir o resultado ou o ponto.","continue");
   log(`Rodada ${round}: jogador apostou ${fmt(baseBet)} créditos.`);
   update();
   persistBalance();
@@ -350,6 +358,8 @@ function newRound(){
   $("confirmBase").disabled=false;$("confirmSide").disabled=true;
   $("roll").disabled=true;$("newRound").disabled=true;
   $("result").style.display="none";
+  $("tableCard").style.display="none";
+  $("preTableCard").style.display="";
   $("pointCard").classList.add("disabled");
   $("pointCard").classList.remove("active");
   $("pointTitle").textContent="🎯 Aposta no ponto";

@@ -95,7 +95,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
   </div>
 
-  <div class="panel mesa">
+  <div class="panel mesa" id="mesa" style="display:none">
     <div class="mao">
       <h2>Banca</h2>
       <div class="cartas" id="cartasBanca"></div>
@@ -109,7 +109,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
 
   <div class="panel">
-    <div id="mensagem">Defina a aposta (2 a 500) e toque em “Nova rodada”.</div>
+    <div id="mensagem">Defina a aposta (2 a 500) e toque em “Nova rodada” para confirmar e ver a mesa.</div>
   </div>
 
   <div class="panel regras">
@@ -200,6 +200,7 @@ async function novaRodada(){
   apostaAtual=aposta;
   saldo-=apostaAtual;
   await persist();
+  document.getElementById('mesa').style.display='';
   baralho=criarBaralho();
   maoJogador=[];maoBanca=[];bancaRevelada=false;rodadaAtiva=true;
 
@@ -208,12 +209,12 @@ async function novaRodada(){
 
   const p=valorMao(maoJogador);
   if(p===21){
-    mensagem('21! A banca vai jogar automaticamente.');
+    mensagem('Aposta confirmada. 21! A banca vai jogar automaticamente.');
     setTimeout(jogarBanca,500);
   } else if(p<12){
-    mensagem('Você tem menos de 12 pontos. Precisa pedir carta.');
+    mensagem('Aposta confirmada. Você tem menos de 12 pontos. Precisa pedir carta.');
   } else {
-    mensagem('Você já pode pedir outra carta ou parar.');
+    mensagem('Aposta confirmada. Você já pode pedir outra carta ou parar.');
   }
 }
 

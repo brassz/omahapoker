@@ -162,10 +162,10 @@ function renderBet(){
   $('betInfo').textContent=activeBet>0
     ? `Aposta ativa: ${fmtCredits(activeBet)} créditos (banca cobre sem limite)`
     : 'Nenhuma aposta ativa.';
-  if($('confirmBet'))$('confirmBet').disabled=activeBet>0;
+  if($('confirmBet'))$('confirmBet').disabled=!(stage===0 && activeBet<=0 && !roundOver);
 }
 function confirmBet(){
-  if(stage!==1 || roundOver){alert('Confirme a aposta no início de uma nova rodada, antes de abrir o flop.');return;}
+  if(stage!==0 || roundOver){alert('Toque em NOVA RODADA e confirme a aposta antes de ver as cartas.');return;}
   if(activeBet>0){alert('Já existe uma aposta ativa nesta rodada.');return;}
   const check=clubBets.validate($('betCredits').value);
   if(!check.ok){alert(check.message);return;}
@@ -175,7 +175,22 @@ function confirmBet(){
   playerCredits-=v;
   activeBet=v;
   saveCredits();renderCredits();renderBet();
+
+  // Só depois de confirmar/creditar a aposta a mesa é revelada
+  handPersisted=false;
+  lastFoldFee=0;
+  deck=shuffle(makeDeck());
+  players=[[],[]];
+  board=[];
+  lastResults=[];
+  decision=null;
+  showHands=false;
+  roundOver=false;
+  for(let c=0;c<5;c++)for(let p=0;p<2;p++)players[p].push(deck.shift());
+  stage=1;
+  $('result').textContent='Aposta confirmada. Cartas do Jogador abertas e cartas da Banca fechadas.';
   $('status').textContent=`Aposta confirmada: ${fmtCredits(v)} créditos. Abra o flop.`;
+  render();
 }
 function settleBet(winner){
   if(activeBet<=0)return 0;
@@ -268,6 +283,12 @@ function cardHtml(c,hidden=false,win=false,winType=''){
   return `<div class="card ${c.red?'red':''} ${winClass}"><div class="rank">${c.r}</div><div class="suit">${c.s}</div></div>`;
 }
 function renderPlayers(){
+  if(stage===0){
+    const msg='<div style="text-align:center;padding:18px 8px;font-weight:900;color:#7af0ff">Confirme a aposta para revelar as cartas</div>';
+    $('playerHand').innerHTML=msg;
+    $('bankHand').innerHTML='';
+    return;
+  }
   const makeBox=(hand,i)=>{
     const r=lastResults.find(x=>x.i===i);
     const winner=r&&r.winner;
@@ -285,40 +306,44 @@ function renderPlayers(){
 }
 function render(){
   renderPlayers();
-  const winningBoardCards=lastResults.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
-  $('board').innerHTML=[0,1,2,3,4].map(i=>{
-    const win=showHands&&winningBoardCards.some(c=>sameCard(c,board[i]));
-    return cardHtml(board[i],false,win,'winBoard');
-  }).join('');
-  $('flop').disabled=stage!==1 || roundOver;
+  if(stage===0){
+    $('board').innerHTML='<div style="text-align:center;padding:12px;font-weight:900;color:#7af0ff">Mesa oculta até confirmar a aposta</div>';
+  }else{
+    const winningBoardCards=lastResults.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
+    $('board').innerHTML=[0,1,2,3,4].map(i=>{
+      const win=showHands&&winningBoardCards.some(c=>sameCard(c,board[i]));
+      return cardHtml(board[i],false,win,'winBoard');
+    }).join('');
+  }
+  $('flop').disabled=stage!==1 || activeBet<=0 || roundOver;
   $('turn').disabled=stage!==2 || decision!=='continue' || roundOver;
   $('river').disabled=stage!==3 || decision!=='continue' || roundOver;
   $('decisionBox').style.display=(stage===2 && decision===null && !roundOver)?'block':'none';
+  renderBet();
   if(showHands && board.length>=5) void evaluate();
 }
 function newRound(){
   if(activeBet>0){
     playerCredits+=activeBet;
     activeBet=0;
-    saveCredits();renderCredits();renderBet();
+    saveCredits();renderCredits();
   }
   handPersisted=false;
   lastFoldFee=0;
-  deck=shuffle(makeDeck());
+  deck=[];
   players=[[],[]];
   board=[];
   lastResults=[];
   decision=null;
   showHands=false;
   roundOver=false;
-  for(let c=0;c<5;c++)for(let p=0;p<2;p++)players[p].push(deck.shift());
-  stage=1;
-  $('result').textContent='Cartas do Jogador abertas e cartas da Banca fechadas. Abra o flop.';
-  $('status').textContent='As 5 cartas do Jogador estão abertas e as 5 cartas da Banca estão fechadas. Abra o flop.';
+  stage=0;
+  $('result').textContent='Mesa oculta. Confirme a aposta para revelar as cartas.';
+  $('status').textContent='Defina o valor e toque em CONFIRMAR para ver a mesa e começar.';
   render();
 }
 function openFlop(){
-  if(stage!==1||roundOver)return;
+  if(stage!==1||roundOver||activeBet<=0)return;
   board.push(deck.shift(),deck.shift(),deck.shift());
   stage=2;
   decision=null;
@@ -500,8 +525,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <h2>❓ COMO JOGAR — CUCURUTI</h2>
 <p><b>Objetivo:</b> formar uma mão de poker melhor que a da Banca usando obrigatoriamente <b>2 das suas 5 cartas</b> e <b>3 das 5 cartas comunitárias</b>.</p>
 <h3>1. Créditos</h3><p>Use os créditos do seu saldo para jogar. A banca não tem saldo limitado.</p>
-<h3>2. Aposta</h3><p>Digite o valor e toque em <b>CONFIRMAR</b>. Só o Jogador precisa ter crédito suficiente.</p>
-<h3>3. Nova rodada</h3><p>Toque em <b>NOVA RODADA</b>. O Jogador recebe 5 cartas abertas e a Banca recebe 5 cartas fechadas.</p>
+<h3>2. Aposta</h3><p>Digite o valor e toque em <b>CONFIRMAR</b>. A aposta é debitada e só então as cartas da mesa aparecem.</p>
+<h3>3. Nova rodada</h3><p>Toque em <b>NOVA RODADA</b> para limpar a mesa. Depois confirme a aposta para receber as cartas (Jogador aberto, Banca fechada).</p>
 <h3>4. Flop</h3><p>Toque em <b>ABRIR FLOP</b> para revelar as três primeiras cartas comunitárias.</p>
 <h3>5. Disputar ou desistir</h3><p>Depois do flop, o Jogador escolhe <b>DISPUTAR A MÃO</b> ou <b>DESISTIR</b>. Se desistir, perde <b>10% do valor da aposta</b>; os outros 90% retornam ao Jogador e a penalidade de 10% vai para a Banca.</p>
 <h3>6. Turn e River</h3><p>Se continuar, abra o <b>TURN</b> e depois o <b>RIVER</b>. Ao final, as cartas da Banca são reveladas.</p>

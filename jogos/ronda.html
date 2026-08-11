@@ -257,6 +257,12 @@ async function playRound(){
   document.getElementById('cutBtn').disabled=true;
   document.getElementById('dealBtn').disabled=true;
 
+  // Debita a aposta antes de virar as cartas da mesa
+  credits-=bet;
+  renderCredits();
+  await persistCredits();
+  document.getElementById('status').textContent='Aposta confirmada. Virando as cartas...';
+
   let winner=null, winningCard=null, turned=0;
 
   while(deck.length){
@@ -277,7 +283,10 @@ async function playRound(){
   }
 
   if(!winner){
-    document.getElementById('status').textContent='Nenhuma das cartas repetiu. Embaralhe novamente.';
+    credits+=bet;
+    renderCredits();
+    await persistCredits();
+    document.getElementById('status').textContent='Nenhuma das cartas repetiu. Aposta devolvida. Embaralhe novamente.';
     ready=false;
     document.getElementById('playBtn').disabled=false;
     document.getElementById('shuffleBtn').disabled=false;
@@ -292,9 +301,7 @@ async function playRound(){
 
   const won=picked===winner;
   if(won){
-    credits+=bet;
-  }else{
-    credits-=bet;
+    credits+=bet*2; // devolução + 1x prêmio
   }
 
   const result=won

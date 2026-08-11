@@ -101,7 +101,7 @@ button:disabled{opacity:.45}
     <div style="margin-top:8px">
       <button id="play" class="playBtn" onclick="play()">🎲 SORTEAR OS 3 DADOS 🎲</button>
     </div>
-    <div id="status" class="status">Escolha um time e defina sua aposta.</div>
+    <div id="status" class="status">Escolha um time, defina a aposta e sorteie. A mesa só aparece após confirmar a aposta.</div>
   </section>
 
   <section class="panel rules">
@@ -172,8 +172,17 @@ function showDie(index,team,label){
   if(!d||!team)return;
   d.innerHTML=`${logoHtml(team.slug,'dieLogo',team.name)}<div class="dieName">${label||team.name}</div>`;
 }
-function resetDice(){
-  for(let i=0;i<3;i++) showDie(i, teams[i], 'DADO '+(i+1));
+function resetDice(blank){
+  for(let i=0;i<3;i++){
+    const d=document.getElementById('die'+i);
+    if(!d)continue;
+    d.classList.remove('spin');
+    if(blank){
+      d.innerHTML=`<div class="dieName">?</div><div class="dieName">DADO ${i+1}</div>`;
+    }else{
+      showDie(i, teams[i], 'DADO '+(i+1));
+    }
+  }
 }
 async function play(){
   if(chosen===null)return alert('Escolha um dos 6 times.');
@@ -185,8 +194,13 @@ async function play(){
 
   const btn=document.getElementById('play');
   btn.disabled=true;
+
+  // Credita (debita) a aposta ANTES de mostrar a mesa
   credits-=bet;
   renderCredits();
+  await persistCredits();
+  resetDice(true);
+  document.getElementById('status').textContent='Aposta confirmada. Sorteando os 3 dados...';
 
   const dice=[];
   for(let i=0;i<3;i++)document.getElementById('die'+i).classList.add('spin');
@@ -220,15 +234,18 @@ async function play(){
   let resultText='';
 
   if(matches===0){
-    resultText=`Perdeu ${fmt(bet)} créditos`;
+    // Perde só a aposta (já debitada)
+    resultText=`Perdeu ${fmt(bet)}`;
     document.getElementById('status').textContent=
-      `Nenhum dado mostrou ${teams[chosen].name}. Você perdeu ${fmt(bet)} créditos.`;
+      `Nenhum dado mostrou ${teams[chosen].name}. Você perdeu a aposta de ${fmt(bet)} créditos.`;
   }else{
+    // Prêmio = N × aposta; devolução da aposta + prêmio
     const prize=bet*matches;
-    credits+=bet+prize;
-    resultText=`Ganhou +${fmt(prize)} créditos`;
+    const totalBack=bet+prize;
+    credits+=totalBack;
+    resultText=`+${fmt(totalBack)} (aposta ${fmt(bet)} + ${matches}x ${fmt(prize)})`;
     document.getElementById('status').textContent=
-      `🏆 ${teams[chosen].name} apareceu ${matches} vez(es)! Prêmio: ${matches}x = +${fmt(prize)} créditos.`;
+      `🏆 ${teams[chosen].name} em ${matches} dado(s)! Devolução ${fmt(bet)} + prêmio ${matches}x (${fmt(prize)}) = +${fmt(totalBack)} créditos.`;
   }
 
   history.unshift({team:teams[chosen].name,matches,bet,result:resultText});
@@ -236,7 +253,7 @@ async function play(){
   await persistCredits();
   btn.disabled=false;
 }
-renderCredits();renderTeams();renderHistory();resetDice();
+renderCredits();renderTeams();renderHistory();resetDice(true);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
