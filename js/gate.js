@@ -112,9 +112,39 @@
     return wallet;
   }
 
+  function makePreviewWallet() {
+    const wallet = {
+      userId: 'preview',
+      credits: 1000,
+      async refresh() { return this.credits; },
+      async set(credits) {
+        this.credits = Math.max(0, Number(credits) || 0);
+        const el = document.querySelector('#clubGateBar .user .saldo');
+        if (el) el.textContent = `Saldo: ${this.credits.toLocaleString('pt-BR')}`;
+        return this.credits;
+      },
+      async add(delta) {
+        return this.set(this.credits + Number(delta || 0));
+      },
+    };
+    window.clubWallet = wallet;
+    return wallet;
+  }
+
   window.clubGate = {
     async start() {
       ensureTheme();
+
+      /* ?preview=1 — visualizar jogo sem login (só para teste visual) */
+      if (new URLSearchParams(location.search).has('preview')) {
+        const user = { id: 'preview', email: 'preview@clube.local' };
+        const profile = { display_name: 'PREVIEW', player_credits: 1000, is_admin: false };
+        injectClubBar(user, profile);
+        const wallet = makePreviewWallet();
+        resolveReady(wallet);
+        return { user, profile, wallet };
+      }
+
       const user = await omahaAuth.requireUser('../login.html');
       if (!user) {
         resolveReady(null);

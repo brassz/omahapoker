@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>BAGATELA — Clube</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  color:#fff;
+  overflow-x:hidden;
+}
+.game{
+  width:min(96vw,1400px);
+  margin:0 auto;
+  padding:8px 8px 20px;
+  text-align:center;
+}
+.logo{
+  font-size:clamp(36px,5.5vw,68px);
+  font-weight:1000;
+  letter-spacing:8px;
+  background:var(--rainbow);
+  background-size:300% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  animation:clubRainbowShift 4s linear infinite;
+  margin-bottom:2px;
+}
+.subtitle{
+  color:var(--gold);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:4px;
+  margin-bottom:12px;
+  text-shadow:0 0 12px #ffd91a66;
+}
+.credits-bar{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 16px;
+  margin-bottom:14px;
+  background:var(--panel);
+  border:2px solid var(--blue);
+  border-radius:12px;
+  box-shadow:0 0 16px #17c8ff55;
+  animation:clubNeonGlow 1.8s ease-in-out infinite;
+}
+.credits-bar small{color:var(--muted);font-weight:800;letter-spacing:1px}
+.credits-bar strong{color:var(--green);font-size:22px;font-weight:1000;text-shadow:0 0 10px #5cff1a88}
+
+.menu{
+  width:min(640px,100%);
+  margin:auto;
+  padding:22px 18px 20px;
+  background:var(--panel);
+  border:2px solid var(--blue);
+  border-radius:18px;
+  box-shadow:0 0 22px #17c8ff44;
+}
+.menu h2{
+  font-size:15px;
+  letter-spacing:2px;
+  margin-bottom:14px;
+  color:#fff;
+}
+.section-label{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:2px;
+  margin-bottom:8px;
+  text-align:left;
+}
+.numbers{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+.number{
+  min-height:72px;
+  background:#12081f;
+  color:#c8b8ff;
+  border:2px solid #445;
+  border-radius:14px;
+  font-size:32px;
+  font-weight:1000;
+  cursor:pointer;
+  transition:.2s;
+}
+.number:hover{border-color:var(--blue);transform:translateY(-2px)}
+.number.selected{
+  background:linear-gradient(180deg,#1a3a55,#0a1828);
+  color:#fff;
+  border-color:var(--blue);
+  box-shadow:0 0 16px #17c8ff88;
+  font-size:36px;
+}
+.parity-row,.mode-row,.bet-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:16px;
+}
+.bet-row{grid-template-columns:repeat(4,1fr)}
+.parity,.mode,.bet-chip{
+  padding:14px 8px;
+  background:#12081f;
+  color:#c8b8ff;
+  border:2px solid #445;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:.2s;
+}
+.parity:hover,.mode:hover,.bet-chip:hover{border-color:var(--pink);color:#fff}
+.parity.selected,.mode.selected,.bet-chip.selected{
+  background:linear-gradient(180deg,#2a1040,#140820);
+  color:#fff;
+  border-color:var(--pink);
+  box-shadow:0 0 14px #ff4fd888;
+}
+.hidden{display:none!important}
+.bet-custom{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+.bet-custom input{
+  flex:1;
+  padding:12px 14px;
+  background:#080512;
+  border:2px solid #445;
+  border-radius:10px;
+  color:var(--gold);
+  font-size:20px;
+  font-weight:900;
+  text-align:center;
+  outline:none;
+}
+.bet-custom input:focus{border-color:var(--gold)}
+.bet-preview{
+  margin-bottom:14px;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:800;
+}
+.bet-preview strong{color:var(--green)}
+.play{
+  width:100%;
+  padding:16px;
+  border:2px solid #9dff76;
+  border-radius:12px;
+  background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00);
+  color:#fff;
+  font-size:18px;
+  font-weight:1000;
+  letter-spacing:3px;
+  cursor:pointer;
+  box-shadow:0 0 18px #62ff0088;
+}
+.play:hover{filter:brightness(1.1)}
+.play:disabled{opacity:.5;cursor:not-allowed}
+
+.hud{
+  display:none;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.hud-item{
+  min-width:100px;
+  padding:8px 12px;
+  background:var(--panel);
+  border:2px solid var(--blue);
+  border-radius:10px;
+  box-shadow:0 0 10px #17c8ff44;
+}
+.hud-label{color:var(--muted);font-size:9px;letter-spacing:2px;font-weight:800;margin-bottom:2px}
+.hud-value{font-size:18px;font-weight:1000;color:#fff}
+
+.table-wrapper{
+  display:none;
+  width:100%;
+  padding:14px;
+  background:linear-gradient(135deg,#3a1c08,#8a5228,#4a2810,#1a0c04);
+  border-radius:20px;
+  border:2px solid var(--blue);
+  box-shadow:0 20px 60px #000a, inset 0 0 0 2px #c4894a, 0 0 18px #17c8ff55;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+#canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:10px;
+  cursor:crosshair;
+  touch-action:none;
+  box-shadow:inset 0 0 40px #0008;
+}
+.result{
+  display:none;
+  margin-top:10px;
+  padding:10px 20px;
+  background:#0a0614;
+  border:2px solid var(--blue);
+  border-radius:12px;
+  width:fit-content;
+  margin-left:auto;
+  margin-right:auto;
+}
+.result.show{display:block}
+.result-title{color:var(--muted);font-size:10px;letter-spacing:2px;font-weight:800}
+.result-value{margin-top:2px;font-size:28px;font-weight:1000;color:var(--gold)}
+.result-payout{margin-top:4px;color:var(--green);font-size:14px;font-weight:900}
+
+.instructions{
+  display:none;
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  line-height:1.4;
+}
+.back{
+  display:none;
+  margin-top:10px;
+  padding:10px 18px;
+  color:#fff;
+  background:linear-gradient(180deg,#6726d9,#331173);
+  border:2px solid #a65eff;
+  border-radius:10px;
+  font-weight:900;
+  cursor:pointer;
+}
+.alert-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:50;
+  background:rgba(0,0,0,.6);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.alert-overlay.show{display:flex}
+.alert-box{
+  min-width:min(320px,90vw);
+  padding:26px 30px;
+  border-radius:16px;
+  background:#0a0614;
+  border:2px solid #556;
+  text-align:center;
+  box-shadow:0 24px 80px #000c;
+  animation:alertPop .28s ease;
+}
+.alert-box.win{border-color:var(--green);box-shadow:0 0 28px #5cff1a66}
+.alert-box.lose{border-color:var(--red);box-shadow:0 0 28px #ff343466}
+.alert-title{font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:8px;font-weight:800}
+.alert-message{font-size:26px;font-weight:1000}
+.alert-box.win .alert-message{color:var(--green)}
+.alert-box.lose .alert-message{color:#ff7d7d}
+@keyframes alertPop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+
+.rotate-hint{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(6,4,15,.94);
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding:24px;
+  text-align:center;
+}
+.rotate-hint .phone{
+  width:54px;height:90px;
+  border:3px solid var(--blue);
+  border-radius:10px;
+  box-shadow:0 0 18px #17c8ff88;
+  animation:tiltPhone 1.4s ease-in-out infinite;
+}
+.rotate-hint p{
+  font-weight:900;
+  font-size:18px;
+  letter-spacing:1px;
+  color:#fff;
+  max-width:280px;
+}
+.rotate-hint small{color:var(--muted);font-weight:700}
+@keyframes tiltPhone{
+  0%,100%{transform:rotate(0deg)}
+  40%,60%{transform:rotate(90deg)}
+}
+
+/* Mobile: pedir landscape */
+@media (max-width:900px) and (orientation:portrait){
+  .rotate-hint{display:flex}
+  .game{filter:blur(2px);pointer-events:none}
+}
+
+/* Landscape mobile — mesa e números em destaque */
+@media (max-height:520px) and (orientation:landscape){
+  .game{width:100vw;max-width:none;padding:4px 6px}
+  .logo{font-size:22px;letter-spacing:4px;line-height:1}
+  .subtitle{font-size:9px;margin-bottom:4px;letter-spacing:2px}
+  .credits-bar{padding:4px 10px;margin-bottom:4px}
+  .credits-bar strong{font-size:16px}
+  .menu{padding:10px;max-width:min(92vw,720px)}
+  .menu h2{font-size:12px;margin-bottom:8px}
+  .numbers{gap:6px;margin-bottom:8px}
+  .number{min-height:48px;font-size:24px}
+  .number.selected{font-size:28px}
+  .parity,.mode,.bet-chip{padding:8px 4px;font-size:11px}
+  .bet-custom input{padding:8px;font-size:16px}
+  .play{padding:10px;font-size:14px}
+  .hud{gap:4px;margin-bottom:4px}
+  .hud-item{min-width:72px;padding:4px 8px}
+  .hud-value{font-size:14px}
+  .table-wrapper{padding:6px;border-radius:12px}
+  .instructions{font-size:10px;margin-top:4px}
+  .back{margin-top:4px;padding:6px 12px;font-size:12px}
+  .result{margin-top:4px;padding:6px 12px}
+  .result-value{font-size:20px}
+}
+@media (max-width:700px){
+  .numbers{gap:8px}
+  .number{min-height:64px;font-size:28px}
+  .bet-row{gap:6px}
+  .bet-chip{font-size:12px;padding:10px 4px}
+}
+</style>
+</head>
+<body>
+<div class="rotate-hint" id="rotateHint" aria-hidden="true">
+  <div class="phone"></div>
+  <p>VIRE O CELULAR NA HORIZONTAL</p>
+  <small>A Bagatela joga deitada, estilo mesa de sinuca</small>
+</div>
+
+<div class="game">
+  <div class="logo">BAGATELA</div>
+  <div class="subtitle" id="subtitle">★★★ ESCOLHA O MODO ★★★</div>
+
+  <div class="credits-bar">
+    <small>CRÉDITOS</small>
+    <strong id="playerCredit">0</strong>
+  </div>
+
+  <div class="menu" id="menu">
+    <span class="section-label">MODO DE JOGO</span>
+    <div class="mode-row">
+      <button type="button" class="mode selected" data-mode="parity">PARES / ÍMPARES</button>
+      <button type="button" class="mode" data-mode="multiplier">MULTIPLICADOR</button>
+    </div>
+
+    <div id="parityOptions">
+      <span class="section-label">APOSTE EM</span>
+      <div class="parity-row">
+        <button type="button" class="parity selected" data-parity="even">PARES</button>
+        <button type="button" class="parity" data-parity="odd">ÍMPARES</button>
+      </div>
+    </div>
+
+    <h2>QUANTIDADE DE NÚMEROS</h2>
+    <div class="numbers">
+      <button type="button" class="number selected" data-value="15">15</button>
+      <button type="button" class="number" data-value="25">25</button>
+      <button type="button" class="number" data-value="35">35</button>
+      <button type="button" class="number" data-value="50">50</button>
+    </div>
+
+    <div class="bet-section">
+      <span class="section-label">APOSTA (2 A 10)</span>
+      <div class="bet-row">
+        <button type="button" class="bet-chip selected" data-bet="2">2</button>
+        <button type="button" class="bet-chip" data-bet="5">5</button>
+        <button type="button" class="bet-chip" data-bet="8">8</button>
+        <button type="button" class="bet-chip" data-bet="10">10</button>
+      </div>
+      <div class="bet-custom">
+        <input type="number" id="betInput" min="2" max="10" step="1" value="2" placeholder="Aposta">
+      </div>
+      <div class="bet-preview" id="betPreview">Aposta: <strong>2</strong> créditos</div>
+    </div>
+
+    <button type="button" class="play" id="play">CONFIRMAR E JOGAR</button>
+  </div>
+
+  <div class="hud" id="hud">
+    <div class="hud-item"><div class="hud-label">APOSTA</div><div class="hud-value" id="betHud">2</div></div>
+    <div class="hud-item"><div class="hud-label">MULTIPLICADOR</div><div class="hud-value" id="multiplier">-</div></div>
+    <div class="hud-item"><div class="hud-label">TACADAS</div><div class="hud-value" id="shots">0</div></div>
+    <div class="hud-item"><div class="hud-label">TIPO</div><div class="hud-value" id="parityHud">PARES</div></div>
+    <div class="hud-item"><div class="hud-label">NÚMEROS</div><div class="hud-value" id="target">15</div></div>
+  </div>
+
+  <div class="table-wrapper" id="tableWrapper">
+    <canvas id="canvas"></canvas>
+    <div class="result" id="result">
+      <div class="result-title">MULTIPLICADOR</div>
+      <div class="result-value" id="resultValue">0x</div>
+      <div class="result-payout" id="resultPayout"></div>
+    </div>
+  </div>
+
+  <div class="instructions" id="instructions">
+    Clique na bola e arraste para mirar. Mesa com 6 caçapas (sinuca):
+    cair na caçapa perde. <span id="modeHintText">Só ganha se cair em <strong id="parityHint">PARES</strong>.</span>
+  </div>
+  <button type="button" class="back" id="back">VOLTAR AO MENU</button>
+</div>
+
+<div class="alert-overlay" id="alertOverlay">
+  <div class="alert-box" id="alertBox">
+    <div class="alert-title" id="alertTitle">RESULTADO</div>
+    <div class="alert-message" id="alertMessage"></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const menu = document.getElementById('menu');
+const hud = document.getElementById('hud');
+const tableWrapper = document.getElementById('tableWrapper');
+const instructions = document.getElementById('instructions');
+const back = document.getElementById('back');
+const multiplierElement = document.getElementById('multiplier');
+const shotsElement = document.getElementById('shots');
+const targetElement = document.getElementById('target');
+const result = document.getElementById('result');
+const resultValue = document.getElementById('resultValue');
+const resultPayout = document.getElementById('resultPayout');
+const betInput = document.getElementById('betInput');
+const betPreview = document.getElementById('betPreview');
+const betHud = document.getElementById('betHud');
+const alertOverlay = document.getElementById('alertOverlay');
+const alertBox = document.getElementById('alertBox');
+const alertTitle = document.getElementById('alertTitle');
+const alertMessage = document.getElementById('alertMessage');
+const parityHud = document.getElementById('parityHud');
+const parityHint = document.getElementById('parityHint');
+const modeHintText = document.getElementById('modeHintText');
+const subtitle = document.getElementById('subtitle');
+const parityOptions = document.getElementById('parityOptions');
+const playerCreditEl = document.getElementById('playerCredit');
+
+const TABLE_WIDTH = 1400;
+const TABLE_HEIGHT = 760;
+const RAIL = 36;
+const POCKET_R = 38;
+
+let gameMode = 'parity'; /* parity | multiplier */
+let selectedValue = 15;
+let selectedParity = 'even';
+const BET_MIN = 2;
+const BET_MAX = 10;
+let betAmount = 2;
+let credits = 0;
+let stakeTaken = false;
+let shots = 0;
+let width = TABLE_WIDTH;
+let height = TABLE_HEIGHT;
+let aiming = false;
+let aimX = 0;
+let aimY = 0;
+let currentPower = 0;
+let falling = null;
+let looping = false;
+let shotActive = false;
+let roundLocked = false;
+let alertTimer = null;
+let pockets = [];
+let holes = [];
+
+const ball = {
+  x: 0, y: 0, radius: 18, scale: 1,
+  vx: 0, vy: 0, stopped: true, visible: true
+};
+
+const BALL_START = { x: 280, y: TABLE_HEIGHT / 2 };
+
+/* Tabuleiro preto dos números (canto superior direito) */
+const board = {
+  x: 980,
+  y: 44,
+  width: 380,
+  height: 400
+};
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString('pt-BR');
+}
+
+function renderCredits() {
+  playerCreditEl.textContent = fmt(credits);
+}
+
+async function persistCredits() {
+  if (window.clubWallet) await clubWallet.set(credits);
+}
+
+function updateBetPreview() {
+  betPreview.innerHTML = `Aposta: <strong>${fmt(betAmount)}</strong> créditos`;
+  betHud.textContent = fmt(betAmount);
+}
+
+function clampBet(amount) {
+  const n = Math.floor(Number(amount) || 0);
+  if (n < BET_MIN) return BET_MIN;
+  if (n > BET_MAX) return BET_MAX;
+  return n;
+}
+
+function validateBet(amount) {
+  const n = Math.floor(Number(amount) || 0);
+  if (!(n >= BET_MIN)) {
+    return { ok: false, value: n, message: `Aposta mínima: ${BET_MIN}` };
+  }
+  if (n > BET_MAX) {
+    return { ok: false, value: n, message: `Aposta máxima na Bagatela: ${BET_MAX}` };
+  }
+  return { ok: true, value: n, message: '' };
+}
+
+function setBetAmount(amount) {
+  const value = clampBet(amount);
+  betAmount = value;
+  betInput.value = value;
+  updateBetPreview();
+  document.querySelectorAll('.bet-chip').forEach((c) => {
+    c.classList.toggle('selected', Number(c.dataset.bet) === betAmount);
+  });
+}
+
+function setupCanvas() {
+  canvas.width = TABLE_WIDTH;
+  canvas.height = TABLE_HEIGHT;
+  width = TABLE_WIDTH;
+  height = TABLE_HEIGHT;
+  setupGame();
+}
+
+function buildPockets() {
+  const m = RAIL * 0.55;
+  pockets = [
+    { x: m, y: m },
+    { x: width / 2, y: m * 0.75 },
+    { x: width - m, y: m },
+    { x: m, y: height - m },
+    { x: width / 2, y: height - m * 0.75 },
+    { x: width - m, y: height - m }
+  ];
+}
+
+function setupGame() {
+  falling = null;
+  ball.radius = 18;
+  ball.x = BALL_START.x;
+  ball.y = BALL_START.y;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.scale = 1;
+  ball.stopped = true;
+  ball.visible = true;
+  buildPockets();
+  createHoles();
+}
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleNumbers(count) {
+  return shuffleArray(Array.from({ length: count }, (_, i) => i + 1));
+}
+
+/* Multiplicadores da mesa: 0,10 … 30x (mais 0,10 e 10 do que os altos) */
+const MULT_TABLE = [
+  { v: 0.10, w: 14 },
+  { v: 0.15, w: 9 },
+  { v: 0.25, w: 8 },
+  { v: 0.50, w: 7 },
+  { v: 0.75, w: 6 },
+  { v: 1, w: 5 },
+  { v: 2, w: 3 },
+  { v: 3, w: 3 },
+  { v: 4, w: 2 },
+  { v: 5, w: 2 },
+  { v: 6, w: 2 },
+  { v: 7, w: 2 },
+  { v: 8, w: 2 },
+  { v: 9, w: 2 },
+  { v: 10, w: 8 },
+  { v: 20, w: 1 },
+  { v: 30, w: 1 }
+];
+
+function buildMultiplierValues(count) {
+  const pool = [];
+  MULT_TABLE.forEach(({ v, w }) => {
+    for (let i = 0; i < w; i++) pool.push(v);
+  });
+  const values = [];
+  for (let i = 0; i < count; i++) {
+    values.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  return shuffleArray(values);
+}
+
+function createHoles() {
+  holes = [];
+  const columns = selectedValue > 100 ? 10 : 5;
+  const rows = Math.ceil(selectedValue / columns);
+
+  const padding = selectedValue >= 50 ? 14 : selectedValue <= 15 ? 18 : 16;
+  const gap = selectedValue >= 50 ? 7 : selectedValue <= 15 ? 11 : 9;
+
+  const cellWidth =
+    (board.width - padding * 2 - gap * (columns - 1)) / columns;
+  const cellHeight =
+    (board.height - padding * 2 - gap * (rows - 1)) / rows;
+
+  const numbers = gameMode === 'multiplier'
+    ? buildMultiplierValues(selectedValue)
+    : shuffleNumbers(selectedValue);
+
+  const radiusFactor = selectedValue >= 50 ? 0.34 : 0.38;
+
+  for (let i = 0; i < selectedValue; i++) {
+    const row = Math.floor(i / columns);
+    const column = i % columns;
+    const x =
+      board.x +
+      padding +
+      column * (cellWidth + gap) +
+      cellWidth / 2;
+    const y =
+      board.y +
+      padding +
+      row * (cellHeight + gap) +
+      cellHeight / 2;
+    const radius = Math.min(cellWidth, cellHeight) * radiusFactor;
+
+    holes.push({
+      number: numbers[i],
+      x, y, radius,
+      hit: false,
+      column, row
+    });
+  }
+}
+
+function isWinningNumber(number) {
+  if (gameMode === 'multiplier') return true;
+  if (selectedParity === 'even') return number % 2 === 0;
+  return number % 2 !== 0;
+}
+
+function parityLabel() {
+  return selectedParity === 'even' ? 'PARES' : 'ÍMPARES';
+}
+
+function modeLabel() {
+  if (gameMode === 'multiplier') return 'MULTIPLICADOR';
+  return parityLabel();
+}
+
+function holeLabel(number) {
+  if (gameMode !== 'multiplier') return String(number);
+  const n = Number(number);
+  if (Number.isInteger(n)) return String(n);
+  return n.toFixed(2).replace('.', ',');
+}
+
+function syncModeUI() {
+  const isMulti = gameMode === 'multiplier';
+  parityOptions.classList.toggle('hidden', isMulti);
+  subtitle.textContent = isMulti
+    ? '★★★ MULTIPLICADOR ★★★'
+    : '★★★ PARES OU ÍMPARES ★★★';
+  parityHud.textContent = modeLabel();
+  if (isMulti) {
+    modeHintText.innerHTML =
+      'Todo buraco paga: <strong>aposta × multiplicador</strong> (0,10x a 30x). Você sempre recebe o prêmio do buraco.';
+  } else {
+    modeHintText.innerHTML =
+      `Só ganha se cair em <strong id="parityHint">${parityLabel()}</strong>. Multiplicador = número do buraco.`;
+  }
+}
+
+function restartRound() {
+  aiming = false;
+  falling = null;
+  currentPower = 0;
+  shotActive = false;
+  roundLocked = false;
+  stakeTaken = false;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.scale = 1;
+  ball.stopped = true;
+  ball.visible = true;
+  setupGame();
+}
+
+function showAlert(type, message) {
+  clearTimeout(alertTimer);
+  alertBox.classList.remove('win', 'lose');
+  alertBox.classList.add(type);
+  alertTitle.textContent = type === 'win' ? 'VOCÊ GANHOU' : 'VOCÊ PERDEU';
+  alertMessage.textContent = message;
+  alertOverlay.classList.add('show');
+  alertTimer = setTimeout(() => {
+    alertOverlay.classList.remove('show');
+    restartRound();
+    /* volta ao menu após resultado para nova aposta */
+    backToMenu(false);
+  }, 2000);
+}
+
+function hideAlert() {
+  clearTimeout(alertTimer);
+  alertOverlay.classList.remove('show');
+}
+
+function drawRailWood() {
+  const wood = ctx.createLinearGradient(0, 0, width, height);
+  wood.addColorStop(0, '#5a3014');
+  wood.addColorStop(0.45, '#8b5224');
+  wood.addColorStop(1, '#3d1e0a');
+  ctx.fillStyle = wood;
+  ctx.fillRect(0, 0, width, height);
+}
+
+function drawFelt() {
+  const inset = RAIL;
+  const felt = ctx.createLinearGradient(0, inset, 0, height - inset);
+  felt.addColorStop(0, '#0d9454');
+  felt.addColorStop(0.5, '#087540');
+  felt.addColorStop(1, '#055e34');
+  ctx.fillStyle = felt;
+  roundRect(inset, inset, width - inset * 2, height - inset * 2, 18);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255,255,255,.07)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(width / 2, inset + 8);
+  ctx.lineTo(width / 2, height - inset - 8);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(BALL_START.x, BALL_START.y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,.28)';
+  ctx.fill();
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawPockets() {
+  pockets.forEach((p) => {
+    /* anel da caçapa na madeira */
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, POCKET_R + 10, 0, Math.PI * 2);
+    ctx.fillStyle = '#2a1508';
+    ctx.fill();
+
+    const g = ctx.createRadialGradient(p.x - 6, p.y - 6, 2, p.x, p.y, POCKET_R);
+    g.addColorStop(0, '#222');
+    g.addColorStop(0.45, '#050505');
+    g.addColorStop(1, '#000');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, POCKET_R, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+function drawBoard() {
+  ctx.fillStyle = 'rgba(0,0,0,.65)';
+  ctx.fillRect(board.x + 12, board.y + 14, board.width, board.height);
+
+  const wood = ctx.createLinearGradient(
+    board.x, board.y,
+    board.x + board.width, board.y + board.height
+  );
+  wood.addColorStop(0, '#171717');
+  wood.addColorStop(0.5, '#2b2b2b');
+  wood.addColorStop(1, '#101010');
+
+  ctx.fillStyle = wood;
+  ctx.fillRect(board.x, board.y, board.width, board.height);
+
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(board.x, board.y, board.width, board.height);
+
+  ctx.fillStyle = '#101010';
+  ctx.fillRect(
+    board.x + 10,
+    board.y + 10,
+    board.width - 20,
+    board.height - 20
+  );
+
+  holes.forEach(drawHole);
+}
+
+function drawHole(hole) {
+  const match = isWinningNumber(hole.number);
+
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius + 4, 0, Math.PI * 2);
+  ctx.fillStyle = hole.hit
+    ? (match ? '#0a5c2e' : '#7d0000')
+    : (match ? '#1f3a28' : '#272727');
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+
+  const holeGradient = ctx.createRadialGradient(
+    hole.x - 3, hole.y - 3, 2,
+    hole.x, hole.y, hole.radius
+  );
+
+  if (hole.hit) {
+    if (match) {
+      holeGradient.addColorStop(0, '#4aff8a');
+      holeGradient.addColorStop(0.35, '#0a8f3c');
+      holeGradient.addColorStop(1, '#00210c');
+    } else {
+      holeGradient.addColorStop(0, '#ff4a4a');
+      holeGradient.addColorStop(0.35, '#b30000');
+      holeGradient.addColorStop(1, '#210000');
+    }
+  } else {
+    holeGradient.addColorStop(0, '#000');
+    holeGradient.addColorStop(0.65, '#020202');
+    holeGradient.addColorStop(1, '#191919');
+  }
+
+  ctx.fillStyle = holeGradient;
+  ctx.fill();
+
+  const label = holeLabel(hole.number);
+  const fontScale = label.length > 3 ? 0.78 : 0.95;
+  const fontSize = Math.max(12, hole.radius * fontScale);
+  ctx.fillStyle = match ? '#9dffb8' : '#bbb';
+  ctx.font = `bold ${fontSize}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 3;
+  ctx.fillText(label, hole.x, hole.y);
+  ctx.shadowBlur = 0;
+}
+
+function drawBall() {
+  if (!ball.visible) return;
+  const r = ball.radius * ball.scale;
+
+  ctx.beginPath();
+  ctx.arc(ball.x + 4 * ball.scale, ball.y + 5 * ball.scale, r, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(0,0,0,${0.35 * ball.scale})`;
+  ctx.fill();
+
+  const gradient = ctx.createRadialGradient(
+    ball.x - 6 * ball.scale, ball.y - 6 * ball.scale, 2,
+    ball.x, ball.y, r
+  );
+  gradient.addColorStop(0, '#ffffff');
+  gradient.addColorStop(0.55, '#ececec');
+  gradient.addColorStop(1, '#9a9a9a');
+
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function getAimPower() {
+  if (!aiming) return 0;
+  const dx = ball.x - aimX;
+  const dy = ball.y - aimY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  return Math.min(distance / 200, 1);
+}
+
+function drawAim() {
+  if (!aiming || falling) return;
+  const dx = ball.x - aimX;
+  const dy = ball.y - aimY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance < 5) return;
+  const nx = dx / distance;
+  const ny = dy / distance;
+  const lineLength = Math.min(distance * 3, 650);
+  const power = getAimPower();
+  ctx.beginPath();
+  ctx.moveTo(ball.x, ball.y);
+  ctx.lineTo(ball.x + nx * lineLength, ball.y + ny * lineLength);
+  ctx.strokeStyle = `rgba(23,200,255,${0.45 + power * 0.45})`;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 8]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawPowerMeter() {
+  if ((!aiming && currentPower <= 0) || falling) return;
+  const power = aiming ? getAimPower() : currentPower;
+  if (power <= 0.01) return;
+
+  const meterX = ball.x + ball.radius + 28;
+  const meterY = ball.y;
+  const meterH = 70;
+  const meterW = 12;
+  const filled = meterH * power;
+
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillRect(meterX - 2, meterY - meterH / 2 - 2, meterW + 4, meterH + 4);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(meterX, meterY - meterH / 2, meterW, meterH);
+
+  const barGrad = ctx.createLinearGradient(meterX, meterY + meterH / 2, meterX, meterY - meterH / 2);
+  barGrad.addColorStop(0, '#2ecc71');
+  barGrad.addColorStop(0.55, '#f1c40f');
+  barGrad.addColorStop(1, '#e74c3c');
+  ctx.fillStyle = barGrad;
+  ctx.fillRect(meterX, meterY + meterH / 2 - filled, meterW, filled);
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(meterX, meterY - meterH / 2, meterW, meterH);
+
+  ctx.fillStyle = '#eee';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(Math.round(power * 100) + '%', meterX + meterW / 2, meterY - meterH / 2 - 12);
+}
+
+function drawTable() {
+  ctx.clearRect(0, 0, width, height);
+  drawRailWood();
+  drawFelt();
+  drawPockets();
+  drawBoard();
+  drawBall();
+  drawAim();
+  drawPowerMeter();
+}
+
+function getSpeed() {
+  return Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+}
+
+function updateFall() {
+  falling.t += 1 / 60;
+  const progress = Math.min(falling.t / falling.duration, 1);
+  const ease = 1 - Math.pow(1 - progress, 2.2);
+
+  if (falling.kind === 'pocket') {
+    ball.x = falling.startX + (falling.target.x - falling.startX) * ease;
+    ball.y = falling.startY + (falling.target.y - falling.startY) * ease;
+    ball.scale = 1 - ease * 0.9;
+    ball.vx = 0;
+    ball.vy = 0;
+    if (progress >= 1) {
+      finishPocket();
+      falling = null;
+    }
+    return;
+  }
+
+  if (falling.canEscape && progress > 0.35 && progress < 0.72) {
+    const escapeChance = falling.entrySpeed / 14;
+    if (escapeChance > 0.55 && progress > 0.45) {
+      escapeHole(falling.hole, falling.entrySpeed);
+      falling = null;
+      return;
+    }
+  }
+
+  const spiral = Math.sin(progress * Math.PI * 3) * (1 - progress) * 5;
+  ball.x = falling.startX + (falling.hole.x - falling.startX) * ease + spiral;
+  ball.y = falling.startY + (falling.hole.y - falling.startY) * ease;
+  ball.scale = 1 - ease * (falling.canEscape ? 0.45 : 0.85);
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.stopped = false;
+
+  if (progress >= 1) {
+    if (falling.canEscape && falling.entrySpeed > 5.5) {
+      escapeHole(falling.hole, falling.entrySpeed * 0.7);
+    } else {
+      finishHole(falling.hole);
+    }
+    falling = null;
+  }
+}
+
+function escapeHole(hole, speed) {
+  const angle = Math.atan2(ball.y - hole.y, ball.x - hole.x) + (Math.random() - 0.5) * 1.2;
+  const push = Math.max(2.2, Math.min(speed * 0.55, 7));
+  ball.x = hole.x + Math.cos(angle) * (hole.radius + ball.radius * 0.4);
+  ball.y = hole.y + Math.sin(angle) * (hole.radius + ball.radius * 0.4);
+  ball.vx = Math.cos(angle) * push;
+  ball.vy = Math.sin(angle) * push;
+  ball.scale = 1;
+  ball.stopped = false;
+  shotActive = true;
+  currentPower = Math.min(push / 22, 1);
+  holes.forEach((h) => { h.hit = false; });
+}
+
+function startFallHole(hole, canEscape, entrySpeed) {
+  falling = {
+    kind: 'hole',
+    hole,
+    startX: ball.x,
+    startY: ball.y,
+    t: 0,
+    duration: canEscape ? 0.55 : 0.42,
+    canEscape: !!canEscape,
+    entrySpeed: entrySpeed || getSpeed()
+  };
+  ball.stopped = false;
+  currentPower = 0;
+  aiming = false;
+}
+
+function startFallPocket(pocket) {
+  falling = {
+    kind: 'pocket',
+    target: pocket,
+    startX: ball.x,
+    startY: ball.y,
+    t: 0,
+    duration: 0.38
+  };
+  ball.stopped = false;
+  currentPower = 0;
+  aiming = false;
+  shotActive = false;
+}
+
+function finishPocket() {
+  if (roundLocked) return;
+  roundLocked = true;
+  shotActive = false;
+  ball.visible = false;
+  multiplierElement.textContent = '-';
+  resultValue.textContent = '0x';
+  resultPayout.textContent = `Caçapa da sinuca — perdeu ${fmt(betAmount)}`;
+  resultPayout.style.color = '#ff7d7d';
+  result.classList.add('show');
+  showAlert('lose', fmt(betAmount));
+}
+
+async function finishHole(hole) {
+  if (roundLocked) return;
+  shotActive = false;
+  roundLocked = true;
+
+  ball.x = hole.x;
+  ball.y = hole.y;
+  ball.scale = 0.15;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.stopped = true;
+
+  holes.forEach((h) => { h.hit = false; });
+  hole.hit = true;
+
+  let hitNumber = hole.number;
+  let won = isWinningNumber(hitNumber);
+
+  try {
+    const force = window.clubHouse ? await clubHouse.nextOutcome() : null;
+    if (gameMode === 'multiplier') {
+      if (force === 'bank' && hitNumber > 0.10) {
+        hitNumber = 0.10;
+        hole.number = 0.10;
+      } else if (force === 'player' && hitNumber < 10) {
+        hitNumber = 10;
+        hole.number = 10;
+      }
+      won = true;
+    } else {
+      if (force === 'bank' && won) won = false;
+      if (force === 'player' && !won) won = true;
+    }
+  } catch (_) {}
+
+  const payout = Math.round(betAmount * hitNumber * 100) / 100;
+  const label = gameMode === 'multiplier' ? holeLabel(hitNumber) + 'x' : hitNumber + 'x';
+  multiplierElement.textContent = label;
+  resultValue.textContent = label;
+
+  if (gameMode === 'multiplier') {
+    credits += payout;
+    renderCredits();
+    persistCredits();
+    resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} créditos`;
+    resultPayout.style.color = '#7dffb0';
+    result.classList.add('show');
+    showAlert('win', `${holeLabel(hitNumber)}x → +${fmt(payout)}`);
+    return;
+  }
+
+  if (won) {
+    credits += payout;
+    renderCredits();
+    persistCredits();
+    resultPayout.textContent = `Ganho: +${fmt(payout)} créditos`;
+    resultPayout.style.color = '#7dffb0';
+    result.classList.add('show');
+    showAlert('win', '+' + fmt(payout));
+  } else {
+    resultPayout.textContent = `Número ${parityLabel() === 'PARES' ? 'ímpar' : 'par'} — perdeu`;
+    resultPayout.style.color = '#ff7d7d';
+    result.classList.add('show');
+    showAlert('lose', fmt(betAmount));
+  }
+}
+
+function handleMiss() {
+  if (!shotActive || roundLocked) return;
+  shotActive = false;
+  roundLocked = true;
+  multiplierElement.textContent = '-';
+  resultValue.textContent = '0x';
+  resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
+  resultPayout.style.color = '#ff7d7d';
+  result.classList.add('show');
+  showAlert('lose', fmt(betAmount));
+}
+
+function checkPockets() {
+  if (falling || roundLocked) return;
+  const speed = getSpeed();
+  for (const p of pockets) {
+    const dx = ball.x - p.x;
+    const dy = ball.y - p.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance > POCKET_R * 0.92) continue;
+    if (speed > 4.5) {
+      const pull = 0.06;
+      ball.vx += (-dx / (distance || 1)) * pull;
+      ball.vy += (-dy / (distance || 1)) * pull;
+      continue;
+    }
+    startFallPocket(p);
+    return true;
+  }
+  return false;
+}
+
+function checkHole() {
+  if (falling || roundLocked) return;
+  const speed = getSpeed();
+  for (const hole of holes) {
+    const dx = ball.x - hole.x;
+    const dy = ball.y - hole.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance > hole.radius * 0.95) continue;
+
+    if (speed > 3.2) {
+      const pull = Math.min(0.08, 0.035 * (1 - distance / hole.radius));
+      ball.vx += (-dx / (distance || 1)) * pull;
+      ball.vy += (-dy / (distance || 1)) * pull;
+      continue;
+    }
+
+    if (speed > 1.8) {
+      if (distance > hole.radius * 0.45) {
+        const nx = dx / (distance || 1);
+        const ny = dy / (distance || 1);
+        const bounce = speed * 0.35;
+        ball.vx = ball.vx * 0.7 + nx * bounce;
+        ball.vy = ball.vy * 0.7 + ny * bounce;
+        ball.x = hole.x + nx * (hole.radius + 1);
+        ball.y = hole.y + ny * (hole.radius + 1);
+        return;
+      }
+      startFallHole(hole, true, speed);
+      return;
+    }
+
+    if (distance <= hole.radius * 0.75) {
+      startFallHole(hole, false, speed);
+      return;
+    }
+  }
+}
+
+function updateBall() {
+  if (falling) {
+    updateFall();
+    return;
+  }
+  if (roundLocked) return;
+
+  if (ball.vx === 0 && ball.vy === 0) {
+    if (shotActive && !falling) {
+      ball.stopped = true;
+      currentPower = 0;
+      handleMiss();
+      return;
+    }
+    ball.stopped = true;
+    currentPower = Math.max(0, currentPower - 0.04);
+    return;
+  }
+
+  ball.stopped = false;
+  currentPower = Math.max(0, currentPower - 0.015);
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  const onBoard =
+    ball.x > board.x &&
+    ball.x < board.x + board.width &&
+    ball.y > board.y &&
+    ball.y < board.y + board.height;
+  const friction = onBoard ? 0.981 : 0.991;
+  ball.vx *= friction;
+  ball.vy *= friction;
+
+  if (Math.abs(ball.vx) < 0.035 && Math.abs(ball.vy) < 0.035) {
+    ball.vx = 0;
+    ball.vy = 0;
+    if (shotActive) {
+      ball.stopped = true;
+      currentPower = 0;
+      handleMiss();
+      return;
+    }
+    ball.stopped = true;
+    currentPower = 0;
+  }
+
+  const min = RAIL + 4;
+  const maxX = width - RAIL - 4;
+  const maxY = height - RAIL - 4;
+
+  if (ball.x - ball.radius < min) {
+    ball.x = min + ball.radius;
+    ball.vx = Math.abs(ball.vx) * 0.9;
+  }
+  if (ball.x + ball.radius > maxX) {
+    ball.x = maxX - ball.radius;
+    ball.vx = -Math.abs(ball.vx) * 0.85;
+  }
+  if (ball.y - ball.radius < min) {
+    ball.y = min + ball.radius;
+    ball.vy = Math.abs(ball.vy) * 0.85;
+  }
+  if (ball.y + ball.radius > maxY) {
+    ball.y = maxY - ball.radius;
+    ball.vy = -Math.abs(ball.vy) * 0.85;
+  }
+
+  if (checkPockets()) return;
+  checkHole();
+}
+
+function getCanvasPos(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * (canvas.width / rect.width),
+    y: (clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function canAim() {
+  return ball.stopped && !falling && !roundLocked && !shotActive && ball.scale > 0.9 && stakeTaken;
+}
+
+function shootFromAim() {
+  if (!aiming) return;
+  aiming = false;
+  const dx = ball.x - aimX;
+  const dy = ball.y - aimY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance < 10) {
+    currentPower = 0;
+    return;
+  }
+  const powerRatio = Math.min(distance / 240, 1);
+  const power = Math.min(distance / 14, 28);
+  currentPower = powerRatio;
+  ball.vx = (dx / distance) * power;
+  ball.vy = (dy / distance) * power;
+  ball.stopped = false;
+  shotActive = true;
+  shots++;
+  shotsElement.textContent = shots;
+  result.classList.remove('show');
+  multiplierElement.textContent = '-';
+  resultPayout.textContent = '';
+  holes.forEach((hole) => { hole.hit = false; });
+}
+
+function updateAimFromEvent(clientX, clientY) {
+  if (!aiming) return;
+  const pos = getCanvasPos(clientX, clientY);
+  aimX = pos.x;
+  aimY = pos.y;
+}
+
+canvas.addEventListener('mousedown', (event) => {
+  if (!canAim()) return;
+  const pos = getCanvasPos(event.clientX, event.clientY);
+  const dx = pos.x - ball.x;
+  const dy = pos.y - ball.y;
+  if (Math.sqrt(dx * dx + dy * dy) <= 70) {
+    aiming = true;
+    aimX = pos.x;
+    aimY = pos.y;
+  }
+});
+window.addEventListener('mousemove', (e) => updateAimFromEvent(e.clientX, e.clientY));
+window.addEventListener('mouseup', () => shootFromAim());
+
+canvas.addEventListener('touchstart', (event) => {
+  event.preventDefault();
+  if (!canAim()) return;
+  const touch = event.touches[0];
+  const pos = getCanvasPos(touch.clientX, touch.clientY);
+  const dx = pos.x - ball.x;
+  const dy = pos.y - ball.y;
+  if (Math.sqrt(dx * dx + dy * dy) <= 80) {
+    aiming = true;
+    aimX = pos.x;
+    aimY = pos.y;
+  }
+}, { passive: false });
+
+window.addEventListener('touchmove', (event) => {
+  if (!aiming) return;
+  event.preventDefault();
+  const touch = event.touches[0];
+  if (touch) updateAimFromEvent(touch.clientX, touch.clientY);
+}, { passive: false });
+
+window.addEventListener('touchend', () => shootFromAim(), { passive: false });
+window.addEventListener('touchcancel', () => {
+  aiming = false;
+  currentPower = 0;
+});
+
+document.querySelectorAll('.mode').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.mode').forEach((b) => b.classList.remove('selected'));
+    button.classList.add('selected');
+    gameMode = button.dataset.mode;
+    syncModeUI();
+  });
+});
+
+document.querySelectorAll('.number').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.number').forEach((b) => b.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedValue = Number(button.dataset.value);
+  });
+});
+
+document.querySelectorAll('.parity').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.parity').forEach((b) => b.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedParity = button.dataset.parity;
+    syncModeUI();
+  });
+});
+
+document.querySelectorAll('.bet-chip').forEach((chip) => {
+  chip.addEventListener('click', () => setBetAmount(chip.dataset.bet));
+});
+
+betInput.addEventListener('input', () => {
+  const value = Number(betInput.value);
+  if (value > 0) {
+    betAmount = clampBet(value);
+    updateBetPreview();
+  }
+});
+
+function backToMenu(resetCreditsFlow) {
+  menu.style.display = 'block';
+  hud.style.display = 'none';
+  tableWrapper.style.display = 'none';
+  instructions.style.display = 'none';
+  back.style.display = 'none';
+  aiming = false;
+  falling = null;
+  currentPower = 0;
+  shotActive = false;
+  roundLocked = false;
+  stakeTaken = false;
+  if (resetCreditsFlow !== false) hideAlert();
+}
+
+document.getElementById('play').addEventListener('click', async () => {
+  const check = validateBet(betInput.value || betAmount);
+  if (!check.ok) return alert(check.message);
+  setBetAmount(check.value);
+
+  if (credits < betAmount) {
+    alert('Créditos insuficientes.');
+    return;
+  }
+
+  credits -= betAmount;
+  stakeTaken = true;
+  renderCredits();
+  await persistCredits();
+
+  menu.style.display = 'none';
+  hud.style.display = 'flex';
+  tableWrapper.style.display = 'block';
+  instructions.style.display = 'block';
+  back.style.display = 'inline-block';
+
+  shots = 0;
+  shotsElement.textContent = '0';
+  targetElement.textContent = selectedValue;
+  syncModeUI();
+  multiplierElement.textContent = '-';
+  resultPayout.textContent = '';
+  resultPayout.style.color = '#7dffb0';
+  result.classList.remove('show');
+  hideAlert();
+  shotActive = false;
+  roundLocked = false;
+  updateBetPreview();
+  setupCanvas();
+
+  if (!looping) {
+    looping = true;
+    gameLoop();
+  }
+});
+
+back.addEventListener('click', () => {
+  if (stakeTaken && !roundLocked) {
+    /* devolve aposta se sair sem terminar a jogada */
+    credits += betAmount;
+    stakeTaken = false;
+    renderCredits();
+    persistCredits();
+  }
+  backToMenu(true);
+});
+
+function gameLoop() {
+  drawTable();
+  updateBall();
+  requestAnimationFrame(gameLoop);
+}
+
+updateBetPreview();
+renderCredits();
+syncModeUI();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=5"></script>
+<script src="../js/auth.js?v=11"></script>
+<script src="../js/house.js?v=1"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=8"></script>
+<script>
+window.clubWalletReady.then((w) => {
+  if (!w) return;
+  credits = Number(w.credits || 0);
+  renderCredits();
+});
+</script>
+</body>
+</html>
