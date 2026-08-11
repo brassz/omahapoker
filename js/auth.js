@@ -101,17 +101,12 @@
     },
 
     async listPlayers() {
-      // RPC sincroniza profiles faltantes a partir de auth.users
-      const rpc = await client.rpc('admin_list_players');
-      if (!rpc.error) return rpc.data || [];
-
-      // Fallback se o SQL ainda não foi aplicado no Supabase
       const { data, error } = await client
         .from('profiles')
         .select('id,email,display_name,player_credits,is_admin,created_at,updated_at')
         .order('created_at', { ascending: false })
         .range(0, 4999);
-      if (error) throw rpc.error || error;
+      if (error) throw error;
       return data || [];
     },
 
