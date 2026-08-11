@@ -321,29 +321,63 @@ body{
   .game{filter:blur(2px);pointer-events:none}
 }
 
-/* Landscape mobile — mesa e números em destaque */
+/* Landscape mobile — menu compacto (antes de jogar) */
 @media (max-height:520px) and (orientation:landscape){
-  .game{width:100vw;max-width:none;padding:4px 6px}
-  .logo{font-size:22px;letter-spacing:4px;line-height:1}
-  .subtitle{font-size:9px;margin-bottom:4px;letter-spacing:2px}
-  .credits-bar{padding:4px 10px;margin-bottom:4px}
-  .credits-bar strong{font-size:16px}
-  .menu{padding:10px;max-width:min(92vw,720px)}
-  .menu h2{font-size:12px;margin-bottom:8px}
-  .numbers{gap:6px;margin-bottom:8px}
-  .number{min-height:48px;font-size:24px}
-  .number.selected{font-size:28px}
-  .parity,.mode,.bet-chip{padding:8px 4px;font-size:11px}
-  .bet-custom input{padding:8px;font-size:16px}
-  .play{padding:10px;font-size:14px}
-  .hud{gap:4px;margin-bottom:4px}
-  .hud-item{min-width:72px;padding:4px 8px}
-  .hud-value{font-size:14px}
-  .table-wrapper{width:85%;max-width:85%;padding:5px;border-radius:12px}
-  .instructions{font-size:10px;margin-top:4px}
-  .back{margin-top:4px;padding:6px 12px;font-size:12px}
-  .result{margin-top:4px;padding:6px 12px}
-  .result-value{font-size:20px}
+  .game:not(.is-playing){width:100vw;max-width:none;padding:4px 6px}
+  .game:not(.is-playing) .logo{font-size:22px;letter-spacing:4px;line-height:1}
+  .game:not(.is-playing) .subtitle{font-size:9px;margin-bottom:4px;letter-spacing:2px}
+  .game:not(.is-playing) .credits-bar{padding:4px 10px;margin-bottom:4px}
+  .game:not(.is-playing) .credits-bar strong{font-size:16px}
+  .game:not(.is-playing) .menu{padding:10px;max-width:min(92vw,720px)}
+  .game:not(.is-playing) .menu h2{font-size:12px;margin-bottom:8px}
+  .game:not(.is-playing) .numbers{gap:6px;margin-bottom:8px}
+  .game:not(.is-playing) .number{min-height:48px;font-size:24px}
+  .game:not(.is-playing) .number.selected{font-size:28px}
+  .game:not(.is-playing) .parity,.game:not(.is-playing) .mode,.game:not(.is-playing) .bet-chip{padding:8px 4px;font-size:11px}
+  .game:not(.is-playing) .bet-custom input{padding:8px;font-size:16px}
+  .game:not(.is-playing) .play{padding:10px;font-size:14px}
+}
+
+/* Landscape mobile jogando — só mesa + modal vitória/derrota */
+@media (orientation:landscape) and (max-height:600px){
+  body.bagatela-playing #clubGateBar{display:none!important}
+  body.bagatela-playing{overflow:hidden}
+  .game.is-playing{
+    width:100vw;
+    height:100dvh;
+    max-width:none;
+    padding:0;
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .game.is-playing .logo,
+  .game.is-playing .subtitle,
+  .game.is-playing .credits-bar,
+  .game.is-playing .menu,
+  .game.is-playing .hud,
+  .game.is-playing .instructions,
+  .game.is-playing .back,
+  .game.is-playing .result{
+    display:none!important;
+  }
+  .game.is-playing .table-wrapper{
+    display:block!important;
+    width:min(96vw, calc(96dvh * 1400 / 760));
+    max-width:96vw;
+    max-height:96dvh;
+    margin:0 auto;
+    padding:4px;
+    border-radius:12px;
+  }
+  .game.is-playing #canvas{
+    width:100%;
+    height:auto;
+    max-height:calc(96dvh - 8px);
+    object-fit:contain;
+  }
 }
 @media (max-width:700px){
   .numbers{gap:8px}
@@ -1433,6 +1467,11 @@ betInput.addEventListener('input', () => {
   }
 });
 
+function setPlayingUI(playing) {
+  document.body.classList.toggle('bagatela-playing', !!playing);
+  document.querySelector('.game')?.classList.toggle('is-playing', !!playing);
+}
+
 function backToMenu(resetCreditsFlow) {
   menu.style.display = 'block';
   hud.style.display = 'none';
@@ -1445,6 +1484,7 @@ function backToMenu(resetCreditsFlow) {
   shotActive = false;
   roundLocked = false;
   stakeTaken = false;
+  setPlayingUI(false);
   if (resetCreditsFlow !== false) hideAlert();
 }
 
@@ -1468,6 +1508,7 @@ document.getElementById('play').addEventListener('click', async () => {
   tableWrapper.style.display = 'block';
   instructions.style.display = 'block';
   back.style.display = 'inline-block';
+  setPlayingUI(true);
 
   shots = 0;
   shotsElement.textContent = '0';
