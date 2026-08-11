@@ -1,6 +1,6 @@
 (function () {
   const MIN = 2;
-  const MAX = 500;
+  const MAX = 200;
 
   function parse(value) {
     return Math.floor(Number(value) || 0);

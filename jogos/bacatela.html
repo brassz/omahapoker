@@ -34,9 +34,9 @@
   <section class="centerGrid">
     <aside class="betPanel">
       <h3>VALOR DA APOSTA</h3>
-      <div class="betRow"><button onclick="changeBet(-10)">−</button><input class="betValue" id="bet" type="number" min="2" max="500" value="100"><button onclick="changeBet(10)">+</button></div>
-      <h3 style="margin-top:12px">APOSTA RÁPIDA (2 a 500)</h3>
-      <div class="quick"><button onclick="setBet(2)">2</button><button onclick="setBet(50)">50</button><button onclick="setBet(100)">100</button><button onclick="setBet(250)">250</button><button onclick="setBet(500)">500</button></div>
+      <div class="betRow"><button onclick="changeBet(-10)">−</button><input class="betValue" id="bet" type="number" min="2" max="200" value="100"><button onclick="changeBet(10)">+</button></div>
+      <h3 style="margin-top:12px">APOSTA RÁPIDA (2 a 200)</h3>
+      <div class="quick"><button onclick="setBet(2)">2</button><button onclick="setBet(50)">50</button><button onclick="setBet(100)">100</button><button onclick="setBet(150)">150</button><button onclick="setBet(200)">200</button></div>
     </aside>
 
     <div class="centerBoard">
@@ -76,7 +76,7 @@ load();render();
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=5"></script>
 <script src="../js/house.js?v=1"></script>
-<script src="../js/bets.js?v=1"></script>
+<script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=7"></script>
 <script>
 window.clubWalletReady.then((w)=>{

@@ -99,6 +99,11 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
         <input id="displayName" name="displayName" type="text" maxlength="40" placeholder="Como quer aparecer">
       </div>
 
+      <div id="phoneField" class="hidden">
+        <label for="phone">Celular</label>
+        <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="16" placeholder="(11) 99999-9999" autocomplete="tel">
+      </div>
+
       <label for="email">E-mail</label>
       <input id="email" name="email" type="email" required placeholder="voce@email.com" autocomplete="email">
 
@@ -114,12 +119,22 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=3"></script>
-  <script src="js/auth.js?v=3"></script>
+  <script src="js/auth.js?v=11"></script>
   <script>
   let mode = 'login';
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   const submitBtn = $('submitBtn');
+
+  function onlyDigits(v){ return String(v || '').replace(/\D/g, ''); }
+
+  function formatPhone(v){
+    const d = onlyDigits(v).slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 7) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  }
 
   function setMode(next) {
     mode = next;
@@ -127,6 +142,8 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
     $('tabLogin').classList.toggle('active', !signup);
     $('tabSignup').classList.toggle('active', signup);
     $('nameField').classList.toggle('hidden', !signup);
+    $('phoneField').classList.toggle('hidden', !signup);
+    $('phone').required = signup;
     $('password').autocomplete = signup ? 'new-password' : 'current-password';
     submitBtn.textContent = signup ? 'CRIAR CONTA' : 'ENTRAR NO CLUBE';
     msg.textContent = '';
@@ -135,12 +152,17 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
 
   $('tabLogin').onclick = () => setMode('login');
   $('tabSignup').onclick = () => setMode('signup');
+  $('phone').addEventListener('input', () => {
+    const el = $('phone');
+    const start = el.selectionStart;
+    el.value = formatPhone(el.value);
+    try { el.setSelectionRange(el.value.length, el.value.length); } catch (_) {}
+  });
 
   function goAfterLogin(profile) {
     if (typeof omahaAuth?.routeAfterLogin === 'function') {
       return omahaAuth.routeAfterLogin(profile);
     }
-    // fallback se o navegador ainda estiver com cache antigo do auth.js
     if (profile && profile.is_admin) location.replace('admin.html');
     else location.replace('lobby.html');
   }
@@ -166,10 +188,15 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
     const email = $('email').value.trim();
     const password = $('password').value;
     const displayName = $('displayName').value.trim();
+    const phone = onlyDigits($('phone').value);
 
     try {
       if (mode === 'signup') {
-        const data = await omahaAuth.signUp({ email, password, displayName });
+        if (!displayName) throw new Error('Informe seu nome.');
+        if (phone.length < 10 || phone.length > 11) {
+          throw new Error('Informe um celular válido com DDD.');
+        }
+        const data = await omahaAuth.signUp({ email, password, displayName, phone });
         if (!data.session) {
           msg.className = 'msg ok';
           msg.textContent = 'Conta criada. Faça login para continuar.';

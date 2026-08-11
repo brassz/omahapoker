@@ -79,7 +79,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <div class="box">Aposta da rodada<strong id="apostaAtual">0</strong></div>
     </div>
     <div class="aposta-row">
-      <input id="aposta" type="number" min="2" max="500" step="1" value="100" placeholder="Aposta 2 a 500">
+      <input id="aposta" type="number" min="2" max="200" step="1" value="100" placeholder="Aposta 2 a 200">
       <button class="primary" id="btnNova">Nova rodada</button>
     </div>
     <div class="quick">
@@ -87,7 +87,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <button type="button" onclick="setBet(50)">50</button>
       <button type="button" onclick="setBet(100)">100</button>
       <button type="button" onclick="setBet(250)">250</button>
-      <button type="button" onclick="setBet(500)">500</button>
+      <button type="button" onclick="setBet(200)">200</button>
     </div>
     <div class="acoes">
       <button class="green" id="btnPedir" disabled>Pedir carta</button>
@@ -109,7 +109,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
 
   <div class="panel">
-    <div id="mensagem">Defina a aposta (2 a 500) e toque em “Nova rodada” para confirmar e ver a mesa.</div>
+    <div id="mensagem">Defina a aposta (2 a 200) e toque em “Nova rodada” para confirmar e ver a mesa.</div>
   </div>
 
   <div class="panel regras">
@@ -299,7 +299,7 @@ render();
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=8"></script>
 <script src="../js/house.js?v=1"></script>
-<script src="../js/bets.js?v=1"></script>
+<script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=7"></script>
 <script>
 window.clubWalletReady.then((w)=>{

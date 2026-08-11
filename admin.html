@@ -172,7 +172,7 @@ body{margin:0;min-height:100vh}
     <section class="panel">
       <h2>★ JOGADORES</h2>
       <div class="searchRow">
-        <input class="search" id="search" type="search" placeholder="Buscar por nome ou e-mail..." autocomplete="off">
+        <input class="search" id="search" type="search" placeholder="Buscar por nome, e-mail ou celular..." autocomplete="off">
         <button type="button" class="searchBtn" id="searchBtn">BUSCAR</button>
       </div>
       <div id="list"></div>
@@ -186,7 +186,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=10"></script>
+  <script src="js/auth.js?v=11"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -288,7 +288,7 @@ body{margin:0;min-height:100vh}
     const q = (searchQuery || '').trim().toLowerCase();
     if (!q) return players.slice();
     return players.filter((p) =>
-      `${p.display_name||''} ${p.email||''}`.toLowerCase().includes(q)
+      `${p.display_name||''} ${p.email||''} ${p.phone||''}`.toLowerCase().includes(q)
     );
   }
 
@@ -324,6 +324,7 @@ body{margin:0;min-height:100vh}
           <tr>
             <th>JOGADOR</th>
             <th>E-MAIL</th>
+            <th>CELULAR</th>
             <th>SALDO</th>
             <th>AJUSTAR</th>
             <th></th>
@@ -334,6 +335,7 @@ body{margin:0;min-height:100vh}
             <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}" data-admin="${p.is_admin ? '1' : '0'}">
               <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}</td>
               <td data-label="E-MAIL">${p.email || '—'}</td>
+              <td data-label="CELULAR">${p.phone || '—'}</td>
               <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
               <td data-label="AJUSTAR">
                 <div class="actions">

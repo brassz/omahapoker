@@ -26,12 +26,19 @@
       return session.user;
     },
 
-    async signUp({ email, password, displayName }) {
+    async signUp({ email, password, displayName, phone }) {
+      const phoneDigits = String(phone || '').replace(/\D/g, '');
+      if (phoneDigits.length < 10 || phoneDigits.length > 13) {
+        throw new Error('Informe um celular válido com DDD (10 ou 11 dígitos).');
+      }
       const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
-          data: { display_name: displayName || email.split('@')[0] },
+          data: {
+            display_name: displayName || email.split('@')[0],
+            phone: phoneDigits,
+          },
         },
       });
       if (error) throw error;
@@ -61,7 +68,21 @@
 
     async ensureProfile(user) {
       let profile = await this.getProfile(user.id);
-      if (profile) return profile;
+      const phoneMeta = String(user.user_metadata?.phone || '').replace(/\D/g, '');
+
+      if (profile) {
+        // Completa telefone se veio no cadastro e ainda não está no perfil
+        if (phoneMeta && !profile.phone) {
+          const { data, error } = await client
+            .from('profiles')
+            .update({ phone: phoneMeta })
+            .eq('id', user.id)
+            .select('*')
+            .maybeSingle();
+          if (!error && data) return data;
+        }
+        return profile;
+      }
 
       const displayName =
         user.user_metadata?.display_name ||
@@ -74,6 +95,7 @@
             id: user.id,
             email: user.email,
             display_name: displayName,
+            phone: phoneMeta || null,
             player_credits: 0,
             bank_credits: 0,
             is_admin: false,

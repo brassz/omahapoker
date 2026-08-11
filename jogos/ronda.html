@@ -68,13 +68,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <section class="panel">
     <div style="text-align:center;font-weight:900">APOSTA DO JOGADOR</div>
     <div class="row">
-      <input id="bet" type="number" min="2" max="500" value="100">
+      <input id="bet" type="number" min="2" max="200" value="100">
     </div>
     <div class="row">
       <button onclick="setBet(2)">2</button>
       <button onclick="setBet(50)">50</button>
       <button onclick="setBet(100)">100</button>
-      <button onclick="setBet(500)">500</button>
+      <button onclick="setBet(200)">200</button>
     </div>
   </section>
 
@@ -335,7 +335,7 @@ renderCredits();renderHistory();
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=5"></script>
 <script src="../js/house.js?v=1"></script>
-<script src="../js/bets.js?v=1"></script>
+<script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=7"></script>
 <script>
 window.clubWalletReady.then((w)=>{
