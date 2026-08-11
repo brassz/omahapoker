@@ -33,8 +33,14 @@ body{margin:0;min-height:100vh}
   box-shadow:0 0 14px #17c8ff88;
   animation:clubNeonGlow 1.6s ease-in-out infinite;
 }
-.userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px}
-.userbar strong{display:block;font-size:16px;margin-top:2px}
+.userbar .user-meta{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-width:0
+}
+.userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px;line-height:1.2}
+.userbar strong{display:block;font-size:16px;line-height:1.2;font-weight:1000}
+.userbar .saldo-line{
+  color:#ffd91a;text-shadow:0 0 10px #ffd91a;font-weight:1000;font-size:13px
+}
 .userbar button{
   border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
   background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;
@@ -127,10 +133,10 @@ body{margin:0;min-height:100vh}
       </header>
 
       <section class="userbar">
-        <div>
+        <div class="user-meta">
           <small>LOGADO COMO</small>
           <strong id="userName">${name}</strong>
-          <small style="display:block;margin-top:4px;color:#ffd91a;text-shadow:0 0 10px #ffd91a">SALDO: ${credits}</small>
+          <small class="saldo-line">SALDO: ${credits}</small>
         </div>
         <div>
           ${adminBtn}

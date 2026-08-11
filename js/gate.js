@@ -40,8 +40,18 @@
         0%,100%{color:#17c8ff;text-shadow:0 0 6px #17c8ff,0 0 14px #00eaff}
         50%{color:#b8f7ff;text-shadow:0 0 12px #fff,0 0 24px #00eaff}
       }
-      #clubGateBar .user{font-size:12px;font-weight:800;text-align:center;opacity:.95}
-      #clubGateBar .saldo{color:#17c8ff;font-weight:1000}
+      #clubGateBar .user{
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:2px;min-width:0;text-align:center;
+      }
+      #clubGateBar .user .name{
+        font-size:13px;font-weight:1000;line-height:1.2;
+        max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      }
+      #clubGateBar .user .saldo{
+        font-size:12px;font-weight:1000;color:#17c8ff;line-height:1.2;
+        text-shadow:0 0 10px #17c8ff88;
+      }
       #clubGateBar button{
         border:0;border-radius:8px;padding:8px 10px;font-weight:900;cursor:pointer;color:#00131b;
         background:linear-gradient(180deg,#0284c7,#17c8ff);font-size:12px;border:2px solid #7dd3fc;
@@ -61,7 +71,10 @@
         <div class="club-name">CLUBEDEJOGOSCAIPIRA</div>
         <button type="button" id="clubBackLobby">← LOBBY</button>
       </div>
-      <div class="user">${name}<div class="saldo">Saldo: ${credits}</div></div>
+      <div class="user">
+        <div class="name">${name}</div>
+        <div class="saldo">Saldo: ${credits}</div>
+      </div>
       <button type="button" class="out" id="clubLogout">SAIR</button>
     `;
     document.body.prepend(bar);
@@ -87,7 +100,7 @@
       async set(credits) {
         this.credits = Math.max(0, Number(credits) || 0);
         await omahaAuth.saveCredits(user.id, this.credits);
-        const el = document.querySelector('#clubGateBar .saldo');
+        const el = document.querySelector('#clubGateBar .user .saldo');
         if (el) el.textContent = `Saldo: ${this.credits.toLocaleString('pt-BR')}`;
         return this.credits;
       },
