@@ -101,11 +101,8 @@
     },
 
     async listPlayers() {
-      const { data, error } = await client
-        .from('profiles')
-        .select('id,email,display_name,player_credits,is_admin,created_at,updated_at')
-        .order('created_at', { ascending: false })
-        .range(0, 4999);
+      // SECURITY DEFINER: lê todos os profiles (RLS do select normal só vê a própria conta)
+      const { data, error } = await client.rpc('admin_list_players');
       if (error) throw error;
       return data || [];
     },
