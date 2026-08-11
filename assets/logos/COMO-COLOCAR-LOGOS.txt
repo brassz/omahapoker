@@ -4,7 +4,7 @@ CLUBEDEJOGOSCAIPIRA — Logos do lobby
 Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
 
   club.png       → logo geral do clube (topo do lobby e login)
-  omaha.png      → logo do Cucuruti (lobby)
+  omaha.png      → logo do Omaha5 (lobby)
   crep.png       → logo do Crep
   bacatela.png   → logo da Bacatela
   ronda.png      → logo da Ronda
