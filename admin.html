@@ -147,7 +147,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=5"></script>
+  <script src="js/auth.js?v=6"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -228,9 +228,15 @@ body{margin:0;min-height:100vh}
   }
 
   async function reload() {
-    players = await omahaAuth.listPlayers();
-    render();
-    setMsg(`${players.filter(p=>!p.is_admin).length} jogador(es) · saldo inicial de novas contas = 0`, 'ok');
+    try {
+      players = await omahaAuth.listPlayers();
+      render();
+      setMsg(`${players.filter(p=>!p.is_admin).length} jogador(es) · saldo inicial de novas contas = 0`, 'ok');
+    } catch (err) {
+      players = [];
+      render();
+      setMsg(err?.message || 'Falha ao listar jogadores. Rode o SQL admin-list-players.sql no Supabase.', 'err');
+    }
   }
 
   async function boot() {
