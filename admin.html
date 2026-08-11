@@ -38,6 +38,22 @@ body{margin:0;min-height:100vh}
   width:100%;padding:11px;border-radius:10px;border:1px solid #445;
   background:#090b14;color:#fff;font-weight:700;margin-bottom:10px;
 }
+.searchRow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px}
+.searchRow .search{margin-bottom:0}
+.searchRow .searchBtn{
+  border:0;border-radius:10px;padding:11px 16px;font-weight:900;cursor:pointer;color:#00131b;
+  background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;white-space:nowrap;
+}
+.pager{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;
+  margin-top:12px;font-weight:800;font-size:13px;color:var(--muted);
+}
+.pager button{
+  border:0;border-radius:9px;padding:9px 14px;font-weight:900;cursor:pointer;color:#00131b;
+  background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pager .pageInfo{color:#ffd91a;font-weight:1000}
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{padding:10px 6px;border-bottom:1px solid #263042;text-align:left;vertical-align:middle}
 .table th{color:var(--muted);font-size:12px;letter-spacing:1px}
@@ -155,8 +171,16 @@ body{margin:0;min-height:100vh}
 
     <section class="panel">
       <h2>★ JOGADORES</h2>
-      <input class="search" id="search" type="search" placeholder="Buscar por nome ou e-mail...">
+      <div class="searchRow">
+        <input class="search" id="search" type="search" placeholder="Buscar por nome ou e-mail..." autocomplete="off">
+        <button type="button" class="searchBtn" id="searchBtn">BUSCAR</button>
+      </div>
       <div id="list"></div>
+      <div class="pager" id="pager" hidden>
+        <button type="button" id="pagePrev">← ANTERIOR</button>
+        <span class="pageInfo" id="pageInfo">1 / 1</span>
+        <button type="button" id="pageNext">PRÓXIMA →</button>
+      </div>
     </section>
   </div>
 
@@ -170,6 +194,9 @@ body{margin:0;min-height:100vh}
   let withdrawals = [];
   let me = null;
   let settings = null;
+  let searchQuery = '';
+  let playerPage = 1;
+  const PAGE_SIZE = 5;
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
@@ -257,17 +284,39 @@ body{margin:0;min-height:100vh}
     renderSettings(settings);
   }
 
-  function render() {
-    const q = ($('search').value || '').trim().toLowerCase();
-    const rows = players.filter((p) => {
-      if (!q) return true;
-      return `${p.display_name||''} ${p.email||''}`.toLowerCase().includes(q);
-    });
+  function filteredPlayers() {
+    const q = (searchQuery || '').trim().toLowerCase();
+    if (!q) return players.slice();
+    return players.filter((p) =>
+      `${p.display_name||''} ${p.email||''}`.toLowerCase().includes(q)
+    );
+  }
 
-    if (!rows.length) {
+  function applySearch() {
+    searchQuery = ($('search').value || '').trim();
+    playerPage = 1;
+    render();
+  }
+
+  function render() {
+    const rowsAll = filteredPlayers();
+    const totalPages = Math.max(1, Math.ceil(rowsAll.length / PAGE_SIZE));
+    if (playerPage > totalPages) playerPage = totalPages;
+    if (playerPage < 1) playerPage = 1;
+    const start = (playerPage - 1) * PAGE_SIZE;
+    const rows = rowsAll.slice(start, start + PAGE_SIZE);
+
+    const pager = $('pager');
+    if (!rowsAll.length) {
       $('list').innerHTML = '<div class="empty">Nenhum jogador encontrado.</div>';
+      pager.hidden = true;
       return;
     }
+
+    pager.hidden = false;
+    $('pageInfo').textContent = `Pág. ${playerPage} / ${totalPages} · ${rowsAll.length} resultado(s)`;
+    $('pagePrev').disabled = playerPage <= 1;
+    $('pageNext').disabled = playerPage >= totalPages;
 
     $('list').innerHTML = `
       <table class="table">
@@ -311,11 +360,13 @@ body{margin:0;min-height:100vh}
   async function reload() {
     try {
       players = await omahaAuth.listPlayers();
+      playerPage = 1;
       const admins = players.filter((p) => p.is_admin).length;
       render();
       setMsg(`${players.length} conta(s) · ${admins} admin · saldo inicial de novas contas = 0`, 'ok');
     } catch (err) {
       players = [];
+      playerPage = 1;
       render();
       const tip = /admin_list_players|function|schema cache/i.test(err?.message || '')
         ? ' Rode o SQL supabase/admin-list-players.sql no Supabase e atualize a página.'
@@ -363,7 +414,20 @@ body{margin:0;min-height:100vh}
     }
   };
 
-  $('search').addEventListener('input', render);
+  $('searchBtn').onclick = applySearch;
+  $('search').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      applySearch();
+    }
+  });
+  $('pagePrev').onclick = () => {
+    if (playerPage > 1) { playerPage -= 1; render(); }
+  };
+  $('pageNext').onclick = () => {
+    playerPage += 1;
+    render();
+  };
   $('toLobby').onclick = () => location.href = 'lobby.html';
   $('logoutBtn').onclick = async () => {
     try { await omahaAuth.signOut(); } catch (_) {}
