@@ -1,15 +1,64 @@
--- Configuração de manipulação: a cada N apostas, 1 vitória do jogador
+-- Manipulação por RTP (%): chance de vitória do jogador a cada aposta
+-- Rode este arquivo no SQL Editor do Supabase (substitui o modelo antigo "1 a cada N").
+
+-- 1) Tabela base (só cria se ainda não existir — estrutura mínima compatível)
 create table if not exists public.game_settings (
   id integer primary key default 1 check (id = 1),
   enabled boolean not null default true,
-  bets_per_player_win integer not null default 20 check (bets_per_player_win >= 1),
+  bets_per_player_win integer not null default 20,
   bet_counter bigint not null default 0,
   updated_at timestamptz not null default now()
 );
 
+-- 2) Garante a linha singleton antes de migrar colunas
 insert into public.game_settings (id, enabled, bets_per_player_win, bet_counter)
 values (1, true, 20, 0)
 on conflict (id) do nothing;
+
+-- 3) Migração: adiciona colunas novas se faltarem
+alter table public.game_settings
+  add column if not exists rtp_percent integer;
+
+alter table public.game_settings
+  add column if not exists player_win_counter bigint;
+
+-- 4) Preenche valores nulos (migra do modelo antigo: 1/N ≈ 100/N %)
+update public.game_settings
+set rtp_percent = greatest(
+  0,
+  least(100, round(100.0 / greatest(1, coalesce(bets_per_player_win, 20)))::integer)
+)
+where rtp_percent is null;
+
+update public.game_settings
+set player_win_counter = 0
+where player_win_counter is null;
+
+-- 5) Defaults + NOT NULL
+alter table public.game_settings
+  alter column rtp_percent set default 20;
+
+alter table public.game_settings
+  alter column player_win_counter set default 0;
+
+alter table public.game_settings
+  alter column rtp_percent set not null;
+
+alter table public.game_settings
+  alter column player_win_counter set not null;
+
+-- 6) Check 0–100 (idempotente)
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'game_settings_rtp_percent_check'
+  ) then
+    alter table public.game_settings
+      add constraint game_settings_rtp_percent_check
+      check (rtp_percent >= 0 and rtp_percent <= 100);
+  end if;
+end $$;
 
 alter table public.game_settings enable row level security;
 
@@ -43,9 +92,12 @@ $$;
 revoke all on function public.get_game_settings() from public;
 grant execute on function public.get_game_settings() to authenticated;
 
+-- Troca o parâmetro p_bets_per_player_win → p_rtp_percent (exige DROP)
+drop function if exists public.admin_update_game_settings(boolean, integer);
+
 create or replace function public.admin_update_game_settings(
   p_enabled boolean,
-  p_bets_per_player_win integer
+  p_rtp_percent integer
 )
 returns public.game_settings
 language plpgsql
@@ -54,25 +106,28 @@ set search_path = public
 as $$
 declare
   row public.game_settings;
+  rtp integer;
 begin
   if not public.is_admin() then
     raise exception 'Apenas admin';
   end if;
-  if p_bets_per_player_win is null or p_bets_per_player_win < 1 then
-    raise exception 'Intervalo inválido';
+
+  rtp := coalesce(p_rtp_percent, 20);
+  if rtp < 0 or rtp > 100 then
+    raise exception 'RTP inválido (use 0 a 100)';
   end if;
 
   update public.game_settings
   set
     enabled = coalesce(p_enabled, enabled),
-    bets_per_player_win = p_bets_per_player_win,
+    rtp_percent = rtp,
     updated_at = now()
   where id = 1
   returning * into row;
 
   if not found then
-    insert into public.game_settings (id, enabled, bets_per_player_win)
-    values (1, coalesce(p_enabled, true), p_bets_per_player_win)
+    insert into public.game_settings (id, enabled, rtp_percent)
+    values (1, coalesce(p_enabled, true), rtp)
     returning * into row;
   end if;
 
@@ -97,7 +152,7 @@ begin
   end if;
 
   update public.game_settings
-  set bet_counter = 0, updated_at = now()
+  set bet_counter = 0, player_win_counter = 0, updated_at = now()
   where id = 1
   returning * into row;
 
@@ -114,7 +169,7 @@ revoke all on function public.admin_reset_bet_counter() from public;
 grant execute on function public.admin_reset_bet_counter() to authenticated;
 
 -- Retorna 'player' | 'bank' | 'fair'
--- Quando ativo: a cada N apostas, exatamente 1 é vitória do jogador (a N-ésima).
+-- Quando ativo: sorteia com probabilidade rtp_percent% de vitória do jogador.
 create or replace function public.next_bet_outcome()
 returns text
 language plpgsql
@@ -123,7 +178,9 @@ set search_path = public
 as $$
 declare
   s public.game_settings;
-  n integer;
+  rtp integer;
+  roll double precision;
+  outcome text;
 begin
   if auth.uid() is null then
     return 'fair';
@@ -139,18 +196,23 @@ begin
     return 'fair';
   end if;
 
-  n := greatest(1, s.bets_per_player_win);
+  rtp := greatest(0, least(100, coalesce(s.rtp_percent, 20)));
+  roll := random() * 100.0;
 
-  update public.game_settings
-  set bet_counter = bet_counter + 1, updated_at = now()
-  where id = 1
-  returning * into s;
-
-  if (s.bet_counter % n) = 0 then
-    return 'player';
+  if roll < rtp then
+    outcome := 'player';
+  else
+    outcome := 'bank';
   end if;
 
-  return 'bank';
+  update public.game_settings
+  set
+    bet_counter = bet_counter + 1,
+    player_win_counter = player_win_counter + case when outcome = 'player' then 1 else 0 end,
+    updated_at = now()
+  where id = 1;
+
+  return outcome;
 end;
 $$;
 

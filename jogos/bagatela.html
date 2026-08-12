@@ -710,35 +710,46 @@ function shuffleNumbers(count) {
   return shuffleArray(Array.from({ length: count }, (_, i) => i + 1));
 }
 
-/* Multiplicadores da mesa: 0,10 … 30x (mais 0,10 e 10 do que os altos) */
+/* Multiplicadores: mais buracos ≥1x para recuperar a aposta com mais frequência */
 const MULT_TABLE = [
-  { v: 0.10, w: 14 },
-  { v: 0.15, w: 9 },
-  { v: 0.25, w: 8 },
-  { v: 0.50, w: 7 },
+  { v: 0.10, w: 6 },
+  { v: 0.15, w: 4 },
+  { v: 0.25, w: 4 },
+  { v: 0.50, w: 5 },
   { v: 0.75, w: 6 },
-  { v: 1, w: 5 },
-  { v: 2, w: 3 },
-  { v: 3, w: 3 },
-  { v: 4, w: 2 },
-  { v: 5, w: 2 },
+  { v: 1, w: 10 },
+  { v: 2, w: 6 },
+  { v: 3, w: 4 },
+  { v: 4, w: 3 },
+  { v: 5, w: 3 },
   { v: 6, w: 2 },
   { v: 7, w: 2 },
   { v: 8, w: 2 },
   { v: 9, w: 2 },
-  { v: 10, w: 8 },
+  { v: 10, w: 6 },
   { v: 20, w: 1 },
-  { v: 30, w: 1 }
+  { v: 30, w: 1 },
+  { v: 50, w: 1 }
 ];
+
+/** Chance de a mesa ter um buraco 50x (modo 15 é mais raro). */
+function chanceInclude50x(count) {
+  if (count <= 15) return 0.38;
+  return 1;
+}
 
 function buildMultiplierValues(count) {
   const pool = [];
   MULT_TABLE.forEach(({ v, w }) => {
+    if (v === 50) return; /* 50x entra à parte, controlado por frequência */
     for (let i = 0; i < w; i++) pool.push(v);
   });
   const values = [];
   for (let i = 0; i < count; i++) {
     values.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  if (Math.random() < chanceInclude50x(count)) {
+    values[Math.floor(Math.random() * values.length)] = 50;
   }
   return shuffleArray(values);
 }
@@ -905,7 +916,7 @@ function syncModeUI() {
   parityHud.textContent = modeLabel();
   if (isMulti) {
     modeHintText.innerHTML =
-      'Todo buraco paga: <strong>aposta × multiplicador</strong> (0,10x a 30x). Você sempre recebe o prêmio do buraco.';
+      'Todo buraco paga: <strong>aposta × multiplicador</strong> (0,10x a 50x). Você sempre recebe o prêmio do buraco.';
   } else {
     modeHintText.innerHTML =
       `Só ganha se cair em <strong id="parityHint">${parityLabel()}</strong>. Multiplicador = número do buraco.`;
@@ -1386,9 +1397,9 @@ async function finishHole(hole) {
       if (force === 'bank' && hitNumber > 0.10) {
         hitNumber = 0.10;
         hole.number = 0.10;
-      } else if (force === 'player' && hitNumber < 10) {
-        hitNumber = 10;
-        hole.number = 10;
+      } else if (force === 'player' && hitNumber < 50) {
+        hitNumber = 50;
+        hole.number = 50;
       }
       won = true;
     } else {
@@ -1787,7 +1798,7 @@ syncModeUI();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=11"></script>
+<script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=8"></script>

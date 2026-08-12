@@ -127,5 +127,5 @@ grant usage on schema public to anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
 grant select, insert on public.game_hands to authenticated;
 
--- Manipulação (a cada N apostas, 1 vitória do jogador): ver também game-settings.sql
--- Rode supabase/game-settings.sql no projeto se ainda não existir.
+-- Manipulação por RTP % (chance de vitória do jogador): ver game-settings.sql
+-- Rode supabase/game-settings.sql no projeto (obrigatório após mudar o modelo).

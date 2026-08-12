@@ -132,6 +132,36 @@ body{margin:0;min-height:100vh}
 .wd-list{margin-top:12px;max-height:140px;overflow:auto;font-size:12px;color:#d8e7ff}
 .wd-item{padding:6px 0;border-bottom:1px solid #263042;font-weight:700}
 .wd-item b{color:#ffd91a}
+.wallet-btns{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:4px}
+.wallet-btns button{
+  width:100%;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;
+}
+.wallet-btns .add{
+  color:#041;background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;
+}
+.wallet-btns .out{
+  color:#120018;background:linear-gradient(90deg,#17c8ff,#ffd91a);border:2px solid #fff8;
+}
+.pix-box{
+  margin:12px 0;padding:12px;border-radius:12px;background:#060912;border:1px solid #334;
+  text-align:center;
+}
+.pix-box .pix-label{font-size:11px;font-weight:900;color:#7af0ff;letter-spacing:1px}
+.pix-box .pix-key{
+  margin:8px 0 4px;font-size:18px;font-weight:1000;color:#ffd91a;
+  text-shadow:0 0 10px #ffd91a66;word-break:break-all;
+}
+.pix-box .pix-company{font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.35}
+.pix-box .pix-copy{
+  margin-top:10px;width:100%;border:0;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;
+  color:#00131b;background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+}
+.wa-btn{
+  width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;color:#fff;
+  background:linear-gradient(180deg,#128C7E,#25D366);border:2px solid #8ef0b5;
+  box-shadow:0 0 14px #25D36655;font-size:14px;
+}
+.deposit-hint{font-size:12px;font-weight:700;color:#a9b7c6;text-align:center;line-height:1.4;margin:10px 0}
 </style>
 </head>
 <body>
@@ -145,7 +175,24 @@ body{margin:0;min-height:100vh}
       <div style="text-align:center;font-size:12px;font-weight:800;color:#7af0ff">Seu saldo disponível</div>
       <div class="balance" id="walletBalance">0</div>
 
-      <button type="button" id="btnShowWithdraw" class="primary" style="width:100%;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;color:#120018;background:linear-gradient(90deg,#17c8ff,#ffd91a);border:2px solid #fff8">SOLICITAR SAQUE</button>
+      <div class="wallet-btns">
+        <button type="button" class="add" id="btnShowDeposit">ADICIONAR SALDO</button>
+        <button type="button" class="out" id="btnShowWithdraw">SOLICITAR SAQUE</button>
+      </div>
+
+      <div id="depositForm" style="display:none">
+        <p class="deposit-hint">Faça o PIX e envie o comprovante no WhatsApp para liberar o saldo.</p>
+        <div class="pix-box">
+          <div class="pix-label">CHAVE PIX · CNPJ</div>
+          <div class="pix-key" id="depositPixKey">60.495.244/0001-14</div>
+          <div class="pix-company" id="depositCompany">Af Capel Serviços de Cobrança Ltda</div>
+          <button type="button" class="pix-copy" id="depositCopyPix">COPIAR CHAVE PIX</button>
+        </div>
+        <button type="button" class="wa-btn" id="depositWhatsApp">ENVIAR COMPROVANTE NO WHATSAPP</button>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="depositCancel" style="grid-column:1/-1">VOLTAR</button>
+        </div>
+      </div>
 
       <div id="withdrawForm" style="display:none">
         <label for="wdAmount">Valor do saque</label>
@@ -165,8 +212,8 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=10"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/auth.js?v=13"></script>
   <script>
   const GAMES = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -179,6 +226,14 @@ body{margin:0;min-height:100vh}
 
   let currentCredits = 0;
   let currentUser = null;
+  let currentProfile = null;
+
+  const DEPOSIT = window.CLUB_DEPOSIT || {
+    pixKey: '60.495.244/0001-14',
+    pixType: 'CNPJ',
+    company: 'Af Capel Serviços de Cobrança Ltda',
+    whatsapp: '5516992954354',
+  };
 
   function logoImg(id, className) {
     return `<img class="${className || ''}" src="assets/logos/${id}.png" alt="${id}" onerror="this.onerror=null;this.src='assets/logos/${id}.svg'">`;
@@ -196,9 +251,21 @@ body{margin:0;min-height:100vh}
     return s;
   }
 
+  function resetWalletPanels() {
+    document.getElementById('depositForm').style.display = 'none';
+    document.getElementById('withdrawForm').style.display = 'none';
+    document.querySelector('.wallet-btns').style.display = '';
+  }
+
+  function fillDepositInfo() {
+    document.getElementById('depositPixKey').textContent = DEPOSIT.pixKey;
+    document.getElementById('depositCompany').textContent = DEPOSIT.company;
+  }
+
   async function refreshWallet() {
     if (!currentUser) return;
     const profile = await omahaAuth.getProfile(currentUser.id);
+    currentProfile = profile;
     currentCredits = Number(profile?.player_credits || 0);
     document.getElementById('walletBalance').textContent = fmt(currentCredits);
     const saldoLine = document.getElementById('saldoLine');
@@ -220,9 +287,9 @@ body{margin:0;min-height:100vh}
   }
 
   function openWallet() {
-    document.getElementById('withdrawForm').style.display = 'none';
-    document.getElementById('btnShowWithdraw').style.display = '';
+    resetWalletPanels();
     setWalletMsg('');
+    fillDepositInfo();
     document.getElementById('walletModal').classList.add('open');
     document.getElementById('walletModal').setAttribute('aria-hidden', 'false');
     refreshWallet().catch(() => {});
@@ -238,6 +305,7 @@ body{margin:0;min-height:100vh}
 
     let profile = null;
     try { profile = await omahaAuth.ensureProfile(currentUser); } catch (_) {}
+    currentProfile = profile;
 
     const name = profile?.display_name || currentUser.email || 'Jogador';
     currentCredits = Number(profile?.player_credits || 0);
@@ -278,7 +346,7 @@ body{margin:0;min-height:100vh}
           </a>
         `).join('')}
       </nav>
-      <p class="foot">PEÇA PARA ADICIONAR SALDO AO ADMIN</p>
+      <p class="foot">ADICIONE SALDO PELA CARTEIRA · PIX</p>
     `;
 
     const adminEl = document.getElementById('adminBtn');
@@ -294,14 +362,53 @@ body{margin:0;min-height:100vh}
   document.getElementById('walletModal').addEventListener('click', (e) => {
     if (e.target.id === 'walletModal') closeWallet();
   });
+
+  document.getElementById('btnShowDeposit').onclick = () => {
+    document.querySelector('.wallet-btns').style.display = 'none';
+    document.getElementById('withdrawForm').style.display = 'none';
+    document.getElementById('depositForm').style.display = '';
+    fillDepositInfo();
+    setWalletMsg('Copie a chave PIX, pague e envie o comprovante no WhatsApp.');
+  };
+  document.getElementById('depositCancel').onclick = () => {
+    resetWalletPanels();
+    setWalletMsg('');
+  };
+  document.getElementById('depositCopyPix').onclick = async () => {
+    const key = DEPOSIT.pixKey;
+    try {
+      await navigator.clipboard.writeText(key.replace(/\D/g, '') || key);
+      setWalletMsg('Chave PIX copiada! Cole no app do banco.', 'ok');
+    } catch (_) {
+      setWalletMsg('Não foi possível copiar. Selecione a chave manualmente.', 'err');
+    }
+  };
+  document.getElementById('depositWhatsApp').onclick = () => {
+    const phone = String(DEPOSIT.whatsapp || '').replace(/\D/g, '');
+    if (phone.length < 12) {
+      setWalletMsg('Número do WhatsApp não configurado. Ajuste em js/config.js (CLUB_DEPOSIT.whatsapp).', 'err');
+      return;
+    }
+    const nome = currentProfile?.display_name || currentUser?.email || 'Jogador';
+    const msg = [
+      'Olá! Quero adicionar saldo no CLUBEDEJOGOSCAIPIRA.',
+      `Jogador: ${nome}`,
+      `PIX pago para CNPJ ${DEPOSIT.pixKey}`,
+      `Beneficiário: ${DEPOSIT.company}`,
+      'Vou anexar o comprovante nesta conversa.',
+    ].join('\n');
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   document.getElementById('btnShowWithdraw').onclick = () => {
+    document.querySelector('.wallet-btns').style.display = 'none';
+    document.getElementById('depositForm').style.display = 'none';
     document.getElementById('withdrawForm').style.display = '';
-    document.getElementById('btnShowWithdraw').style.display = 'none';
     setWalletMsg('Informe o valor e a chave PIX para solicitar o saque.');
   };
   document.getElementById('wdCancel').onclick = () => {
-    document.getElementById('withdrawForm').style.display = 'none';
-    document.getElementById('btnShowWithdraw').style.display = '';
+    resetWalletPanels();
     setWalletMsg('');
   };
   document.getElementById('wdSubmit').onclick = async () => {
@@ -325,8 +432,7 @@ body{margin:0;min-height:100vh}
       await omahaAuth.requestWithdrawal(amount, pix);
       document.getElementById('wdAmount').value = '';
       document.getElementById('wdPix').value = '';
-      document.getElementById('withdrawForm').style.display = 'none';
-      document.getElementById('btnShowWithdraw').style.display = '';
+      resetWalletPanels();
       setWalletMsg('Solicitação enviada! O prazo de pagamento é de até 2 horas.', 'ok');
       await refreshWallet();
     } catch (err) {

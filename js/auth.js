@@ -38,6 +38,8 @@
           data: {
             display_name: displayName || email.split('@')[0],
             phone: phoneDigits,
+            terms_accepted: true,
+            terms_accepted_at: new Date().toISOString(),
           },
         },
       });
@@ -189,10 +191,11 @@
       return data;
     },
 
-    async adminUpdateGameSettings({ enabled, betsPerPlayerWin }) {
+    async adminUpdateGameSettings({ enabled, rtpPercent }) {
+      const rtp = Math.floor(Number(rtpPercent));
       const { data, error } = await client.rpc('admin_update_game_settings', {
         p_enabled: !!enabled,
-        p_bets_per_player_win: Math.max(1, Math.floor(Number(betsPerPlayerWin) || 1)),
+        p_rtp_percent: Math.max(0, Math.min(100, Number.isFinite(rtp) ? rtp : 20)),
       });
       if (error) throw error;
       return data;

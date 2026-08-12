@@ -132,14 +132,15 @@ body{margin:0;min-height:100vh}
     <section class="panel">
       <h2>★ MANIPULAÇÃO DE APOSTAS</h2>
       <p class="cfgHelp">
-        Quando ativo, a cada <b>N</b> apostas do clube (todos os jogos),
-        <b>1</b> é vitória do jogador e as demais vão para a banca.
-        O valor de N é editável abaixo.
+        Quando ativo, cada aposta (todos os jogos) sorteia o resultado pela
+        <b>porcentagem de RTP</b>: chance de vitória do jogador.
+        Ex.: RTP <b>20</b> ≈ jogador vence 20% das apostas; o restante vai para a banca.
+        Desativado = jogo justo (RNG natural).
       </p>
       <div class="cfgStats">
         <div class="cfgStat"><span>STATUS</span><b id="cfgStatus">—</b></div>
         <div class="cfgStat"><span>APOSTAS CONTADAS</span><b id="cfgCounter">0</b></div>
-        <div class="cfgStat"><span>PRÓXIMA VITÓRIA DO JOGADOR</span><b id="cfgNext">—</b></div>
+        <div class="cfgStat"><span>RTP REALIZADO</span><b id="cfgRealized">—</b></div>
       </div>
       <div class="cfgGrid">
         <div class="cfgField">
@@ -150,8 +151,8 @@ body{margin:0;min-height:100vh}
           </select>
         </div>
         <div class="cfgField">
-          <label for="cfgInterval">A cada quantas apostas o jogador vence (N)</label>
-          <input id="cfgInterval" type="number" min="1" step="1" value="20">
+          <label for="cfgRtp">RTP do jogador (%)</label>
+          <input id="cfgRtp" type="number" min="0" max="100" step="1" value="20">
         </div>
       </div>
       <div class="cfgActions" style="margin-top:12px">
@@ -186,7 +187,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=11"></script>
+  <script src="js/auth.js?v=13"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -268,15 +269,16 @@ body{margin:0;min-height:100vh}
   function renderSettings(s) {
     settings = s || settings;
     if (!settings) return;
-    const n = Math.max(1, Number(settings.bets_per_player_win) || 20);
+    const rtp = Math.max(0, Math.min(100, Number(settings.rtp_percent)));
+    const rtpSafe = Number.isFinite(rtp) ? rtp : 20;
     const c = Number(settings.bet_counter) || 0;
-    const rem = c % n;
-    const nextIn = rem === 0 ? n : (n - rem);
+    const wins = Number(settings.player_win_counter) || 0;
+    const realized = c > 0 ? Math.round((wins / c) * 1000) / 10 : null;
     $('cfgEnabled').value = settings.enabled ? '1' : '0';
-    $('cfgInterval').value = n;
+    $('cfgRtp').value = rtpSafe;
     $('cfgStatus').textContent = settings.enabled ? 'ATIVA' : 'OFF';
     $('cfgCounter').textContent = fmt(c);
-    $('cfgNext').textContent = settings.enabled ? `em ${nextIn} aposta(s)` : '—';
+    $('cfgRealized').textContent = realized == null ? '—' : `${realized}% (${fmt(wins)} vit.)`;
   }
 
   async function reloadSettings() {
@@ -391,26 +393,31 @@ body{margin:0;min-height:100vh}
 
   $('cfgSave').onclick = async () => {
     const enabled = $('cfgEnabled').value === '1';
-    const betsPerPlayerWin = Math.floor(Number($('cfgInterval').value));
-    if (!(betsPerPlayerWin >= 1)) {
-      setMsg('Informe um intervalo N válido (mínimo 1).', 'err');
+    const rtpPercent = Math.floor(Number($('cfgRtp').value));
+    if (!(rtpPercent >= 0 && rtpPercent <= 100)) {
+      setMsg('Informe um RTP válido (0 a 100).', 'err');
       return;
     }
     try {
-      const s = await omahaAuth.adminUpdateGameSettings({ enabled, betsPerPlayerWin });
+      const s = await omahaAuth.adminUpdateGameSettings({ enabled, rtpPercent });
       renderSettings(s);
-      setMsg(`Manipulação salva: a cada ${betsPerPlayerWin} apostas, 1 vitória do jogador${enabled ? '' : ' (desativada)'}.`, 'ok');
+      setMsg(
+        enabled
+          ? `Manipulação salva: RTP ${rtpPercent}% (chance de vitória do jogador).`
+          : `Manipulação desativada (jogo justo). RTP configurado: ${rtpPercent}%.`,
+        'ok'
+      );
     } catch (err) {
-      setMsg(err?.message || 'Falha ao salvar configuração. Rode o SQL game-settings.sql no Supabase.', 'err');
+      setMsg(err?.message || 'Falha ao salvar. Rode o SQL supabase/game-settings.sql no Supabase.', 'err');
     }
   };
 
   $('cfgReset').onclick = async () => {
-    if (!confirm('Zerar o contador de apostas?')) return;
+    if (!confirm('Zerar contadores de apostas e vitórias?')) return;
     try {
       const s = await omahaAuth.adminResetBetCounter();
       renderSettings(s);
-      setMsg('Contador de apostas zerado.', 'ok');
+      setMsg('Contadores zerados.', 'ok');
     } catch (err) {
       setMsg(err?.message || 'Falha ao zerar contador.', 'err');
     }

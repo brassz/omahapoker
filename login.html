@@ -80,6 +80,64 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
   text-shadow:0 0 10px #17c8ff88;
 }
 .hidden{display:none}
+.terms-box{
+  margin-top:12px;padding:10px 12px;border-radius:12px;background:#060912;
+  border:1px solid #334;
+}
+.terms-check{
+  display:flex;gap:10px;align-items:flex-start;cursor:pointer;
+  font-size:12px;font-weight:800;color:#d8e7ff;line-height:1.4;
+}
+.terms-check input{
+  width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:#5cff1a;
+  cursor:pointer;
+}
+.terms-check a,.terms-link{
+  color:#7af0ff;text-decoration:underline;cursor:pointer;font-weight:900;
+}
+.terms-actions{margin-top:8px}
+.terms-actions button{
+  width:100%;border:0;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;
+  color:#00131b;background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+  font-size:12px;
+}
+.rules-modal{
+  display:none;position:fixed;inset:0;z-index:10000;background:#000c;
+  padding:14px;overflow:auto;align-items:flex-start;justify-content:center;
+}
+.rules-modal.open{display:flex}
+.rules-card{
+  width:min(560px,100%);margin:12px auto;background:#0a0614;color:#fff;
+  border:2px solid #17c8ff;border-radius:16px;padding:16px 14px 14px;
+  box-shadow:0 0 24px #17c8ff66,0 18px 40px #000a;max-height:min(88vh,720px);
+  display:flex;flex-direction:column;
+}
+.rules-card h2{
+  margin:0 0 10px;text-align:center;font-size:18px;
+}
+.rules-tabs{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;
+}
+.rules-tabs button{
+  border:1px solid #556;border-radius:999px;padding:6px 10px;font-size:11px;
+  font-weight:900;cursor:pointer;color:#d8e7ff;background:#12101c;
+}
+.rules-tabs button.active{
+  color:#041;background:linear-gradient(90deg,#17c8ff,#5cff1a);border-color:#fff;
+}
+.rules-body{
+  overflow:auto;flex:1;padding:4px 2px 8px;font-size:13px;line-height:1.5;
+  color:#d8e7ff;font-weight:700;
+}
+.rules-body h3{margin:12px 0 6px;color:#ffd91a;font-size:14px}
+.rules-body h3:first-child{margin-top:0}
+.rules-body ul{margin:6px 0 8px;padding-left:18px}
+.rules-body li{margin:4px 0}
+.rules-body p{margin:6px 0}
+.rules-close{
+  width:100%;margin-top:10px;border:0;border-radius:10px;padding:12px;
+  font-weight:900;cursor:pointer;color:#fff;background:#334;border:2px solid #556;
+}
 </style>
 </head>
 <body>
@@ -110,6 +168,20 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
       <label for="password">Senha</label>
       <input id="password" name="password" type="password" required minlength="6" placeholder="mínimo 6 caracteres" autocomplete="current-password">
 
+      <div id="termsField" class="terms-box hidden">
+        <label class="terms-check">
+          <input type="checkbox" id="termsAccept" name="termsAccept">
+          <span>
+            Li e aceito as
+            <a href="#" id="openTermsLink">regras da plataforma</a>
+            e o modo de jogo de cada título.
+          </span>
+        </label>
+        <div class="terms-actions">
+          <button type="button" id="openRulesBtn">VER REGRAS E MODO DE JOGO</button>
+        </div>
+      </div>
+
       <button class="btn" id="submitBtn" type="submit">ENTRAR NO CLUBE</button>
       <div class="msg" id="msg"></div>
     </form>
@@ -117,14 +189,145 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
     <p class="note">Omaha5 · Crep · Bacatela · Ronda · Caipira · 21</p>
   </main>
 
+  <div class="rules-modal" id="rulesModal" aria-hidden="true">
+    <div class="rules-card" role="dialog" aria-labelledby="rulesTitle">
+      <h2 id="rulesTitle" class="club-rainbow">REGRAS DO CLUBE</h2>
+      <div class="rules-tabs" id="rulesTabs"></div>
+      <div class="rules-body" id="rulesBody"></div>
+      <button type="button" class="rules-close" id="rulesClose">FECHAR</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=3"></script>
-  <script src="js/auth.js?v=11"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/auth.js?v=13"></script>
   <script>
   let mode = 'login';
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   const submitBtn = $('submitBtn');
+
+  const RULES = {
+    plataforma: {
+      title: 'Plataforma',
+      html: `
+        <h3>Termos de uso — CLUBEDEJOGOSCAIPIRA</h3>
+        <p>Ao criar uma conta e marcar <b>Li e aceito</b>, você declara que leu, compreendeu e concorda com estas regras.</p>
+        <ul>
+          <li>O acesso é pessoal e intransferível. Não compartilhe sua senha.</li>
+          <li>Os créditos do clube são de uso exclusivo nesta plataforma e não possuem valor de moeda oficial fora do ambiente do clube, salvo política interna de saque/depósito informada na carteira.</li>
+          <li>Depósitos via PIX e envio de comprovante seguem o fluxo da carteira. O crédito só é liberado após conferência.</li>
+          <li>Saques solicitados pela carteira seguem análise e o prazo informado no clube.</li>
+          <li>É proibido fraude, uso de bots, exploração de bugs, múltiplas contas para obter vantagem indevida ou qualquer conduta que prejudique o clube ou outros jogadores.</li>
+          <li>O clube pode ajustar saldos, suspender ou encerrar contas em caso de irregularidade, erro técnico ou violação destas regras.</li>
+          <li>Resultados dos jogos podem seguir configuração de RTP/manipulação da casa, conforme painel administrativo do clube.</li>
+          <li>Em caso de falha de conexão, o resultado válido é o registrado pelo servidor/sistema no momento da aposta.</li>
+          <li>Ao jogar, você assume o risco de ganhar ou perder créditos conforme as regras de cada título.</li>
+          <li>Dúvidas, comprovantes e suporte: use o canal de WhatsApp indicado na carteira.</li>
+        </ul>
+        <p>Se não concordar com estes termos, não crie a conta e não utilize a plataforma.</p>
+      `
+    },
+    omaha: {
+      title: 'Omaha5',
+      html: `
+        <h3>Omaha5 — modo de jogo</h3>
+        <p><b>Objetivo:</b> formar uma mão melhor que a da Banca.</p>
+        <ul>
+          <li>Você recebe <b>5 cartas</b>; a mesa tem <b>5 cartas comunitárias</b>.</li>
+          <li>Use obrigatoriamente <b>2 cartas da sua mão</b> + <b>3 da mesa</b>.</li>
+          <li>Aposte, compare com a banca e receba o pagamento se vencer.</li>
+          <li>Empate e fold seguem as regras exibidas na tela do jogo.</li>
+        </ul>
+      `
+    },
+    crep: {
+      title: 'Crep',
+      html: `
+        <h3>Crep — modo de jogo</h3>
+        <p><b>Objetivo:</b> apostar no resultado dos dados (come-outs e ponto).</p>
+        <ul>
+          <li>No come-out, 7 ou 11 costuma favorecer o jogador; 2, 3 ou 12 a banca.</li>
+          <li>Outros totais abrem um <b>ponto</b>: você tenta repetir o ponto antes do 7.</li>
+          <li>Escolha o valor da aposta dentro dos limites do clube e confirme a rodada.</li>
+        </ul>
+      `
+    },
+    bacatela: {
+      title: 'Bacatela',
+      html: `
+        <h3>Bacatela — modo de jogo</h3>
+        <p>Jogo de mesa com bola e caçapas (buracos).</p>
+        <ul>
+          <li><b>Pares / Ímpares:</b> escolha par ou ímpar; se a bola cair no tipo certo, você ganha.</li>
+          <li><b>Multiplicador:</b> cada buraco paga <b>aposta × multiplicador</b> (de 0,10x até 50x).</li>
+          <li>Escolha a quantidade de números (15, 25, 35 ou 50) e o layout (fileira ou aleatório).</li>
+          <li>Mire e lance a bola; o prêmio é o do buraco em que ela cair.</li>
+        </ul>
+      `
+    },
+    ronda: {
+      title: 'Ronda',
+      html: `
+        <h3>Ronda — modo de jogo</h3>
+        <p><b>Objetivo:</b> acertar a carta/posição sorteada na rodada.</p>
+        <ul>
+          <li>Escolha sua opção na mesa e confirme a aposta.</li>
+          <li>Se o resultado coincidir com a sua escolha, você vence a rodada.</li>
+          <li>Respeite os limites mínimo e máximo de aposta do clube.</li>
+        </ul>
+      `
+    },
+    caipira: {
+      title: 'Caipira',
+      html: `
+        <h3>Caipira — modo de jogo</h3>
+        <p><b>Objetivo:</b> acertar o valor sorteado nos dados conforme as opções da mesa.</p>
+        <ul>
+          <li>Escolha o número ou faixa em que deseja apostar.</li>
+          <li>Os dados são lançados; acertos pagam conforme a tabela do jogo.</li>
+          <li>Erros perdem a aposta da rodada.</li>
+        </ul>
+      `
+    },
+    vinteum: {
+      title: '21',
+      html: `
+        <h3>21 — modo de jogo</h3>
+        <p><b>Objetivo:</b> chegar o mais perto possível de 21 sem estourar, venccendo a banca.</p>
+        <ul>
+          <li>Peça cartas (hit) ou pare (stand) conforme sua mão.</li>
+          <li>Estourar acima de 21 perde a rodada.</li>
+          <li>Ás vale 1 ou 11; figuras valem 10, como no 21 clássico.</li>
+        </ul>
+      `
+    }
+  };
+
+  const RULE_ORDER = ['plataforma', 'omaha', 'crep', 'bacatela', 'ronda', 'caipira', 'vinteum'];
+  let activeRule = 'plataforma';
+
+  function renderRules(key) {
+    activeRule = key;
+    const tabs = $('rulesTabs');
+    tabs.innerHTML = RULE_ORDER.map((id) =>
+      `<button type="button" data-rule="${id}" class="${id === key ? 'active' : ''}">${RULES[id].title}</button>`
+    ).join('');
+    $('rulesBody').innerHTML = RULES[key].html;
+    tabs.querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => renderRules(btn.dataset.rule);
+    });
+  }
+
+  function openRules(tab) {
+    renderRules(tab || 'plataforma');
+    $('rulesModal').classList.add('open');
+    $('rulesModal').setAttribute('aria-hidden', 'false');
+  }
+  function closeRules() {
+    $('rulesModal').classList.remove('open');
+    $('rulesModal').setAttribute('aria-hidden', 'true');
+  }
 
   function onlyDigits(v){ return String(v || '').replace(/\D/g, ''); }
 
@@ -143,7 +346,9 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
     $('tabSignup').classList.toggle('active', signup);
     $('nameField').classList.toggle('hidden', !signup);
     $('phoneField').classList.toggle('hidden', !signup);
+    $('termsField').classList.toggle('hidden', !signup);
     $('phone').required = signup;
+    if (!signup) $('termsAccept').checked = false;
     $('password').autocomplete = signup ? 'new-password' : 'current-password';
     submitBtn.textContent = signup ? 'CRIAR CONTA' : 'ENTRAR NO CLUBE';
     msg.textContent = '';
@@ -152,9 +357,18 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
 
   $('tabLogin').onclick = () => setMode('login');
   $('tabSignup').onclick = () => setMode('signup');
+  $('openRulesBtn').onclick = () => openRules('plataforma');
+  $('openTermsLink').onclick = (e) => {
+    e.preventDefault();
+    openRules('plataforma');
+  };
+  $('rulesClose').onclick = closeRules;
+  $('rulesModal').addEventListener('click', (e) => {
+    if (e.target.id === 'rulesModal') closeRules();
+  });
+
   $('phone').addEventListener('input', () => {
     const el = $('phone');
-    const start = el.selectionStart;
     el.value = formatPhone(el.value);
     try { el.setSelectionRange(el.value.length, el.value.length); } catch (_) {}
   });
@@ -195,6 +409,9 @@ input:focus{border-color:#17c8ff;box-shadow:0 0 0 2px #17c8ff55}
         if (!displayName) throw new Error('Informe seu nome.');
         if (phone.length < 10 || phone.length > 11) {
           throw new Error('Informe um celular válido com DDD.');
+        }
+        if (!$('termsAccept').checked) {
+          throw new Error('Você precisa ler e aceitar as regras da plataforma para criar a conta.');
         }
         const data = await omahaAuth.signUp({ email, password, displayName, phone });
         if (!data.session) {
