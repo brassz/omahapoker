@@ -748,32 +748,33 @@ function shuffleNumbers(count) {
   return shuffleArray(Array.from({ length: count }, (_, i) => i + 1));
 }
 
-/* Multiplicadores: mais buracos ≥1x para recuperar a aposta com mais frequência */
+/* Multiplicadores: maioria abaixo de 1x; vitórias ≥1x existem, mas são menos comuns */
 const MULT_TABLE = [
-  { v: 0.10, w: 6 },
-  { v: 0.15, w: 4 },
-  { v: 0.25, w: 4 },
-  { v: 0.50, w: 5 },
-  { v: 0.75, w: 6 },
-  { v: 1, w: 10 },
-  { v: 2, w: 6 },
-  { v: 3, w: 4 },
-  { v: 4, w: 3 },
-  { v: 5, w: 3 },
-  { v: 6, w: 2 },
-  { v: 7, w: 2 },
-  { v: 8, w: 2 },
-  { v: 9, w: 2 },
-  { v: 10, w: 6 },
+  { v: 0.10, w: 16 },
+  { v: 0.15, w: 10 },
+  { v: 0.25, w: 9 },
+  { v: 0.50, w: 8 },
+  { v: 0.75, w: 7 },
+  { v: 1, w: 5 },
+  { v: 2, w: 3 },
+  { v: 3, w: 2 },
+  { v: 4, w: 2 },
+  { v: 5, w: 1 },
+  { v: 6, w: 1 },
+  { v: 7, w: 1 },
+  { v: 8, w: 1 },
+  { v: 9, w: 1 },
+  { v: 10, w: 2 },
   { v: 20, w: 1 },
   { v: 30, w: 1 },
   { v: 50, w: 1 }
 ];
 
-/** Chance de a mesa ter um buraco 50x (modo 15 é mais raro). */
+/** Chance de a mesa ter um buraco 50x (raro no 15; ocasional nos outros). */
 function chanceInclude50x(count) {
-  if (count <= 15) return 0.38;
-  return 1;
+  if (count <= 15) return 0.22;
+  if (count <= 25) return 0.55;
+  return 0.75;
 }
 
 function buildMultiplierValues(count) {
@@ -785,6 +786,10 @@ function buildMultiplierValues(count) {
   const values = [];
   for (let i = 0; i < count; i++) {
     values.push(pool[Math.floor(Math.random() * pool.length)]);
+  }
+  /* Garante pelo menos um buraco ≥1x — dá chance real de ganhar às vezes */
+  if (!values.some((v) => v >= 1)) {
+    values[Math.floor(Math.random() * values.length)] = 1;
   }
   if (Math.random() < chanceInclude50x(count)) {
     values[Math.floor(Math.random() * values.length)] = 50;
@@ -1435,9 +1440,10 @@ async function finishHole(hole) {
       if (force === 'bank' && hitNumber > 0.10) {
         hitNumber = 0.10;
         hole.number = 0.10;
-      } else if (force === 'player' && hitNumber < 50) {
-        hitNumber = 50;
-        hole.number = 50;
+      } else if (force === 'player' && hitNumber < 2) {
+        /* Vitória forçada modesta (2x) — jackpots só no acerto natural */
+        hitNumber = 2;
+        hole.number = 2;
       }
       won = true;
     } else {
