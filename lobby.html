@@ -78,9 +78,20 @@ body{margin:0;min-height:100vh}
   background:#080512;border:2px solid #17c8ff44;
   box-shadow:0 0 16px #17c8ff44;
 }
-.game span{
+.game .game-label{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.game .game-label > span:first-child{
   font-weight:1000;font-size:18px;letter-spacing:2px;color:#ffd91a;
   animation:clubNeonBlink 2.8s ease-in-out infinite;
+}
+.game .launch-tag{
+  font-size:11px;font-weight:1000;letter-spacing:3px;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:clubRainbowShift 2s linear infinite;
+  filter:drop-shadow(0 0 8px #ff4fd888);
 }
 .foot{
   margin-top:16px;text-align:center;font-size:11px;font-weight:800;
@@ -160,8 +171,7 @@ body{margin:0;min-height:100vh}
   const GAMES = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
     { id: 'crep', name: 'CREP', href: 'jogos/crep.html' },
-    { id: 'bacatela', name: 'BACATELA', href: 'jogos/bacatela.html' },
-    { id: 'bagatela', name: 'BAGATELA', href: 'jogos/bagatela.html' },
+    { id: 'bacatela', name: 'BACATELA', href: 'jogos/bagatela.html', launch: true },
     { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
     { id: 'caipira', name: 'CAIPIRA', href: 'jogos/caipira.html' },
     { id: '21', name: '21', href: 'jogos/21.html' },
@@ -261,7 +271,10 @@ body{margin:0;min-height:100vh}
         ${GAMES.map((g) => `
           <a class="game" href="${g.href}" aria-label="Abrir ${g.name}">
             ${logoImg(g.id)}
-            <span>${g.name}</span>
+            <span class="game-label">
+              <span>${g.name}</span>
+              ${g.launch ? '<span class="launch-tag">LANÇAMENTO</span>' : ''}
+            </span>
           </a>
         `).join('')}
       </nav>

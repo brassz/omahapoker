@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>BAGATELA — Clube</title>
+<title>BACATELA — Clube</title>
 <link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -35,8 +35,22 @@ body{
   font-size:12px;
   font-weight:900;
   letter-spacing:4px;
-  margin-bottom:12px;
+  margin-bottom:6px;
   text-shadow:0 0 12px #ffd91a66;
+}
+.launch-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  font-size:14px;
+  font-weight:1000;
+  letter-spacing:5px;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
+  background-size:300% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  animation:clubRainbowShift 2s linear infinite, clubNeonBlink 1.3s ease-in-out infinite;
+  filter:drop-shadow(0 0 10px #ff4fd888);
 }
 .credits-bar{
   display:inline-flex;
@@ -374,6 +388,7 @@ body{
 @media (max-height:520px) and (orientation:landscape){
   .game:not(.is-playing){width:100vw;max-width:none;padding:4px 6px}
   .game:not(.is-playing) .logo{font-size:22px;letter-spacing:4px;line-height:1}
+  .game:not(.is-playing) .launch-badge{font-size:10px;letter-spacing:3px;margin-bottom:4px}
   .game:not(.is-playing) .subtitle{font-size:9px;margin-bottom:4px;letter-spacing:2px}
   .game:not(.is-playing) .credits-bar{padding:4px 10px;margin-bottom:4px}
   .game:not(.is-playing) .credits-bar strong{font-size:16px}
@@ -403,6 +418,7 @@ body{
     text-align:center;
   }
   .game.is-playing .logo,
+  .game.is-playing .launch-badge,
   .game.is-playing .subtitle,
   .game.is-playing .credits-bar,
   .game.is-playing .menu,
@@ -440,11 +456,12 @@ body{
 <div class="rotate-hint" id="rotateHint" aria-hidden="true">
   <div class="phone"></div>
   <p>VIRE O CELULAR NA HORIZONTAL</p>
-  <small>A Bagatela joga deitada, estilo mesa de sinuca</small>
+  <small>A Bacatela joga deitada, estilo mesa de sinuca</small>
 </div>
 
 <div class="game">
-  <div class="logo">BAGATELA</div>
+  <div class="logo">BACATELA</div>
+  <div class="launch-badge">LANÇAMENTO</div>
   <div class="subtitle" id="subtitle">★★★ ESCOLHA O MODO ★★★</div>
 
   <div class="credits-bar">
@@ -631,7 +648,7 @@ function validateBet(amount) {
     return { ok: false, value: n, message: `Aposta mínima: ${BET_MIN}` };
   }
   if (n > BET_MAX) {
-    return { ok: false, value: n, message: `Aposta máxima na Bagatela: ${BET_MAX}` };
+    return { ok: false, value: n, message: `Aposta máxima na Bacatela: ${BET_MAX}` };
   }
   return { ok: true, value: n, message: '' };
 }

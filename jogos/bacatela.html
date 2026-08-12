@@ -2,87 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Bacatela - Nova Versão</title>
-<style>
-:root{--bg:#02060f;--blue:#17c8ff;--red:#ff3434;--gold:#ffd91a;--green:#5cff1a;--pink:#17c8ff;--violet:#3b82f6;--orange:#ff8c15}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#21003f 0,#090011 35%,#020006 72%);color:#fff;font-family:Arial,Helvetica,sans-serif;min-height:100vh}.app{max-width:1180px;margin:auto;padding:8px}.top{display:grid;grid-template-columns:190px 1fr;gap:10px;align-items:start}.side{border-radius:18px;padding:12px;background:#060912;border:2px solid;box-shadow:0 0 18px currentColor}.playerSide{color:var(--blue)}.side h2{margin:0 0 10px;text-align:center;font-size:24px}.label{text-align:center;color:#d8e7ff;font-weight:700;font-size:13px}.credit{font-size:34px;text-align:center;font-weight:900;margin:6px 0 10px;text-shadow:0 0 14px currentColor}.addBtn{width:100%;background:#38c800;color:white;border:2px solid #9dff76;padding:10px;border-radius:10px;font-size:16px;font-weight:900;box-shadow:0 0 12px #4cff00}.last{margin-top:12px;border-top:1px solid #334;padding-top:10px;text-align:center}.last b{display:inline-block;margin-top:6px;font-size:30px;padding:7px 18px;border-radius:10px;border:2px solid currentColor;box-shadow:0 0 12px currentColor}.wins{text-align:center;margin-top:10px;font-weight:900}.brand{text-align:center}.title{font-size:58px;line-height:.95;font-weight:1000;letter-spacing:4px;background:linear-gradient(90deg,#00eaff,#ffe000,#58ff1c,#ff24d8,#ff7418,#00eaff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 14px #fff6;animation:rainbow 3s linear infinite}.tagline{font-weight:1000;font-size:22px;margin-top:4px;color:white;text-shadow:0 0 12px var(--gold)}@keyframes rainbow{to{background-position:300% 0}}
-.resultWrap{display:grid;grid-template-columns:1fr auto 1fr;gap:5px;align-items:center;margin:5px 0}.resultBox{min-height:105px;border-radius:14px;padding:6px;text-align:center;background:#070914;border:2px solid;box-shadow:0 0 18px currentColor;position:relative;overflow:hidden}.resultBox.player{color:var(--blue)}.resultBox.bank{color:var(--red)}.resultTitle{font-size:20px;font-weight:1000;min-height:24px}.bigNumber{font-size:66px;line-height:1;font-weight:1000;text-shadow:0 0 8px #fff,0 0 20px currentColor,0 0 36px currentColor}.versus{font-size:44px;font-weight:1000;color:var(--gold);text-shadow:0 0 20px #ff8a00}.winner .bigNumber{animation:winPulse .45s infinite alternate}.winner:after{content:"★ VENCEDOR ★";position:absolute;right:8px;top:8px;font-size:12px;color:#fff;background:#ffffff22;border:1px solid #fff6;border-radius:999px;padding:4px 7px}@keyframes winPulse{from{transform:scale(1);filter:brightness(1)}to{transform:scale(1.08);filter:brightness(1.6)}}
-.centerGrid{display:grid;grid-template-columns:230px minmax(0,1fr) 230px;gap:10px}.centerBoard{min-width:0}.betPanel,.historyPanel{background:#080812;border:2px solid var(--pink);border-radius:16px;padding:10px;box-shadow:0 0 14px #ff2bd655}.betPanel h3,.historyPanel h3{margin:0 0 8px;text-align:center;color:#fff}.betRow{display:grid;grid-template-columns:42px 1fr 42px;gap:6px;align-items:center}.betRow button{font-size:24px}.betValue{background:#000;border:1px solid #777;border-radius:9px;color:var(--gold);font-size:28px;font-weight:900;text-align:center;padding:8px;width:100%}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.quick button:nth-child(1){background:#167cff}.quick button:nth-child(2){background:#22a92a}.quick button:nth-child(3){background:#dc9f00}.quick button:nth-child(4){background:#8e22db}.quick button:nth-child(5){background:#d51632;grid-column:2/4}.mini{margin-top:10px;background:#12131b;border:1px solid #6f6f6f;border-radius:12px;padding:10px;text-align:center}.numbers{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:7px;border-radius:16px;background:#050812;border:2px solid #00d9ff;box-shadow:0 0 18px #00d9ff55}.num{height:43px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-weight:1000;font-size:22px;background:linear-gradient(145deg,var(--c1),#08000c 72%);border:2px solid var(--c1);box-shadow:inset 0 0 8px #000,0 0 7px var(--c1),0 0 14px var(--c1);animation:numBlink .95s ease-in-out infinite}.num:nth-child(7n+1){--c1:#00eaff}.num:nth-child(7n+2){--c1:#ff243d}.num:nth-child(7n+3){--c1:#9c34ff}.num:nth-child(7n+4){--c1:#5cff1a}.num:nth-child(7n+5){--c1:#ffd91a}.num:nth-child(7n+6){--c1:#ff8c15}.num:nth-child(7n){--c1:#ff2bd6}.num:nth-child(3n){animation-delay:.12s}.num:nth-child(5n){animation-delay:.3s}@keyframes numBlink{0%,100%{filter:brightness(.8);transform:scale(.98)}50%{filter:brightness(1.55);transform:scale(1.02);box-shadow:inset 0 0 8px #000,0 0 8px #fff,0 0 18px var(--c1)}}.num.playerMark{outline:3px solid var(--blue);box-shadow:0 0 9px #fff,0 0 24px var(--blue)}.num.bankMark{outline:3px solid var(--red);box-shadow:0 0 9px #fff,0 0 24px var(--red)}.num.playerWin{background:radial-gradient(circle,#fff,#25d9ff 45%,#006fd6);color:#00131b;transform:scale(1.15);z-index:3;animation:winCell .35s infinite alternate}.num.bankWin{background:radial-gradient(circle,#fff,#ff6666 45%,#b40000);color:#290000;transform:scale(1.15);z-index:3;animation:winCell .35s infinite alternate}@keyframes winCell{to{filter:brightness(1.7);box-shadow:0 0 12px #fff,0 0 30px currentColor}}
-.playBar{display:grid;grid-template-columns:180px 1fr 180px;gap:10px;margin-top:10px}.smallAction{background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff}.play{background:linear-gradient(90deg,#1f7a00,#58df00,#1f7a00);border:2px solid #9dff76;box-shadow:0 0 16px #62ff00;font-size:27px}.sound{background:linear-gradient(180deg,#b95b00,#6b2f00);border:2px solid #ff9f32}.msg{margin:10px 0 0;padding:12px;border-radius:14px;text-align:center;background:#080a13;border:1px solid #555;font-weight:800;min-height:44px}.historyList{max-height:360px;overflow:auto}.histItem{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #263042;font-size:12px}.histNum{font-weight:1000;border:2px solid currentColor;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center}.histP{color:var(--blue)}.histB{color:var(--red)}button{border:0;border-radius:9px;padding:9px 10px;color:white;font-weight:900;cursor:pointer}.footer{margin-top:10px;text-align:center;color:#ffe700;font-weight:900;letter-spacing:2px;border-top:2px solid #ff2bd6;padding-top:7px}.hiddenInput{width:100%;margin-top:6px;background:#090b14;color:#fff;border:1px solid #445;border-radius:8px;padding:8px}
-@media(max-width:880px){.top{grid-template-columns:1fr}.side{display:block}.brand{grid-row:1}.playerSide{grid-row:2}.centerGrid{grid-template-columns:1fr}.centerBoard{order:1}.betPanel{order:2}.historyPanel{order:3}.playBar{grid-template-columns:1fr 1.4fr 1fr;gap:5px;margin-top:6px}.playBar button{font-size:12px;padding:8px 4px}.playBar .play{font-size:15px}.playBar .play span{font-size:9px!important}.title{font-size:42px}.resultWrap{grid-template-columns:1fr 45px 1fr}.bigNumber{font-size:64px}.resultTitle{font-size:20px}.versus{font-size:42px}.num{height:36px;font-size:17px}}
-@media(max-width:500px){.app{padding:5px}.title{font-size:33px}.tagline{font-size:15px}.credit{font-size:27px}.bigNumber{font-size:42px}.resultWrap{gap:3px;margin:3px 0}.resultBox{min-height:82px;padding:4px}.resultTitle{font-size:12px;min-height:16px}.versus{font-size:25px}.numbers{gap:3px;padding:4px}.num{height:30px;font-size:13px}.quick{grid-template-columns:repeat(3,1fr)}.quick button:nth-child(5){grid-column:auto}.play{font-size:21px}}
-</style>
+<meta http-equiv="refresh" content="0;url=bagatela.html">
+<title>Bacatela</title>
+<script>location.replace('bagatela.html');</script>
 </head>
 <body>
-<main class="app">
-  <section class="top">
-    <div class="side playerSide">
-      <h2>👤 JOGADOR</h2><div><div class="label">CRÉDITOS</div><div class="credit" id="playerCredit">0</div></div>
-    </div>
-    <div class="brand"><div class="title">BACATELA</div><div class="tagline">★★★ MAIOR NÚMERO GANHA! ★★★</div></div>
-  </section>
-
-  <section class="resultWrap">
-    <div class="resultBox player" id="playerResultBox"><div class="resultTitle" id="playerResultTitle">JOGADOR</div><div class="bigNumber" id="playerNumber">—</div></div>
-    <div class="versus">X</div>
-    <div class="resultBox bank" id="bankResultBox"><div class="resultTitle" id="bankResultTitle">BANCA</div><div class="bigNumber" id="bankNumber">—</div></div>
-  </section>
-
-  <section class="centerGrid">
-    <aside class="betPanel">
-      <h3>VALOR DA APOSTA</h3>
-      <div class="betRow"><button onclick="changeBet(-10)">−</button><input class="betValue" id="bet" type="number" min="2" max="200" value="100"><button onclick="changeBet(10)">+</button></div>
-      <h3 style="margin-top:12px">APOSTA RÁPIDA (2 a 200)</h3>
-      <div class="quick"><button onclick="setBet(2)">2</button><button onclick="setBet(50)">50</button><button onclick="setBet(100)">100</button><button onclick="setBet(150)">150</button><button onclick="setBet(200)">200</button></div>
-    </aside>
-
-    <div class="centerBoard">
-      <div class="numbers" id="numbers"></div>
-      <section class="playBar">
-        <button class="smallAction" id="newRound">↻ NOVA RODADA</button>
-        <button class="play" id="playBtn">🎲 JOGAR RODADA 🎲<br><span style="font-size:13px">CLIQUE PARA JOGAR</span></button>
-        <button class="sound" id="shuffleBtn">🔀 EMBARALHAR</button>
-      </section>
-    </div>
-
-    <aside class="historyPanel">
-      <h3>HISTÓRICO DAS RODADAS</h3><div class="historyList" id="history">Nenhuma rodada ainda.</div>
-    </aside>
-  </section>
-  <div class="msg" id="msg">Escolha o valor da aposta e toque em JOGAR RODADA.</div>
-</main>
-<script>
-const $=id=>document.getElementById(id),K='bacatelaVisualV2';
-let state={player:0,nums:[],history:[],playerWins:0,bankWins:0,lastPlayer:null,lastBank:null,lastWinner:null};
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function freshNums(){return shuffle(Array.from({length:100},(_,i)=>i+1))}
-function load(){try{const x=JSON.parse(localStorage.getItem(K)||'null');if(x&&Array.isArray(x.nums)){const {bank,player,...rest}=x;state={...state,...rest}}}catch{}if(!state.nums.length)state.nums=freshNums()}
-function save(){const {bank,player,...rest}=state;localStorage.setItem(K,JSON.stringify(rest))}
-async function persistCredits(){if(window.clubWallet)await clubWallet.set(state.player)}
-function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
-function renderNumbers(){const p=state.lastPlayer,b=state.lastBank,w=state.lastWinner;$('numbers').innerHTML=state.nums.map(n=>{let c='num';if(n===p)c+=' playerMark';if(n===b)c+=' bankMark';if(w==='player'&&n===p)c+=' playerWin';if(w==='bank'&&n===b)c+=' bankWin';return `<div class="${c}">${n}</div>`}).join('')}
-function renderHistory(){if(!state.history.length){$('history').innerHTML='Nenhuma rodada ainda.';return}$('history').innerHTML=state.history.slice(0,12).map(h=>`<div class="histItem ${h.winner==='player'?'histP':'histB'}"><div class="histNum">${h.winNum}</div><div>${h.winner==='player'?'JOGADOR':'BANCA'}</div><div>GANHOU</div></div>`).join('')}
-function render(){ $('playerCredit').textContent=fmt(state.player);$('playerNumber').textContent=state.lastPlayer??'—';$('bankNumber').textContent=state.lastBank??'—';$('playerResultBox').classList.toggle('winner',state.lastWinner==='player');$('bankResultBox').classList.toggle('winner',state.lastWinner==='bank');$('playerResultTitle').textContent=state.lastWinner==='player'?'JOGADOR GANHOU!':'JOGADOR';$('bankResultTitle').textContent=state.lastWinner==='bank'?'BANCA GANHOU!':'BANCA';renderNumbers();renderHistory();save()}
-function setBet(v){$('bet').value=clubBets.clamp(v)}window.setBet=setBet;function changeBet(d){$('bet').value=clubBets.clamp(Math.floor(Number($('bet').value)||0)+d)}window.changeBet=changeBet;function maxBet(){$('bet').value=clubBets.clamp(Math.min(clubBets.MAX,state.player))}window.maxBet=maxBet;
-$('playBtn').onclick=async()=>{const check=clubBets.validate($('bet').value);if(!check.ok)return alert(check.message);const bet=check.value;$('bet').value=bet;if(state.player<bet)return alert('Créditos insuficientes.');let draw=shuffle([...state.nums]),pn=draw[0],bn=draw[1];while(bn===pn)bn=draw[Math.floor(Math.random()*draw.length)];const force=window.clubHouse?await clubHouse.nextOutcome():null;if(force==='player'&&pn<=bn){[pn,bn]=[bn,pn];}if(force==='bank'&&pn>=bn){[pn,bn]=[bn,pn];}if(pn===bn){if(force==='player')pn=Math.min(100,bn+1);else bn=Math.min(100,pn+1);}state.lastPlayer=pn;state.lastBank=bn;if(pn>bn){state.player+=bet;state.playerWins++;state.lastWinner='player';state.history.unshift({winner:'player',winNum:pn,pn,bn,bet});$('msg').textContent=`🔵 JOGADOR GANHOU! ${pn} X ${bn} — +${fmt(bet)} créditos.`}else{state.player-=bet;state.bankWins++;state.lastWinner='bank';state.history.unshift({winner:'bank',winNum:bn,pn,bn,bet});$('msg').textContent=`🔴 BANCA GANHOU! ${pn} X ${bn} — jogador perdeu ${fmt(bet)} créditos.`}render();await persistCredits()};
-$('newRound').onclick=()=>{state.lastPlayer=null;state.lastBank=null;state.lastWinner=null;$('msg').textContent='Nova rodada pronta. Escolha a aposta e jogue.';render()};
-$('shuffleBtn').onclick=()=>{state.nums=freshNums();state.lastPlayer=null;state.lastBank=null;state.lastWinner=null;$('msg').textContent='Os 100 números foram embaralhados.';render()};
-load();render();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=5"></script>
-<script src="../js/house.js?v=1"></script>
-<script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=7"></script>
-<script>
-window.clubWalletReady.then((w)=>{
-  if(!w)return;
-  state.player=Number(w.credits||0);
-  render();
-});
-</script>
-</body></html>
+<p><a href="bagatela.html">Abrir Bacatela</a></p>
+</body>
+</html>
