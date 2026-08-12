@@ -116,7 +116,8 @@ body{
 .number.selected::after,
 .parity.selected::after,
 .mode.selected::after,
-.bet-chip.selected::after{
+.bet-chip.selected::after,
+.layout-btn.selected::after{
   content:'✓';
   position:absolute;
   top:4px;
@@ -134,7 +135,7 @@ body{
   margin-bottom:16px;
 }
 .bet-row{grid-template-columns:repeat(4,1fr)}
-.parity,.mode,.bet-chip{
+.parity,.mode,.bet-chip,.layout-btn{
   padding:14px 8px;
   background:#12081f!important;
   background-size:auto!important;
@@ -150,11 +151,11 @@ body{
   box-shadow:none!important;
   position:relative;
 }
-.parity:hover,.mode:hover,.bet-chip:hover{
+.parity:hover,.mode:hover,.bet-chip:hover,.layout-btn:hover{
   border-color:#ff4fd8!important;
   color:#fff!important;
 }
-.parity.selected,.mode.selected,.bet-chip.selected{
+.parity.selected,.mode.selected,.bet-chip.selected,.layout-btn.selected{
   background:linear-gradient(180deg,#3a1455,#1a0830)!important;
   background-size:auto!important;
   color:#fff!important;
@@ -474,6 +475,12 @@ body{
       <button type="button" class="number" data-value="50">50</button>
     </div>
 
+    <span class="section-label">DISPOSIÇÃO DOS BURACOS</span>
+    <div class="parity-row">
+      <button type="button" class="layout-btn selected" data-layout="grid">FILEIRA</button>
+      <button type="button" class="layout-btn" data-layout="random">ALEATÓRIO</button>
+    </div>
+
     <div class="bet-section">
       <span class="section-label">APOSTA (2 A 10)</span>
       <div class="bet-row">
@@ -556,6 +563,7 @@ const RAIL = 36;
 const POCKET_R = 38;
 
 let gameMode = 'parity'; /* parity | multiplier */
+let layoutMode = 'grid'; /* grid | random */
 let selectedValue = 15;
 let selectedParity = 'even';
 const BET_MIN = 2;
@@ -720,9 +728,20 @@ function buildMultiplierValues(count) {
 
 function createHoles() {
   holes = [];
-  const columns = selectedValue > 100 ? 10 : 5;
-  const rows = Math.ceil(selectedValue / columns);
+  const numbers = gameMode === 'multiplier'
+    ? buildMultiplierValues(selectedValue)
+    : shuffleNumbers(selectedValue);
 
+  if (layoutMode === 'grid') {
+    createHolesGrid(numbers);
+  } else {
+    createHolesRandom(numbers);
+  }
+}
+
+function createHolesGrid(numbers) {
+  const columns = selectedValue >= 50 ? 10 : 5;
+  const rows = Math.ceil(selectedValue / columns);
   const padding = selectedValue >= 50 ? 14 : selectedValue <= 15 ? 18 : 16;
   const gap = selectedValue >= 50 ? 7 : selectedValue <= 15 ? 11 : 9;
 
@@ -730,11 +749,6 @@ function createHoles() {
     (board.width - padding * 2 - gap * (columns - 1)) / columns;
   const cellHeight =
     (board.height - padding * 2 - gap * (rows - 1)) / rows;
-
-  const numbers = gameMode === 'multiplier'
-    ? buildMultiplierValues(selectedValue)
-    : shuffleNumbers(selectedValue);
-
   const radiusFactor = selectedValue >= 50 ? 0.34 : 0.38;
 
   for (let i = 0; i < selectedValue; i++) {
@@ -757,6 +771,88 @@ function createHoles() {
       x, y, radius,
       hit: false,
       column, row
+    });
+  }
+}
+
+function createHolesRandom(numbers) {
+  const boardInset = 12;
+  const ringExtra = 7;
+
+  const innerLeft = board.x + boardInset;
+  const innerTop = board.y + boardInset;
+  const innerRight = board.x + board.width - boardInset;
+  const innerBottom = board.y + board.height - boardInset;
+  const innerW = Math.max(40, innerRight - innerLeft);
+  const innerH = Math.max(40, innerBottom - innerTop);
+
+  const area = innerW * innerH;
+  const baseR = Math.sqrt(area / (selectedValue * Math.PI)) * 0.68;
+  const radius = Math.max(11, Math.min(24, baseR));
+  const edge = radius + ringExtra;
+  const minDist = radius * 2.2;
+
+  const areaLeft = innerLeft + edge;
+  const areaTop = innerTop + edge;
+  const areaRight = innerRight - edge;
+  const areaBottom = innerBottom - edge;
+  const areaW = Math.max(8, areaRight - areaLeft);
+  const areaH = Math.max(8, areaBottom - areaTop);
+
+  function clampInside(x, y) {
+    return {
+      x: Math.max(areaLeft, Math.min(areaRight, x)),
+      y: Math.max(areaTop, Math.min(areaBottom, y))
+    };
+  }
+
+  const placed = [];
+
+  for (let i = 0; i < selectedValue; i++) {
+    let x = 0;
+    let y = 0;
+    let ok = false;
+
+    for (let tries = 0; tries < 100; tries++) {
+      x = areaLeft + Math.random() * areaW;
+      y = areaTop + Math.random() * areaH;
+      ({ x, y } = clampInside(x, y));
+      ok = placed.every((p) => {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        return Math.sqrt(dx * dx + dy * dy) >= minDist;
+      });
+      if (ok) break;
+    }
+
+    if (!ok) {
+      x = areaLeft + Math.random() * areaW;
+      y = areaTop + Math.random() * areaH;
+      for (let n = 0; n < 16; n++) {
+        placed.forEach((p) => {
+          const dx = x - p.x;
+          const dy = y - p.y;
+          const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+          if (d < minDist) {
+            const push = (minDist - d) / 2;
+            x += (dx / d) * push;
+            y += (dy / d) * push;
+          }
+        });
+        ({ x, y } = clampInside(x, y));
+      }
+    }
+
+    ({ x, y } = clampInside(x, y));
+    placed.push({ x, y });
+    holes.push({
+      number: numbers[i],
+      x,
+      y,
+      radius,
+      hit: false,
+      column: i % 5,
+      row: Math.floor(i / 5)
     });
   }
 }
@@ -1548,6 +1644,14 @@ document.querySelectorAll('.mode').forEach((button) => {
     button.classList.add('selected');
     gameMode = button.dataset.mode;
     syncModeUI();
+  });
+});
+
+document.querySelectorAll('.layout-btn').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.layout-btn').forEach((b) => b.classList.remove('selected'));
+    button.classList.add('selected');
+    layoutMode = button.dataset.layout;
   });
 });
 
