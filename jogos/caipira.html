@@ -47,6 +47,10 @@ button:disabled{opacity:.45}
 .playBtn{width:100%;font-size:20px;background:linear-gradient(90deg,#257a34,#49b95d,#257a34);border:2px solid #72e58a;padding:12px}
 .status{margin-top:7px;background:#061009;border:1px solid #31533a;border-radius:10px;padding:9px;text-align:center;font-weight:800;min-height:42px}
 .rules{font-size:12px;line-height:1.5;color:#dce8df}
+.helpBtn{width:100%;margin:0 0 8px;padding:11px;border-radius:10px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#101827;color:#fff;border:2px solid #2196f3;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#64b5f6;text-align:center;margin:0 0 10px}.helpCard h3{color:#81c784;margin:12px 0 4px}.helpCard li{margin:5px 0}.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
 .historyItem{font-size:12px;padding:5px 0;border-bottom:1px solid #294333}
 @media(max-width:550px){
   .app{padding:5px}
@@ -68,6 +72,7 @@ button:disabled{opacity:.45}
 <main class="app">
   <h1>⚽ CAIPIRA ⚽</h1>
   <div class="sub">3 DADOS E 6 TIMES DE FUTEBOL</div>
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
 
   <section class="topGrid">
     <div class="panel">
@@ -104,16 +109,23 @@ button:disabled{opacity:.45}
     <div id="status" class="status">Escolha um time, defina a aposta e sorteie. A mesa só aparece após confirmar a aposta.</div>
   </section>
 
-  <section class="panel rules">
-    <b>REGRAS:</b> cada dado possui os mesmos 6 times. Se o time escolhido aparecer em 1 dado, você ganha 1 vez o valor apostado; em 2 dados, ganha 2 vezes; em 3 dados, ganha 3 vezes. Se não aparecer, perde somente a aposta da rodada. O valor apostado é devolvido quando há vitória, além do prêmio correspondente.
-  </section>
-
   <section class="panel">
     <div class="title">HISTÓRICO</div>
     <div id="history">Nenhuma rodada ainda.</div>
   </section>
 
 </main>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — CAIPIRA</h2>
+<p><b>Objetivo:</b> escolher 1 dos 6 times e sortear 3 dados com os mesmos times.</p>
+<ul>
+  <li>Se o time aparecer em <b>1 dado</b>: ganha 1× a aposta (além da devolução da aposta).</li>
+  <li>Em <b>2 dados</b>: ganha 2×; em <b>3 dados</b>: ganha 3×.</li>
+  <li>Se não aparecer: perde somente a aposta da rodada.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
 
 <script>
 const teams=[
@@ -267,6 +279,10 @@ window.clubWalletReady.then((w)=>{
   credits=Number(w.credits||0);
   renderCredits();
 });
+const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm){ oh.onclick=()=>{hm.style.display='block'}; }
+if(ch&&hm){ ch.onclick=()=>{hm.style.display='none'}; }
+if(hm){ hm.addEventListener('click',(e)=>{ if(e.target===hm) hm.style.display='none'; }); }
 </script>
 </body>
 </html>

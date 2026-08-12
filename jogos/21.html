@@ -59,6 +59,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
   text-align:center;font-size:17px;font-weight:900;min-height:28px;padding:6px;color:#fff
 }
 .regras{font-size:13px;line-height:1.45;color:#d8e7ff}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard h3{color:#ffd91a;margin:12px 0 4px}.helpCard li{margin:5px 0}.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
 @media(max-width:520px){
   .acoes button{padding:11px 6px;font-size:13px}
   .mesa{gap:8px}
@@ -72,6 +76,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div class="app">
   <h1 class="club-rainbow">21</h1>
   <div class="sub">Jogador x Banca</div>
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
 
   <div class="panel">
     <div class="saldo">
@@ -111,14 +116,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="panel">
     <div id="mensagem">Defina a aposta (2 a 200) e toque em “Nova rodada” para confirmar e ver a mesa.</div>
   </div>
-
-  <div class="panel regras">
-    <b>Regras:</b> o jogador recebe 2 cartas. Com menos de 12 pontos precisa pedir carta.
-    A partir de 12 pode pedir ou parar. Ao parar, a banca compra até pelo menos 17.
-    Quem ficar mais perto de 21 sem passar vence. Empate: banca vence.
-    Ás vale 1 ou 11; figuras valem 10.
-  </div>
 </div>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — 21</h2>
+<ul>
+  <li>O jogador recebe 2 cartas. Com menos de 12 pontos precisa pedir carta.</li>
+  <li>A partir de 12 pode pedir ou parar. Ao parar, a banca compra até pelo menos 17.</li>
+  <li>Quem ficar mais perto de 21 sem passar vence. Empate: banca vence.</li>
+  <li>Ás vale 1 ou 11; figuras valem 10.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
 
 <script>
 let saldo=0, apostaAtual=0, baralho=[], maoJogador=[], maoBanca=[];
@@ -307,6 +316,10 @@ window.clubWalletReady.then((w)=>{
   saldo=Number(w.credits||0);
   render();
 });
+const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm){ oh.onclick=()=>{hm.style.display='block'}; }
+if(ch&&hm){ ch.onclick=()=>{hm.style.display='none'}; }
+if(hm){ hm.addEventListener('click',(e)=>{ if(e.target===hm) hm.style.display='none'; }); }
 </script>
 </body>
 </html>
