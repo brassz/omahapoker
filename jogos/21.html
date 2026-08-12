@@ -123,7 +123,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <ul>
   <li>O jogador recebe 2 cartas. Com menos de 12 pontos precisa pedir carta.</li>
   <li>A partir de 12 pode pedir ou parar. Ao parar, a banca compra até pelo menos 17.</li>
-  <li>Quem ficar mais perto de 21 sem passar vence. Empate: banca vence.</li>
+  <li>Quem ficar mais perto de 21 sem passar vence.</li>
+  <li><b>Empate:</b> a banca vence e a aposta é perdida.</li>
+  <li><b>Vitória:</b> você recebe o dobro da aposta (ex.: apostou 200 → recebe 400).</li>
   <li>Ás vale 1 ou 11; figuras valem 10.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
@@ -265,18 +267,22 @@ function jogarBanca(){
 async function comparar(){
   const p=valorMao(maoJogador);
   const b=valorMao(maoBanca);
+  const aposta=apostaAtual;
   let playerWins=b>21||(p<=21&&p>b);
   const force=window.clubHouse?await clubHouse.nextOutcome():null;
   if(force==='player'&&!playerWins&&p<=21) playerWins=true;
   if(force==='bank'&&playerWins) playerWins=false;
 
   if(playerWins){
-    saldo+=apostaAtual*2;
+    // Apostou X → recebe 2X (ex.: 200 → 400)
+    const pago=aposta*2;
+    saldo+=pago;
     await persist();
-    if(b>21) encerrar('A banca passou de 21. Você venceu!');
-    else encerrar(`Você venceu: ${p} x ${b}.`);
+    if(b>21) encerrar(`A banca passou de 21. Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
+    else encerrar(`Você venceu: ${p} x ${b}. Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
   } else if(b===p){
-    encerrar(`Empate: ${p} x ${b}. A banca venceu.`);
+    // Empate: banca vence — aposta não volta
+    encerrar(`Empate: ${p} x ${b}. A banca venceu — aposta perdida.`);
   } else {
     encerrar(`A banca venceu: ${b} x ${p}.`);
   }
