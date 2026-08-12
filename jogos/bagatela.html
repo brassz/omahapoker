@@ -231,11 +231,20 @@ body{
   display:none;
   width:100%;
   padding:14px;
-  background:linear-gradient(135deg,#3a1c08,#8a5228,#4a2810,#1a0c04);
+  background:linear-gradient(135deg,#0a1a3a,#123060,#0a2048,#061028);
   border-radius:20px;
-  border:2px solid var(--blue);
-  box-shadow:0 20px 60px #000a, inset 0 0 0 2px #c4894a, 0 0 18px #17c8ff55;
-  animation:clubNeonGlow 1.6s ease-in-out infinite;
+  border:3px solid #17c8ff;
+  box-shadow:0 20px 60px #000a, inset 0 0 0 2px #2a5080, 0 0 22px #17c8ff88;
+  animation:bagatelaRainbowBorder 1.4s linear infinite;
+}
+@keyframes bagatelaRainbowBorder{
+  0%{border-color:#17c8ff;box-shadow:0 20px 60px #000a,0 0 22px #17c8ffaa}
+  16%{border-color:#ff4fd8;box-shadow:0 20px 60px #000a,0 0 22px #ff4fd8aa}
+  33%{border-color:#ffd91a;box-shadow:0 20px 60px #000a,0 0 22px #ffd91aaa}
+  50%{border-color:#5cff1a;box-shadow:0 20px 60px #000a,0 0 22px #5cff1aaa}
+  66%{border-color:#ff8c15;box-shadow:0 20px 60px #000a,0 0 22px #ff8c15aa}
+  83%{border-color:#a78bfa;box-shadow:0 20px 60px #000a,0 0 22px #a78bfaaa}
+  100%{border-color:#17c8ff;box-shadow:0 20px 60px #000a,0 0 22px #17c8ffaa}
 }
 #canvas{
   display:block;
@@ -825,26 +834,60 @@ function hideAlert() {
   alertOverlay.classList.remove('show');
 }
 
+const NEON_PALETTE = ['#17c8ff', '#ff4fd8', '#ffd91a', '#5cff1a', '#ff8c15', '#a78bfa', '#ff3434'];
+
+function neonColor(offset = 0) {
+  const t = performance.now() / 180 + offset;
+  const i = Math.floor(t) % NEON_PALETTE.length;
+  const j = (i + 1) % NEON_PALETTE.length;
+  const f = t - Math.floor(t);
+  /* troca rápida entre cores (pisca) */
+  return f < 0.55 ? NEON_PALETTE[i] : NEON_PALETTE[j];
+}
+
 function drawRailWood() {
   const wood = ctx.createLinearGradient(0, 0, width, height);
-  wood.addColorStop(0, '#5a3014');
-  wood.addColorStop(0.45, '#8b5224');
-  wood.addColorStop(1, '#3d1e0a');
+  wood.addColorStop(0, '#0a2048');
+  wood.addColorStop(0.45, '#123868');
+  wood.addColorStop(1, '#061830');
   ctx.fillStyle = wood;
   ctx.fillRect(0, 0, width, height);
+
+  /* borda da mesa piscando colorido */
+  const borderColor = neonColor(0);
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 14;
+  ctx.shadowColor = borderColor;
+  ctx.shadowBlur = 22;
+  roundRect(8, 8, width - 16, height - 16, 22);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.strokeStyle = neonColor(2.4);
+  ctx.lineWidth = 4;
+  roundRect(18, 18, width - 36, height - 36, 16);
+  ctx.stroke();
 }
 
 function drawFelt() {
   const inset = RAIL;
   const felt = ctx.createLinearGradient(0, inset, 0, height - inset);
-  felt.addColorStop(0, '#0d9454');
-  felt.addColorStop(0.5, '#087540');
-  felt.addColorStop(1, '#055e34');
+  felt.addColorStop(0, '#1a6cff');
+  felt.addColorStop(0.45, '#0a3dff');
+  felt.addColorStop(1, '#0628c8');
   ctx.fillStyle = felt;
   roundRect(inset, inset, width - inset * 2, height - inset * 2, 18);
   ctx.fill();
 
-  ctx.strokeStyle = 'rgba(255,255,255,.07)';
+  ctx.strokeStyle = neonColor(1.1);
+  ctx.lineWidth = 3;
+  ctx.shadowColor = neonColor(1.1);
+  ctx.shadowBlur = 12;
+  roundRect(inset + 2, inset + 2, width - inset * 2 - 4, height - inset * 2 - 4, 16);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(width / 2, inset + 8);
@@ -868,23 +911,33 @@ function roundRect(x, y, w, h, r) {
 }
 
 function drawPockets() {
-  pockets.forEach((p) => {
-    /* anel da caçapa na madeira */
+  pockets.forEach((p, idx) => {
+    const ring = neonColor(idx * 0.7);
+
     ctx.beginPath();
-    ctx.arc(p.x, p.y, POCKET_R + 10, 0, Math.PI * 2);
-    ctx.fillStyle = '#2a1508';
+    ctx.arc(p.x, p.y, POCKET_R + 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#061018';
     ctx.fill();
 
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, POCKET_R + 10, 0, Math.PI * 2);
+    ctx.strokeStyle = ring;
+    ctx.lineWidth = 5;
+    ctx.shadowColor = ring;
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
     const g = ctx.createRadialGradient(p.x - 6, p.y - 6, 2, p.x, p.y, POCKET_R);
-    g.addColorStop(0, '#222');
-    g.addColorStop(0.45, '#050505');
+    g.addColorStop(0, '#1a1a2a');
+    g.addColorStop(0.45, '#050510');
     g.addColorStop(1, '#000');
     ctx.beginPath();
     ctx.arc(p.x, p.y, POCKET_R, 0, Math.PI * 2);
     ctx.fillStyle = g;
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.strokeStyle = neonColor(idx * 0.7 + 1.5);
     ctx.lineWidth = 2;
     ctx.stroke();
   });
@@ -905,9 +958,13 @@ function drawBoard() {
   ctx.fillStyle = wood;
   ctx.fillRect(board.x, board.y, board.width, board.height);
 
-  ctx.strokeStyle = '#555';
+  const boardNeon = neonColor(3);
+  ctx.strokeStyle = boardNeon;
   ctx.lineWidth = 5;
+  ctx.shadowColor = boardNeon;
+  ctx.shadowBlur = 14;
   ctx.strokeRect(board.x, board.y, board.width, board.height);
+  ctx.shadowBlur = 0;
 
   ctx.fillStyle = '#101010';
   ctx.fillRect(
@@ -922,12 +979,23 @@ function drawBoard() {
 
 function drawHole(hole) {
   const match = isWinningNumber(hole.number);
+  const idx = (hole.column || 0) + (hole.row || 0) * 5;
+  const ring = neonColor(idx * 0.45);
+
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius + 5, 0, Math.PI * 2);
+  ctx.strokeStyle = ring;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = ring;
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 4, 0, Math.PI * 2);
   ctx.fillStyle = hole.hit
     ? (match ? '#0a5c2e' : '#7d0000')
-    : (match ? '#1f3a28' : '#272727');
+    : (match ? '#1a2840' : '#1a1a22');
   ctx.fill();
 
   ctx.beginPath();
@@ -957,10 +1025,16 @@ function drawHole(hole) {
   ctx.fillStyle = holeGradient;
   ctx.fill();
 
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+  ctx.strokeStyle = neonColor(idx * 0.45 + 1.2);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
   const label = holeLabel(hole.number);
   const fontScale = label.length > 3 ? 0.78 : 0.95;
   const fontSize = Math.max(12, hole.radius * fontScale);
-  ctx.fillStyle = match ? '#9dffb8' : '#bbb';
+  ctx.fillStyle = match ? '#e8f8ff' : '#ccc';
   ctx.font = `bold ${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
