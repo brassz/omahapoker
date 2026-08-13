@@ -316,24 +316,26 @@ function finishRound(){
   update();
 }
 async function immediateResult(playerWins,total){
-  const force=window.clubHouse?await clubHouse.nextOutcome():null;
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
   if(force==="player") playerWins=true;
   if(force==="bank") playerWins=false;
   if(playerWins){
     const profit=baseBet;
     const returnTotal=baseBet+profit;
     playerBalance+=returnTotal;
-    status(`Saiu ${total}. O jogador venceu a aposta inicial.`,"win");
+    status(force ? "O jogador venceu a aposta inicial." : `Saiu ${total}. O jogador venceu a aposta inicial.`,"win");
     showResult(`Jogador recebeu ${fmt(returnTotal)} créditos.<br>Lucro: ${fmt(profit)}.<br>Saldo: ${fmt(playerBalance)}.`);
   }else{
-    status(`Saiu ${total}. A banca venceu a aposta inicial.`,"lose");
+    status(force ? "A banca venceu a aposta inicial." : `Saiu ${total}. A banca venceu a aposta inicial.`,"lose");
     showResult(`Aposta perdida: ${fmt(baseBet)} créditos.<br>Saldo: ${fmt(playerBalance)}.`);
   }
   persistBalance();
   finishRound();
 }
 async function settlePoint(winner,total){
-  const force=window.clubHouse?await clubHouse.nextOutcome():null;
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
   if(force==="player") winner="point";
   if(force==="bank") winner="seven";
   const rate=rateForPoint(point);
@@ -341,10 +343,10 @@ async function settlePoint(winner,total){
     const baseProfit=baseBet;
     const pointProfit=pointBet*rate;
     playerBalance+=(baseBet+baseProfit)+(pointBet+pointProfit);
-    status(`Saiu ${total}. O ponto ${point} venceu.`,"win");
+    status(force ? `O ponto ${point} venceu.` : `Saiu ${total}. O ponto ${point} venceu.`,"win");
     showResult(`Lucro da aposta inicial: ${fmt(baseProfit)}.<br>Lucro da aposta no ponto: ${fmt(pointProfit)}.<br>Saldo: ${fmt(playerBalance)}.`);
   }else{
-    status("Saiu 7 antes do ponto. A banca venceu.","lose");
+    status(force ? "A banca venceu." : "Saiu 7 antes do ponto. A banca venceu.","lose");
     showResult(`Aposta inicial perdida: ${fmt(baseBet)}.<br>Aposta no ponto perdida: ${fmt(pointBet)}.<br>Saldo: ${fmt(playerBalance)}.`);
   }
   persistBalance();

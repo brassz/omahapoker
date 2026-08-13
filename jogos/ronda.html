@@ -313,8 +313,13 @@ async function playRound(){
   }
 
   const force=window.clubHouse?await clubHouse.nextOutcome():null;
-  if(force==='player') winner=picked;
-  if(force==='bank' && winner===picked) winner=(picked==='A'?'B':'A');
+  if(force==='player'){
+    winner=picked;
+    winningCard=picked==='A'?cardA:cardB;
+  } else if(force==='bank' && winner===picked){
+    winner=(picked==='A'?'B':'A');
+    winningCard=winner==='A'?cardA:cardB;
+  }
 
   const won=picked===winner;
   if(won){
@@ -336,8 +341,11 @@ async function playRound(){
   renderHistory();
   await persistCredits();
 
+  const rankTxt=winningCard?winningCard.rank:'?';
   document.getElementById('status').textContent=
-    `🏆 CARTA ${winner} VENCEU! O valor ${winningCard.rank} apareceu primeiro depois de ${turned} carta(s) virada(s). ${won?'O JOGADOR ganhou da BANCA':'A BANCA ganhou do JOGADOR'} ${fmt(bet)} créditos.`;
+    won
+      ? `🏆 CARTA ${winner} (${rankTxt}) VENCEU! O JOGADOR ganhou ${fmt(bet)} créditos.`
+      : `🏆 CARTA ${winner} (${rankTxt}) VENCEU! A BANCA ganhou ${fmt(bet)} créditos.`;
 
   ready=false;
   document.getElementById('playBtn').disabled=false;

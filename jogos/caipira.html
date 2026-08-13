@@ -234,7 +234,7 @@ async function play(){
   if(force==='bank'){
     for(let i=0;i<3;i++){ if(dice[i]===chosen) dice[i]=(chosen+1)%6; }
   }else if(force==='player'){
-    if(!dice.some(x=>x===chosen)) dice[0]=chosen;
+    if(!dice.some(x=>x===chosen)) dice[Math.floor(Math.random()*3)]=chosen;
   }
 
   for(let i=0;i<3;i++){
@@ -246,18 +246,16 @@ async function play(){
   let resultText='';
 
   if(matches===0){
-    // Perde só a aposta (já debitada)
     resultText=`Perdeu ${fmt(bet)}`;
     document.getElementById('status').textContent=
-      `Nenhum dado mostrou ${teams[chosen].name}. Você perdeu a aposta de ${fmt(bet)} créditos.`;
+      `A banca venceu. Nenhum dado mostrou ${teams[chosen].name}. Você perdeu ${fmt(bet)} créditos.`;
   }else{
-    // Prêmio = N × aposta; devolução da aposta + prêmio
     const prize=bet*matches;
     const totalBack=bet+prize;
     credits+=totalBack;
     resultText=`+${fmt(totalBack)} (aposta ${fmt(bet)} + ${matches}x ${fmt(prize)})`;
     document.getElementById('status').textContent=
-      `🏆 ${teams[chosen].name} em ${matches} dado(s)! Devolução ${fmt(bet)} + prêmio ${matches}x (${fmt(prize)}) = +${fmt(totalBack)} créditos.`;
+      `Você venceu! ${teams[chosen].name} em ${matches} dado(s). Devolução ${fmt(bet)} + prêmio ${matches}x (${fmt(prize)}) = +${fmt(totalBack)} créditos.`;
   }
 
   history.unshift({team:teams[chosen].name,matches,bet,result:resultText});

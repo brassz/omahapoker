@@ -269,22 +269,26 @@ async function comparar(){
   const b=valorMao(maoBanca);
   const aposta=apostaAtual;
   let playerWins=b>21||(p<=21&&p>b);
-  const force=window.clubHouse?await clubHouse.nextOutcome():null;
-  if(force==='player'&&!playerWins&&p<=21) playerWins=true;
-  if(force==='bank'&&playerWins) playerWins=false;
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
+  if(force==='player'&&p<=21) playerWins=true;
+  if(force==='bank') playerWins=false;
 
   if(playerWins){
-    // Apostou X → recebe 2X (ex.: 200 → 400)
     const pago=aposta*2;
     saldo+=pago;
     await persist();
-    if(b>21) encerrar(`A banca passou de 21. Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
-    else encerrar(`Você venceu: ${p} x ${b}. Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
-  } else if(b===p){
-    // Empate: banca vence — aposta não volta
+    if(force==='player'){
+      encerrar(`Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
+    } else if(b>21){
+      encerrar(`A banca passou de 21. Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
+    } else {
+      encerrar(`Você venceu: ${p} x ${b}. Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
+    }
+  } else if(!force && b===p){
     encerrar(`Empate: ${p} x ${b}. A banca venceu — aposta perdida.`);
   } else {
-    encerrar(`A banca venceu: ${b} x ${p}.`);
+    encerrar(`A banca venceu. Aposta de ${fmt(aposta)} perdida.`);
   }
 }
 

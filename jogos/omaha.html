@@ -522,7 +522,12 @@ async function evaluate(){
     if(settledResult) persistHand(settledResult,{betAmount:settledBet});
     const nomes=winners.map(x=>x.i===0?'Jogador':'Banca').join(' e ');
     const cartas=best.cards.map(c=>`${c.r}${c.s}`).join('  ');
-    $('result').innerHTML=`<span class="best">${nomes}</span><br>${best.name}<br>${cartas}<br><span class="note">Usando exatamente 2 cartas da mão + 3 cartas da mesa.</span>`;
+    const outcomeNote=settledResult==='player'
+      ? 'Vitória do Jogador.'
+      : settledResult==='bank'
+        ? 'Vitória da Banca.'
+        : 'Empate.';
+    $('result').innerHTML=`<span class="best">${nomes}</span><br>${best.name}<br>${cartas}<br><span class="note">${outcomeNote} Usando exatamente 2 cartas da mão + 3 cartas da mesa.</span>`;
     renderPlayers();
     const winningBoardCards=scores.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
     $('board').innerHTML=[0,1,2,3,4].map(i=>cardHtml(board[i],false,winningBoardCards.some(c=>sameCard(c,board[i])),'winBoard')).join('');

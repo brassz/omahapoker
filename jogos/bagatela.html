@@ -1433,24 +1433,42 @@ async function finishHole(hole) {
 
   let hitNumber = hole.number;
   let won = isWinningNumber(hitNumber);
+  let force = null;
 
   try {
-    const force = window.clubHouse ? await clubHouse.nextOutcome() : null;
-    if (gameMode === 'multiplier') {
-      if (force === 'bank' && hitNumber > 0.10) {
-        hitNumber = 0.10;
-        hole.number = 0.10;
-      } else if (force === 'player' && hitNumber < 2) {
-        /* Vitória forçada modesta (2x) — jackpots só no acerto natural */
-        hitNumber = 2;
-        hole.number = 2;
-      }
+    force = window.clubHouse ? await clubHouse.nextOutcome() : null;
+  } catch (_) {
+    force = null;
+  }
+
+  if (gameMode === 'multiplier') {
+    if (force === 'bank') {
+      hitNumber = 0.10;
+      hole.number = 0.10;
+      won = false;
+    } else if (force === 'player') {
+      hitNumber = Math.max(Number(hitNumber) || 0, 2);
+      hole.number = hitNumber;
       won = true;
     } else {
-      if (force === 'bank' && won) won = false;
-      if (force === 'player' && !won) won = true;
+      /* Natural: paga o buraco; vitória clara só se ≥1x */
+      won = Number(hitNumber) >= 1;
     }
-  } catch (_) {}
+  } else if (force === 'bank' || force === 'player') {
+    const wantPlayer = force === 'player';
+    const wantEven = wantPlayer
+      ? selectedParity === 'even'
+      : selectedParity !== 'even';
+    let n = Math.round(Number(hitNumber)) || 1;
+    if ((n % 2 === 0) !== wantEven) {
+      n += 1;
+      if (n > selectedValue) n -= 2;
+      if (n < 1) n = wantEven ? 2 : 1;
+    }
+    hitNumber = n;
+    hole.number = n;
+    won = wantPlayer;
+  }
 
   const payout = Math.round(betAmount * hitNumber * 100) / 100;
   const label = gameMode === 'multiplier' ? holeLabel(hitNumber) + 'x' : hitNumber + 'x';
@@ -1458,13 +1476,29 @@ async function finishHole(hole) {
   resultValue.textContent = label;
 
   if (gameMode === 'multiplier') {
+    if (force === 'bank') {
+      resultPayout.textContent = `${holeLabel(hitNumber)}x — a banca venceu`;
+      resultPayout.style.color = '#ff7d7d';
+      result.classList.add('show');
+      showAlert('lose', fmt(betAmount));
+      return;
+    }
+
     credits += payout;
     renderCredits();
     persistCredits();
-    resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} créditos`;
-    resultPayout.style.color = '#7dffb0';
-    result.classList.add('show');
-    showAlert('win', `${holeLabel(hitNumber)}x → +${fmt(payout)}`);
+    if (won || force === 'player') {
+      resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} créditos`;
+      resultPayout.style.color = '#7dffb0';
+      result.classList.add('show');
+      showAlert('win', `${holeLabel(hitNumber)}x → +${fmt(payout)}`);
+    } else {
+      /* Natural abaixo de 1x: recebe o valor, sem celebrar vitória */
+      resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} (abaixo da aposta)`;
+      resultPayout.style.color = '#ffd91a';
+      result.classList.add('show');
+      showAlert('lose', `${holeLabel(hitNumber)}x → +${fmt(payout)}`);
+    }
     return;
   }
 
@@ -1477,7 +1511,7 @@ async function finishHole(hole) {
     result.classList.add('show');
     showAlert('win', '+' + fmt(payout));
   } else {
-    resultPayout.textContent = `Número ${parityLabel() === 'PARES' ? 'ímpar' : 'par'} — perdeu`;
+    resultPayout.textContent = `A banca venceu — perdeu ${fmt(betAmount)}`;
     resultPayout.style.color = '#ff7d7d';
     result.classList.add('show');
     showAlert('lose', fmt(betAmount));
