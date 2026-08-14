@@ -58,7 +58,25 @@ header,.balance,#betScreen .scroll,#betScreen .footer,.total-box,.play-footer .s
   100%{border-color:#ff4fd8;box-shadow:0 0 10px #ff4fd855}
 }
 canvas{display:block;width:100%;height:100%}
-.result{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:clamp(24px,7vw,40px);font-weight:900;text-shadow:0 0 24px currentColor;opacity:0;transition:.25s;text-align:center;padding:12px}
+.hits{
+  position:absolute;left:8px;right:8px;top:8px;z-index:3;
+  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+  pointer-events:none;max-height:42%;overflow:hidden;
+}
+.hits .chip{
+  background:rgba(6,10,20,.28);
+  border:1px solid rgba(255,255,255,.22);
+  color:#fff;
+  padding:5px 9px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:clamp(12px,3.4vw,16px);
+  letter-spacing:.3px;
+  text-shadow:0 0 10px currentColor;
+  opacity:.62;
+  backdrop-filter:blur(3px);
+}
+.result{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:clamp(24px,7vw,40px);font-weight:900;text-shadow:0 0 24px currentColor;opacity:0;transition:.25s;text-align:center;padding:12px;z-index:4}
 .result.show{opacity:1}
 .play-footer{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 .play-footer .stat{background:#0c1119;border:1px solid #202c3d;border-radius:10px;padding:8px;text-align:center;font-size:11px}
@@ -84,7 +102,7 @@ canvas{display:block;width:100%;height:100%}
     <div class="scroll">
       <h3>Montar aposta</h3>
       <button type="button" class="helpBtn" id="openHelp">❓ COMO JOGAR / REGRAS</button>
-      <div class="field"><label>Valor por bolinha <span id="betLabel">2</span></label><input id="bet" type="number" inputmode="numeric" min="2" max="200" step="1" value="2"></div>
+      <div class="field"><label>Valor por bolinha <span id="betLabel">2</span></label><input id="bet" type="number" inputmode="numeric" min="2" max="200" step="1" value="2" placeholder="Digite o valor"></div>
       <div class="field"><label>Quantidade de bolinhas</label><input id="count" type="number" inputmode="numeric" min="1" max="50" value="1"></div>
       <div class="total-box"><span>Total da aposta</span><b id="totalLabel">2</b></div>
       <h3>Risco</h3>
@@ -109,7 +127,11 @@ canvas{display:block;width:100%;height:100%}
       <button type="button" class="ghost" id="backBtn">← Aposta</button>
       <div class="meta" id="playMeta">—</div>
     </div>
-    <div id="boardWrap"><canvas id="board"></canvas><div class="result" id="result"></div></div>
+    <div id="boardWrap">
+      <canvas id="board"></canvas>
+      <div class="hits" id="hits"></div>
+      <div class="result" id="result"></div>
+    </div>
     <div class="play-footer">
       <div class="stat"><span>Jogadas</span><b id="played">0</b></div>
       <div class="stat"><span>Apostado</span><b id="wagered">0</b></div>
@@ -167,9 +189,11 @@ function pickMults(set,n){
  return out;
 }
 function betVal(){
- var n=Math.floor(Number(document.getElementById('bet').value)||0);
- if(window.clubBets) return clubBets.clamp(n);
- return Math.max(2, Math.min(200, n||2));
+ var raw=String(document.getElementById('bet').value||'').trim();
+ if(raw==='') return 0;
+ var n=Math.floor(Number(raw));
+ if(!Number.isFinite(n)) return 0;
+ return n;
 }
 function countVal(){return Math.min(50, Math.max(1, Math.floor(Number(document.getElementById('count').value)||1)));}
 
@@ -179,18 +203,19 @@ async function persistBalance(){
 
 function updateUI(){
  var b=betVal(),n=countVal();
- document.getElementById('bet').value=b;
+ var total=Math.max(0,b)*n;
  document.getElementById('balance').textContent=money(balance);
  document.getElementById('played').textContent=String(played);
  document.getElementById('wagered').textContent=money(wagered);
  document.getElementById('profit').textContent=money(profit);
- document.getElementById('betLabel').textContent=money(b);
- document.getElementById('totalLabel').textContent=money(b*n);
+ document.getElementById('betLabel').textContent=b>0?money(b):'—';
+ document.getElementById('totalLabel').textContent=money(total);
  confirmBtn.textContent=n===1?'CONFIRMAR E JOGAR 1 BOLINHA':'CONFIRMAR E JOGAR '+n+' BOLINHAS';
 }
 
 function showBet(){
  roundActive=false;starting=false;balls=[];
+ clearHits();
  if(raf){cancelAnimationFrame(raf);raf=0;}
  playScreen.classList.remove('on','done');
  betScreen.classList.add('on');
@@ -336,12 +361,13 @@ function draw(){
 
 function spawn(bet){
  balls.push({
-  x:W*0.5+(Math.random()-0.5)*3,
+  x:W*0.5+(Math.random()-0.5)*6,
   y:Math.max(16, boardTop*0.4),
-  vx:(Math.random()-0.5)*0.4,
-  vy:0.35,
+  vx:(Math.random()-0.5)*0.8,
+  vy:0.55,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
-  bet:bet, sink:false, t:0, slot:null, dead:false, hit:0
+  bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
+  stall:0, lastY:0, age:0
  });
 }
 
@@ -352,6 +378,25 @@ function nearestSlot(x){
   if(d<dmin){dmin=d;best=slots[i];}
  }
  return best;
+}
+
+function clearHits(){
+ var el=document.getElementById('hits');
+ if(el) el.innerHTML='';
+}
+function addHit(m){
+ var el=document.getElementById('hits');
+ if(!el) return;
+ var chip=document.createElement('span');
+ chip.className='chip';
+ chip.textContent=(m%1===0?String(m):String(m).replace('.',','))+'x';
+ el.appendChild(chip);
+}
+
+function forceSink(b){
+ if(b.sink || b.dead) return;
+ b.slot=nearestSlot(b.x);
+ b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
 }
 
 async function finish(b){
@@ -369,6 +414,7 @@ async function finish(b){
  var m=slot?slot.m:1;
  var gain=Math.round(b.bet*m*100)/100;
  balance+=gain; played++; profit+=gain-b.bet; roundGain+=gain; pending--;
+ addHit(m);
  flash(m+'x  +'+money(gain), gain>=b.bet?'#32d583':'#ffbf47');
  updateUI();
  if(pending<=0 && roundActive){
@@ -384,22 +430,23 @@ async function finish(b){
 
 function stepBall(b){
  var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,half,t,pad;
+ b.age=(b.age||0)+1;
  if(b.sink){
   if(!b.slot){ finish(b); return; }
-  b.t+=0.05*speed;
-  b.x+=(b.slot.x+b.slot.w*0.5-b.x)*0.3;
-  b.y+=2.8*speed;
+  b.t+=0.08*speed;
+  b.x+=(b.slot.x+b.slot.w*0.5-b.x)*0.35;
+  b.y+=3.4*speed;
   if(b.t>=1 || b.y>b.slot.y+50) finish(b);
   return;
  }
 
- b.vy+=0.09*speed;
- b.vx*=0.996;
+ b.vy+=0.12*speed;
+ if(b.vy<0.35) b.vy=0.35;
+ b.vx*=0.992;
  b.x+=b.vx*speed;
  b.y+=b.vy*speed;
 
- // colisão só com pinos próximos (evita travar no celular)
- min=b.r+pegR;
+ min=b.r+pegR+0.4;
  min2=min*min;
  for(i=0;i<pegs.length;i++){
   p=pegs[i];
@@ -408,18 +455,21 @@ function stepBall(b){
   dx=b.x-p.x;
   d2=dx*dx+dy*dy;
   if(d2>=min2 || d2===0) continue;
-  // no máx. 1 batida a cada poucos frames
-  if(b.hit>0) break;
+  if(b.hit>0){
+   /* ainda sobreposta: empurra para baixo e sai */
+   b.y+=1.2;
+   b.vy=Math.max(b.vy, 0.7);
+   break;
+  }
   d2=Math.sqrt(d2);
-  nx=dx/d2; ny=dy/d2; over=min-d2;
-  b.x+=nx*over; b.y+=ny*over;
+  nx=dx/d2; ny=dy/d2; over=min-d2+0.6;
+  b.x+=nx*over;
+  b.y+=Math.abs(ny)*over+0.8;
   dot=b.vx*nx+b.vy*ny;
-  b.vx=(b.vx-2*dot*nx)*0.55;
-  b.vy=(b.vy-2*dot*ny)*0.55;
-  b.vx+=(Math.random()-0.5)*0.25+(W*0.5-b.x)*0.002;
-  if(b.vy<0.5) b.vy=0.5;
-  b.vy+=0.1;
-  b.hit=3;
+  b.vx=(b.vx-1.4*dot*nx)*0.62;
+  b.vy=Math.abs(b.vy-1.4*dot*ny)*0.45+0.55;
+  b.vx+=(Math.random()-0.5)*0.55;
+  b.hit=4;
   break;
  }
  if(b.hit>0) b.hit--;
@@ -428,16 +478,27 @@ function stepBall(b){
  half=pegSpace*(0.7+t*rows*0.48);
  left=W*0.5-half; right=W*0.5+half;
  pad=b.r+4;
- if(b.x<left+pad){ b.x=left+pad; b.vx=Math.abs(b.vx)*0.4+0.1; }
- if(b.x>right-pad){ b.x=right-pad; b.vx=-Math.abs(b.vx)*0.4-0.1; }
- if(b.x<b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*0.4; }
- if(b.x>W-b.r){ b.x=W-b.r; b.vx=-Math.abs(b.vx)*0.4; }
- if(b.vx>2) b.vx=2; if(b.vx<-2) b.vx=-2;
- if(b.vy>4) b.vy=4;
+ if(b.x<left+pad){ b.x=left+pad; b.vx=Math.abs(b.vx)*0.45+0.15; }
+ if(b.x>right-pad){ b.x=right-pad; b.vx=-Math.abs(b.vx)*0.45-0.15; }
+ if(b.x<b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*0.45; }
+ if(b.x>W-b.r){ b.x=W-b.r; b.vx=-Math.abs(b.vx)*0.45; }
+ if(b.vx>2.4) b.vx=2.4; if(b.vx<-2.4) b.vx=-2.4;
+ if(b.vy>5) b.vy=5;
+
+ if(b.y<=(b.lastY||0)+0.15) b.stall=(b.stall||0)+1;
+ else b.stall=0;
+ b.lastY=b.y;
+ if(b.stall>18){
+  b.y+=2.2;
+  b.vy=Math.max(b.vy, 0.9);
+  b.vx+=(Math.random()-0.5)*1.2;
+  b.stall=0;
+ }
+ if(b.age>420) forceSink(b);
 
  if(b.y>=boardBottom-6){
   b.slot=nearestSlot(b.x);
-  b.sink=true; b.t=0; b.vx=0; b.vy=1.2;
+  b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
   if(b.slot){
    b.x=Math.max(b.slot.x+6, Math.min(b.slot.x+b.slot.w-6, b.x));
   }
@@ -470,6 +531,11 @@ function startRound(ev){
  if(window.clubBets){
   var check=clubBets.validate(bet);
   if(!check.ok){ alert(check.message); return; }
+  bet=check.value;
+  total=bet*n;
+ } else if(!(bet>=2)){
+  alert('Informe o valor por bolinha.');
+  return;
  }
  if(balance<total){ alert('Saldo insuficiente'); return; }
 
@@ -479,6 +545,7 @@ function startRound(ev){
  balance-=total; wagered+=total;
  persistBalance();
  roundBet=bet; roundCount=n; pending=n; roundGain=0; roundActive=true;
+ clearHits();
  speed=Number(document.getElementById('speed').value)||0.8;
  document.getElementById('playMeta').innerHTML=n+' bolinha'+(n>1?'s':'')+' · <b>'+money(total)+'</b>';
  updateUI();
