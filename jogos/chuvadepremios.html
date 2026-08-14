@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>CHUVA DE PRÊMIOS — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+:root{
+  --line:#263247;--text:#eef4ff;--muted:#8996ab;--accent:#7c5cff;--green:#32d583;
+  --danger:#ff5c77;--gold:#ffbf47;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:rgba(124,92,255,.25)}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06080d;color:var(--text);font-family:system-ui,-apple-system,sans-serif}
+.app{position:fixed;top:52px;left:0;right:0;bottom:0;max-width:560px;margin:auto;display:flex;flex-direction:column;padding:calc(8px + var(--safe-top)) 12px calc(10px + var(--safe-bottom));background:radial-gradient(circle at 50% -10%,#25305c 0,#0b0e16 42%,#06080d 100%)}
+header{flex:0 0 50px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:rgba(17,23,34,.95);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
+.logo{font-size:20px;font-weight:900;letter-spacing:1px}.logo span{color:var(--accent)}
+.balance{background:#0c111a;border:1px solid var(--line);padding:7px 10px;border-radius:10px;font-weight:800;font-size:13px}.balance small{color:var(--muted);margin-right:5px}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.on{display:flex}
+#betScreen .scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#171f2d,#0c111a);border:1px solid var(--line);border-radius:16px 16px 0 0;padding:14px}
+#betScreen .footer{flex:0 0 auto;background:#111722;border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;padding:12px}
+h3{margin:0 0 10px;font-size:12px;color:#c9d4e8;text-transform:uppercase;letter-spacing:1px}
+.field{margin-bottom:10px}.field label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+input,select{width:100%;background:#0b1018;color:var(--text);border:1px solid #2b3950;border-radius:10px;padding:12px;font-size:16px;outline:none}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{border:0;border-radius:12px;padding:14px;font-weight:800;font-size:15px;color:#fff;cursor:pointer;touch-action:manipulation}
+.primary{width:100%;background:linear-gradient(135deg,#8b6cff,#5c3ee8);box-shadow:0 8px 22px #7255ff55}
+.danger{width:100%;background:#351722;color:#ff9aaa;padding:11px;font-size:13px}
+.buy{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}.buy button{background:#1d2635;color:#dbe6fa;padding:10px;font-size:13px}
+.risk{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}.risk button{background:#1b2534;color:#9eacc1;padding:10px;font-size:13px}.risk button.active{background:var(--accent);color:#fff}
+.total-box{background:#121a28;border:1px solid #31405a;border-radius:12px;padding:12px;margin:0 0 12px;text-align:center}
+.total-box span{display:block;color:var(--muted);font-size:11px}.total-box b{font-size:24px;color:var(--gold)}
+.note{font-size:11px;color:#748197;line-height:1.4;margin-top:8px}
+.ghost{background:transparent;color:#9eacc1;border:1px solid #334158;padding:8px 10px;font-size:12px}
+#playScreen .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;min-height:34px}
+#playScreen .meta{font-size:12px;color:var(--muted)}#playScreen .meta b{color:#fff}
+#boardWrap{flex:1;min-height:240px;position:relative;border-radius:16px;overflow:hidden;background:#0a0e17;border:2px solid #ff4fd8;box-shadow:0 0 14px #ff4fd888,inset 0 0 18px #00e5ff22;animation:borderFlash 1.2s linear infinite}
+@keyframes borderFlash{
+  0%{border-color:#ff4fd8;box-shadow:0 0 16px #ff4fd8aa,inset 0 0 14px #ff4fd822}
+  16%{border-color:#ff5c77;box-shadow:0 0 16px #ff5c77aa,inset 0 0 14px #ff5c7722}
+  33%{border-color:#ffbf47;box-shadow:0 0 16px #ffbf47aa,inset 0 0 14px #ffbf4722}
+  50%{border-color:#32d583;box-shadow:0 0 16px #32d583aa,inset 0 0 14px #32d58322}
+  66%{border-color:#00e5ff;box-shadow:0 0 16px #00e5ffaa,inset 0 0 14px #00e5ff22}
+  83%{border-color:#7c5cff;box-shadow:0 0 16px #7c5cffaa,inset 0 0 14px #7c5cff22}
+  100%{border-color:#ff4fd8;box-shadow:0 0 16px #ff4fd8aa,inset 0 0 14px #ff4fd822}
+}
+header,.balance,#betScreen .scroll,#betScreen .footer,.total-box,.play-footer .stat{
+  animation:uiBorderFlash 1.6s linear infinite
+}
+@keyframes uiBorderFlash{
+  0%{border-color:#ff4fd8;box-shadow:0 0 10px #ff4fd855}
+  20%{border-color:#00e5ff;box-shadow:0 0 10px #00e5ff55}
+  40%{border-color:#32d583;box-shadow:0 0 10px #32d58355}
+  60%{border-color:#ffbf47;box-shadow:0 0 10px #ffbf4755}
+  80%{border-color:#7c5cff;box-shadow:0 0 10px #7c5cff55}
+  100%{border-color:#ff4fd8;box-shadow:0 0 10px #ff4fd855}
+}
+canvas{display:block;width:100%;height:100%}
+.result{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:clamp(24px,7vw,40px);font-weight:900;text-shadow:0 0 24px currentColor;opacity:0;transition:.25s;text-align:center;padding:12px}
+.result.show{opacity:1}
+.play-footer{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+.play-footer .stat{background:#0c1119;border:1px solid #202c3d;border-radius:10px;padding:8px;text-align:center;font-size:11px}
+.play-footer .stat span{display:block;color:var(--muted);margin-bottom:2px}.play-footer .stat b{color:var(--green);font-size:12px}
+#againBtn{display:none;margin-top:8px}
+#playScreen.done #againBtn{display:block}
+#backBtn{visibility:hidden}
+#playScreen.done #backBtn{visibility:visible}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#101827;color:#fff;border:2px solid #2196f3;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#64b5f6;text-align:center;margin:0 0 10px}.helpCard h3{color:#81c784;margin:12px 0 4px}.helpCard li{margin:5px 0}.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">CHUVA DE <span>PRÊMIOS</span></div>
+    <div class="balance"><small>CRÉDITOS</small> <span id="balance">0</span></div>
+  </header>
+
+  <section id="betScreen" class="screen on">
+    <div class="scroll">
+      <h3>Montar aposta</h3>
+      <button type="button" class="helpBtn" id="openHelp">❓ COMO JOGAR / REGRAS</button>
+      <div class="field"><label>Valor por bolinha <span id="betLabel">2</span></label><input id="bet" type="number" inputmode="numeric" min="2" max="200" step="1" value="2"></div>
+      <div class="field"><label>Quantidade de bolinhas</label><input id="count" type="number" inputmode="numeric" min="1" max="50" value="1"></div>
+      <div class="total-box"><span>Total da aposta</span><b id="totalLabel">2</b></div>
+      <h3>Risco</h3>
+      <div class="risk">
+        <button type="button" data-risk="low">Baixo</button>
+        <button type="button" data-risk="medium" class="active">Médio</button>
+        <button type="button" data-risk="high">Alto</button>
+      </div>
+      <div class="row">
+        <div class="field"><label>Linhas</label><select id="rows"><option>8</option><option selected>10</option><option>12</option><option>14</option></select></div>
+        <div class="field"><label>Velocidade</label><select id="speed"><option value="0.6">Lenta</option><option value="0.8" selected>Normal</option><option value="1.05">Rápida</option></select></div>
+      </div>
+      <div class="note">Aposta por bolinha: 2 a 200 créditos. O saldo é o da sua carteira do clube.</div>
+    </div>
+    <div class="footer">
+      <button type="button" class="primary" id="confirmBet">CONFIRMAR E JOGAR</button>
+    </div>
+  </section>
+
+  <section id="playScreen" class="screen">
+    <div class="top">
+      <button type="button" class="ghost" id="backBtn">← Aposta</button>
+      <div class="meta" id="playMeta">—</div>
+    </div>
+    <div id="boardWrap"><canvas id="board"></canvas><div class="result" id="result"></div></div>
+    <div class="play-footer">
+      <div class="stat"><span>Jogadas</span><b id="played">0</b></div>
+      <div class="stat"><span>Apostado</span><b id="wagered">0</b></div>
+      <div class="stat"><span>Resultado</span><b id="profit">0</b></div>
+    </div>
+    <button type="button" class="primary" id="againBtn">NOVA APOSTA</button>
+  </section>
+</div>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — CHUVA DE PRÊMIOS</h2>
+<p>As bolinhas descem pelos pinos e caem em um multiplicador.</p>
+<ul>
+  <li>Escolha o valor por bolinha (2 a 200), a quantidade e o risco.</li>
+  <li>O total (valor × quantidade) é debitado da sua carteira ao confirmar.</li>
+  <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
+  <li>Risco baixo: prêmios mais estáveis. Alto: laterais pagam mais, o centro paga menos.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=7"></script>
+<script src="../js/auth.js?v=13"></script>
+<script src="../js/house.js?v=1"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=8"></script>
+<script>
+(function(){
+var canvas=document.getElementById('board');
+var ctx=canvas.getContext('2d',{alpha:false});
+var wrap=document.getElementById('boardWrap');
+var betScreen=document.getElementById('betScreen');
+var playScreen=document.getElementById('playScreen');
+var confirmBtn=document.getElementById('confirmBet');
+
+var W=320,H=480,dpr=1,rows=10;
+var balls=[],pegs=[],slots=[];
+var balance=0,played=0,wagered=0,profit=0,risk='medium';
+var boardTop=60,boardBottom=400,pegSpace=36,pegR=4,speed=0.8;
+var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=false;
+var bgCache=null,needStatic=true,raf=0;
+
+var MULT={
+ low:[2,1.2,1,0.8,0.5,1,0.5,0.8,1,1.2,2],
+ medium:[5,1.5,1.25,0.75,0.5,1,0.5,0.75,1.25,1.5,5],
+ high:[12,4,2,1,0.5,1,0.5,1,2,4,12]
+};
+
+function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
+function pickMults(set,n){
+ if(set.length===n)return set.slice();
+ var out=[],den=Math.max(1,n-1),i;
+ for(i=0;i<n;i++) out.push(set[Math.round(i*(set.length-1)/den)]);
+ return out;
+}
+function betVal(){
+ var n=Math.floor(Number(document.getElementById('bet').value)||0);
+ if(window.clubBets) return clubBets.clamp(n);
+ return Math.max(2, Math.min(200, n||2));
+}
+function countVal(){return Math.min(50, Math.max(1, Math.floor(Number(document.getElementById('count').value)||1)));}
+
+async function persistBalance(){
+ if(window.clubWallet) await clubWallet.set(balance);
+}
+
+function updateUI(){
+ var b=betVal(),n=countVal();
+ document.getElementById('bet').value=b;
+ document.getElementById('balance').textContent=money(balance);
+ document.getElementById('played').textContent=String(played);
+ document.getElementById('wagered').textContent=money(wagered);
+ document.getElementById('profit').textContent=money(profit);
+ document.getElementById('betLabel').textContent=money(b);
+ document.getElementById('totalLabel').textContent=money(b*n);
+ confirmBtn.textContent=n===1?'CONFIRMAR E JOGAR 1 BOLINHA':'CONFIRMAR E JOGAR '+n+' BOLINHAS';
+}
+
+function showBet(){
+ roundActive=false;starting=false;balls=[];
+ if(raf){cancelAnimationFrame(raf);raf=0;}
+ playScreen.classList.remove('on','done');
+ betScreen.classList.add('on');
+ updateUI();
+}
+function showPlay(){
+ betScreen.classList.remove('on');
+ playScreen.classList.add('on');
+ playScreen.classList.remove('done');
+}
+
+function sizeCanvas(){
+ dpr=window.devicePixelRatio>1.5?2:1;
+ var w=wrap.clientWidth|0;
+ var h=wrap.clientHeight|0;
+ if(w<100) w=(window.innerWidth-24)|0;
+ if(h<180) h=(window.innerHeight*0.55)|0;
+ w=Math.max(200,w); h=Math.max(220,h);
+ if(w===W && h===H && canvas.width===((w*dpr)|0)) return false;
+ W=w; H=h;
+ canvas.width=(W*dpr)|0;
+ canvas.height=(H*dpr)|0;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ needStatic=true;
+ bgCache=null;
+ return true;
+}
+
+function buildBoard(){
+ rows=Number(document.getElementById('rows').value)||10;
+ speed=Number(document.getElementById('speed').value)||0.8;
+ pegs=[]; slots=[];
+ boardTop=Math.max(44, H*0.08);
+ boardBottom=H-Math.max(58, H*0.1);
+ var usable=Math.max(100, boardBottom-boardTop);
+ var dy=usable/(rows+1);
+ var cx=W*0.5;
+ pegSpace=Math.min(W/(rows+3), Math.max(22, W*0.07));
+ pegR=Math.max(3, Math.min(4.5, pegSpace*0.11));
+ var r,c,count,y,start;
+ for(r=0;r<rows;r++){
+  count=r+1; y=boardTop+r*dy; start=cx-(count-1)*pegSpace*0.5;
+  for(c=0;c<count;c++) pegs.push({x:start+c*pegSpace,y:y});
+ }
+ var n=rows+1, sw=pegSpace, sx=cx-rows*pegSpace*0.5-sw*0.5;
+ var vals=pickMults(MULT[risk], n), i;
+ for(i=0;i<n;i++) slots.push({x:sx+i*sw, w:sw, y:boardBottom+4, m:vals[i]});
+ needStatic=true;
+}
+
+function paintStatic(){
+ bgCache=document.createElement('canvas');
+ bgCache.width=canvas.width;
+ bgCache.height=canvas.height;
+ var g=bgCache.getContext('2d');
+ g.setTransform(dpr,0,0,dpr,0,0);
+ var grd=g.createLinearGradient(0,0,0,H);
+ grd.addColorStop(0,'#172448'); grd.addColorStop(1,'#080c14');
+ g.fillStyle=grd; g.fillRect(0,0,W,H);
+ needStatic=false;
+}
+
+function draw(){
+ if(needStatic || !bgCache) paintStatic();
+ ctx.setTransform(1,0,0,1,0,0);
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(bgCache,0,0);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+
+ var now=Date.now(), i,p,s,b,alpha,rr,pulse,glow,hue,slotH,label,col;
+
+ // borda interna do tabuleiro piscando colorido
+ hue=(now*0.25)%360;
+ pulse=0.55+0.45*Math.sin(now*0.012);
+ ctx.shadowBlur=10+pulse*14;
+ ctx.shadowColor='hsl('+hue+',100%,60%)';
+ ctx.strokeStyle='hsl('+hue+',100%,'+(55+pulse*20)+'%)';
+ ctx.lineWidth=2.5+pulse*1.5;
+ ctx.strokeRect(3,3,W-6,H-6);
+ ctx.shadowBlur=0;
+
+ // drop point piscando
+ pulse=0.45+0.55*Math.sin(now*0.012);
+ ctx.shadowBlur=10+pulse*14;
+ ctx.shadowColor='#00e5ff';
+ ctx.fillStyle='rgba(0,229,255,'+(0.35+pulse*0.55)+')';
+ ctx.beginPath(); ctx.arc(W*0.5, boardTop*0.4, 5+pulse*2, 0, Math.PI*2); ctx.fill();
+
+ // pinos azul neon piscando
+ for(i=0;i<pegs.length;i++){
+  p=pegs[i];
+  pulse=0.4+0.6*Math.sin(now*0.014+i*0.45);
+  glow=6+pulse*16;
+  ctx.shadowBlur=glow;
+  ctx.shadowColor='rgba(0,210,255,'+(0.55+pulse*0.45)+')';
+  ctx.fillStyle=pulse>0.75?'#e8ffff':(pulse>0.45?'#5cf0ff':'#0099ff');
+  ctx.beginPath(); ctx.arc(p.x,p.y,pegR*(0.9+pulse*0.25),0,Math.PI*2); ctx.fill();
+ }
+
+ // slots coloridos piscando
+ slotH=Math.max(36, H*0.07);
+ for(i=0;i<slots.length;i++){
+  s=slots[i];
+  hue=(now*0.18+i*28)%360;
+  pulse=0.5+0.5*Math.sin(now*0.01+i*0.7);
+  col='hsl('+hue+',100%,'+(48+pulse*18)+'%)';
+  ctx.shadowBlur=4+pulse*10;
+  ctx.shadowColor=col;
+  ctx.fillStyle='hsla('+hue+',100%,'+(40+pulse*20)+'%,'+(0.22+pulse*0.25)+')';
+  ctx.fillRect(s.x+2,s.y,s.w-4,slotH);
+  ctx.strokeStyle=col;
+  ctx.lineWidth=1.5+pulse;
+  ctx.strokeRect(s.x+2,s.y,s.w-4,slotH);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#fff';
+  ctx.font='bold '+Math.max(9, Math.min(12, s.w/4.2))+'px sans-serif';
+  ctx.textAlign='center';
+  label=(s.m%1===0?String(s.m):String(s.m).replace('.',','))+'x';
+  ctx.fillText(label, s.x+s.w*0.5, s.y+slotH*0.62);
+ }
+
+ // bolinhas piscando colorido
+ for(i=0;i<balls.length;i++){
+  b=balls[i];
+  if(b.dead) continue;
+  alpha=b.sink?Math.max(0,1-b.t):1;
+  rr=b.r*(b.sink?Math.max(0.2,1-b.t*0.65):1);
+  hue=(now*0.55+i*97+(b.x+b.y)*0.4)%360;
+  pulse=0.55+0.45*Math.sin(now*0.02+i);
+  ctx.globalAlpha=alpha;
+  ctx.shadowBlur=12+pulse*18;
+  ctx.shadowColor='hsl('+hue+',100%,60%)';
+  ctx.beginPath(); ctx.arc(b.x,b.y,rr*(0.92+pulse*0.12),0,Math.PI*2);
+  ctx.fillStyle='hsl('+hue+',100%,'+(52+pulse*20)+'%)';
+  ctx.fill();
+  ctx.beginPath(); ctx.arc(b.x-rr*0.25,b.y-rr*0.25,rr*0.28,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,'+(0.35+pulse*0.35)+')';
+  ctx.fill();
+ }
+ ctx.globalAlpha=1;
+ ctx.shadowBlur=0;
+}
+
+function spawn(bet){
+ balls.push({
+  x:W*0.5+(Math.random()-0.5)*3,
+  y:Math.max(16, boardTop*0.4),
+  vx:(Math.random()-0.5)*0.4,
+  vy:0.35,
+  r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
+  bet:bet, sink:false, t:0, slot:null, dead:false, hit:0
+ });
+}
+
+function nearestSlot(x){
+ var best=slots[0], dmin=1e9, i,d;
+ for(i=0;i<slots.length;i++){
+  d=Math.abs(slots[i].x+slots[i].w*0.5-x);
+  if(d<dmin){dmin=d;best=slots[i];}
+ }
+ return best;
+}
+
+async function finish(b){
+ if(b.dead) return;
+ b.dead=true;
+ var slot=b.slot||nearestSlot(b.x);
+ var force=null;
+ try{ if(window.clubHouse) force=await clubHouse.nextOutcome(); }catch(e){}
+ if(force==='bank' && slots.length){
+  slot=slots.reduce(function(a,s){ return s.m<a.m?s:a; });
+ } else if(force==='player' && slots.length){
+  slot=slots.reduce(function(a,s){ return s.m>a.m?s:a; });
+ }
+ b.slot=slot;
+ var m=slot?slot.m:1;
+ var gain=Math.round(b.bet*m*100)/100;
+ balance+=gain; played++; profit+=gain-b.bet; roundGain+=gain; pending--;
+ flash(m+'x  +'+money(gain), gain>=b.bet?'#32d583':'#ffbf47');
+ updateUI();
+ if(pending<=0 && roundActive){
+  roundActive=false;
+  playScreen.classList.add('done');
+  persistBalance();
+  var net=roundGain-roundBet*roundCount;
+  setTimeout(function(){
+   flash((net>=0?'+':'')+money(net)+' no total', net>=0?'#32d583':'#ff5c77');
+  }, 300);
+ }
+}
+
+function stepBall(b){
+ var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,half,t,pad;
+ if(b.sink){
+  if(!b.slot){ finish(b); return; }
+  b.t+=0.05*speed;
+  b.x+=(b.slot.x+b.slot.w*0.5-b.x)*0.3;
+  b.y+=2.8*speed;
+  if(b.t>=1 || b.y>b.slot.y+50) finish(b);
+  return;
+ }
+
+ b.vy+=0.09*speed;
+ b.vx*=0.996;
+ b.x+=b.vx*speed;
+ b.y+=b.vy*speed;
+
+ // colisão só com pinos próximos (evita travar no celular)
+ min=b.r+pegR;
+ min2=min*min;
+ for(i=0;i<pegs.length;i++){
+  p=pegs[i];
+  dy=b.y-p.y;
+  if(dy>min || dy<-min) continue;
+  dx=b.x-p.x;
+  d2=dx*dx+dy*dy;
+  if(d2>=min2 || d2===0) continue;
+  // no máx. 1 batida a cada poucos frames
+  if(b.hit>0) break;
+  d2=Math.sqrt(d2);
+  nx=dx/d2; ny=dy/d2; over=min-d2;
+  b.x+=nx*over; b.y+=ny*over;
+  dot=b.vx*nx+b.vy*ny;
+  b.vx=(b.vx-2*dot*nx)*0.55;
+  b.vy=(b.vy-2*dot*ny)*0.55;
+  b.vx+=(Math.random()-0.5)*0.25+(W*0.5-b.x)*0.002;
+  if(b.vy<0.5) b.vy=0.5;
+  b.vy+=0.1;
+  b.hit=3;
+  break;
+ }
+ if(b.hit>0) b.hit--;
+
+ t=Math.max(0, Math.min(1, (b.y-boardTop)/Math.max(1,boardBottom-boardTop)));
+ half=pegSpace*(0.7+t*rows*0.48);
+ left=W*0.5-half; right=W*0.5+half;
+ pad=b.r+4;
+ if(b.x<left+pad){ b.x=left+pad; b.vx=Math.abs(b.vx)*0.4+0.1; }
+ if(b.x>right-pad){ b.x=right-pad; b.vx=-Math.abs(b.vx)*0.4-0.1; }
+ if(b.x<b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*0.4; }
+ if(b.x>W-b.r){ b.x=W-b.r; b.vx=-Math.abs(b.vx)*0.4; }
+ if(b.vx>2) b.vx=2; if(b.vx<-2) b.vx=-2;
+ if(b.vy>4) b.vy=4;
+
+ if(b.y>=boardBottom-6){
+  b.slot=nearestSlot(b.x);
+  b.sink=true; b.t=0; b.vx=0; b.vy=1.2;
+  if(b.slot){
+   b.x=Math.max(b.slot.x+6, Math.min(b.slot.x+b.slot.w-6, b.x));
+  }
+ }
+}
+
+function loop(){
+ raf=requestAnimationFrame(loop);
+ if(!playScreen.classList.contains('on')) return;
+ try{
+  var i, next=[];
+  if(roundActive || balls.length){
+   for(i=0;i<balls.length;i++){
+    if(balls[i].dead) continue;
+    stepBall(balls[i]);
+    if(!balls[i].dead) next.push(balls[i]);
+   }
+   balls=next;
+  }
+  draw();
+ }catch(err){
+  console && console.error && console.error(err);
+ }
+}
+
+function startRound(ev){
+ if(ev){ ev.preventDefault(); }
+ if(starting || roundActive) return;
+ var bet=betVal(), n=countVal(), total=bet*n;
+ if(window.clubBets){
+  var check=clubBets.validate(bet);
+  if(!check.ok){ alert(check.message); return; }
+ }
+ if(balance<total){ alert('Saldo insuficiente'); return; }
+
+ starting=true;
+ try{ if(document.activeElement) document.activeElement.blur(); }catch(e){}
+
+ balance-=total; wagered+=total;
+ persistBalance();
+ roundBet=bet; roundCount=n; pending=n; roundGain=0; roundActive=true;
+ speed=Number(document.getElementById('speed').value)||0.8;
+ document.getElementById('playMeta').innerHTML=n+' bolinha'+(n>1?'s':'')+' · <b>'+money(total)+'</b>';
+ updateUI();
+ showPlay();
+
+ // espera o layout do celular aplicar
+ setTimeout(function(){
+  sizeCanvas();
+  buildBoard();
+  balls=[];
+  var i; for(i=0;i<n;i++) spawn(bet);
+  draw();
+  starting=false;
+  if(!raf) raf=requestAnimationFrame(loop);
+ }, 60);
+}
+
+var flashTimer=0;
+function flash(text,color){
+ var el=document.getElementById('result');
+ el.textContent=text; el.style.color=color; el.classList.add('show');
+ clearTimeout(flashTimer);
+ flashTimer=setTimeout(function(){ el.classList.remove('show'); }, 850);
+}
+
+function onTap(el, fn){
+ if(!el) return;
+ var lock=0;
+ el.addEventListener('click', function(e){
+  var now=Date.now();
+  if(now-lock<400) return;
+  lock=now;
+  fn(e);
+ });
+}
+
+onTap(confirmBtn, startRound);
+onTap(document.getElementById('againBtn'), function(){ showBet(); });
+onTap(document.getElementById('backBtn'), function(){ if(!roundActive) showBet(); });
+document.querySelectorAll('[data-risk]').forEach(function(btn){
+ onTap(btn, function(){
+  risk=btn.getAttribute('data-risk');
+  document.querySelectorAll('[data-risk]').forEach(function(x){ x.classList.toggle('active', x===btn); });
+ });
+});
+document.getElementById('bet').addEventListener('input', updateUI);
+document.getElementById('count').addEventListener('input', updateUI);
+
+var resizeTimer=0;
+window.addEventListener('resize', function(){
+ clearTimeout(resizeTimer);
+ resizeTimer=setTimeout(function(){
+  if(!playScreen.classList.contains('on')) return;
+  if(sizeCanvas()){ buildBoard(); draw(); }
+ }, 200);
+});
+
+updateUI();
+if(window.clubWalletReady){
+ window.clubWalletReady.then(function(w){
+  if(!w) return;
+  balance=Number(w.credits||0);
+  updateUI();
+ });
+}
+var hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm){ oh.onclick=function(){ hm.style.display='block'; }; }
+if(ch&&hm){ ch.onclick=function(){ hm.style.display='none'; }; }
+if(hm){ hm.addEventListener('click',function(e){ if(e.target===hm) hm.style.display='none'; }); }
+})();
+</script>
+</body>
+</html>

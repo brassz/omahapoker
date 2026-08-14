@@ -7,6 +7,7 @@ Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
   omaha.png      → logo do Omaha5 (lobby)
   crep.png       → logo do Crep
   bacatela.png   → logo da Bacatela
+  chuvadepremios.png → logo da Chuva de Prêmios
   bagatela.png   → (mesmo jogo) pode usar bacatela.png
   ronda.png      → logo da Ronda
   caipira.png    → logo do Caipira
