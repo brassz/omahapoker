@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0a0614"/>
+  <circle cx="256" cy="230" r="140" fill="#12101c" stroke="#17c8ff" stroke-width="10"/>
+  <path d="M256 90 A140 140 0 0 1 377 300 L256 230 Z" fill="#d8453e"/>
+  <path d="M377 300 A140 140 0 0 1 135 300 L256 230 Z" fill="#2d343e"/>
+  <path d="M135 300 A140 140 0 0 1 256 90 L256 230 Z" fill="#08b65a"/>
+  <circle cx="256" cy="230" r="28" fill="#ffd91a"/>
+  <text x="256" y="455" text-anchor="middle" font-family="Trebuchet MS,Arial" font-size="42" font-weight="900" fill="#ffd91a">ROLETA</text>
+</svg>

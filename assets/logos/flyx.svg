@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0a0614"/>
+  <circle cx="256" cy="220" r="128" fill="#12101c" stroke="#17c8ff" stroke-width="10"/>
+  <path d="M90 250 L250 210 L430 195 L250 248 L90 278 Z" fill="#e8eef8"/>
+  <path d="M250 210 L310 120 L330 210" fill="#ff3b4a"/>
+  <path d="M250 248 L340 330 L310 248" fill="#c9d2e0"/>
+  <path d="M400 188 L470 200 L400 218" fill="#ffd91a"/>
+  <circle cx="200" cy="228" r="8" fill="#17c8ff"/>
+  <circle cx="230" cy="224" r="8" fill="#17c8ff"/>
+  <text x="256" y="430" text-anchor="middle" font-family="Trebuchet MS,Arial" font-size="54" font-weight="900" fill="#ffd91a">FLYX</text>
+</svg>
