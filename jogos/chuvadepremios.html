@@ -359,7 +359,7 @@ function draw(){
  ctx.shadowBlur=0;
 }
 
-function spawn(bet){
+function spawn(bet, force){
  balls.push({
   x:W*0.5+(Math.random()-0.5)*6,
   y:Math.max(16, boardTop*0.4),
@@ -367,7 +367,7 @@ function spawn(bet){
   vy:0.55,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
   bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
-  stall:0, lastY:0, age:0
+  stall:0, lastY:0, age:0, force:force||null
  });
 }
 
@@ -395,7 +395,15 @@ function addHit(m){
 
 function forceSink(b){
  if(b.sink || b.dead) return;
- b.slot=nearestSlot(b.x);
+ var slot=nearestSlot(b.x);
+ if(b.force==='bank' && slots.length){
+  slot=slots.reduce(function(a,s){ return s.m<a.m?s:a; });
+ } else if(b.force==='player' && slots.length){
+  var winSlots=slots.filter(function(s){ return s.m>=1; });
+  var pool=winSlots.length?winSlots:slots;
+  slot=pool.reduce(function(a,s){ return s.m>a.m?s:a; });
+ }
+ b.slot=slot;
  b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
 }
 
@@ -403,13 +411,6 @@ async function finish(b){
  if(b.dead) return;
  b.dead=true;
  var slot=b.slot||nearestSlot(b.x);
- var force=null;
- try{ if(window.clubHouse) force=await clubHouse.nextOutcome(); }catch(e){}
- if(force==='bank' && slots.length){
-  slot=slots.reduce(function(a,s){ return s.m<a.m?s:a; });
- } else if(force==='player' && slots.length){
-  slot=slots.reduce(function(a,s){ return s.m>a.m?s:a; });
- }
  b.slot=slot;
  var m=slot?slot.m:1;
  var gain=Math.round(b.bet*m*100)/100;
@@ -556,10 +557,16 @@ function startRound(ev){
   sizeCanvas();
   buildBoard();
   balls=[];
-  var i; for(i=0;i<n;i++) spawn(bet);
-  draw();
-  starting=false;
-  if(!raf) raf=requestAnimationFrame(loop);
+  var i;
+  Promise.all(Array.from({length:n}, function(){
+    if(!window.clubHouse) return Promise.resolve(null);
+    return clubHouse.nextOutcome().catch(function(){ return null; });
+  })).then(function(forces){
+    for(i=0;i<n;i++) spawn(bet, forces[i]||null);
+    draw();
+    starting=false;
+    if(!raf) raf=requestAnimationFrame(loop);
+  });
  }, 60);
 }
 

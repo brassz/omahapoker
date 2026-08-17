@@ -497,26 +497,49 @@ async function evaluate(){
   if(!showHands || board.length<5 || evaluating)return;
   evaluating=true;
   try{
-    const scores=players.map((hand,i)=>({i,score:bestOmaha(hand),winner:false}));
-    let best=scores[0].score;
-    for(const x of scores.slice(1))if(cmp(x.score,best)>0)best=x.score;
-    scores.forEach(x=>x.winner=cmp(x.score,best)===0);
-    let winners=scores.filter(x=>x.winner);
+    const scoresOf=()=>{
+      const scores=players.map((hand,i)=>({i,score:bestOmaha(hand),winner:false}));
+      let best=scores[0].score;
+      for(const x of scores.slice(1))if(cmp(x.score,best)>0)best=x.score;
+      scores.forEach(x=>x.winner=cmp(x.score,best)===0);
+      const winners=scores.filter(x=>x.winner);
+      const result=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
+      return {scores,best,winners,result};
+    };
+    let show=scoresOf();
+    if(activeBet>0){
+      let force=null;
+      try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
+      if(force==='player' && show.result!=='player'){
+        const tmp=players[0]; players[0]=players[1]; players[1]=tmp;
+        show=scoresOf();
+        if(show.result!=='player'){
+          show.result='player';
+          show.scores.forEach(x=>{x.winner=x.i===0;});
+          show.winners=show.scores.filter(x=>x.winner);
+          show.best=show.winners[0].score;
+        }
+      } else if(force==='bank' && show.result==='player'){
+        const tmp=players[0]; players[0]=players[1]; players[1]=tmp;
+        show=scoresOf();
+        if(show.result==='player'){
+          show.result='bank';
+          show.scores.forEach(x=>{x.winner=x.i===1;});
+          show.winners=show.scores.filter(x=>x.winner);
+          show.best=show.winners[0].score;
+        }
+      }
+    }
+    const scores=show.scores;
+    let best=show.best;
+    let winners=show.winners;
     let settledResult=null;
     let settledBet=0;
     if(activeBet>0){
-      let result=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
-      const force=window.clubHouse?await clubHouse.nextOutcome():null;
-      if(force==='player'||force==='bank'){
-        result=force;
-        scores.forEach(x=>{x.winner=(force==='player'?x.i===0:x.i===1);});
-        winners=scores.filter(x=>x.winner);
-        best=winners[0].score;
-      }
-      settledBet=settleBet(result);
-      settledResult=result;
+      settledBet=settleBet(show.result);
+      settledResult=show.result;
     }else{
-      settledResult=winners.length>1?'tie':(winners[0].i===0?'player':'bank');
+      settledResult=show.result;
     }
     lastResults=scores;
     if(settledResult) persistHand(settledResult,{betAmount:settledBet});

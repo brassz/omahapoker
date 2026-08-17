@@ -471,8 +471,12 @@ async function pickResult(){
   let force=null;
   try{ if(window.clubHouse) force=await clubHouse.nextOutcome(); }catch(_){}
   if(force==="bank"){
-    const losers=slots.filter(s=>!pendingBets.some(b=>betWins(b,s)>0));
-    if(losers.length) result=losers[Math.floor(Math.random()*losers.length)];
+    let best=result, bestPay=Infinity;
+    slots.forEach(s=>{
+      const pay=pendingBets.reduce((a,b)=>a+(betWins(b,s)||0),0);
+      if(pay<bestPay){ bestPay=pay; best=s; }
+    });
+    result=best;
   } else if(force==="player"){
     const winners=slots.filter(s=>pendingBets.some(b=>betWins(b,s)>0));
     if(winners.length) result=winners[Math.floor(Math.random()*winners.length)];

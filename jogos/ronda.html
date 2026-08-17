@@ -281,9 +281,18 @@ async function playRound(){
   document.getElementById('status').textContent='Aposta confirmada. Virando as cartas...';
 
   let winner=null, winningCard=null, turned=0;
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
 
   while(deck.length){
     const c=deck.shift();
+    let would=null;
+    if(c.rank===cardA.rank) would='A';
+    else if(c.rank===cardB.rank) would='B';
+    if(would){
+      if(force==='bank' && would===picked) continue;
+      if(force==='player' && would!==picked) continue;
+    }
     turned++;
     showCard('currentCard',c);
     document.getElementById('status').textContent=
@@ -291,34 +300,32 @@ async function playRound(){
 
     await new Promise(r=>setTimeout(r,650));
 
-    if(c.rank===cardA.rank){
-      winner='A'; winningCard=c; break;
-    }
-    if(c.rank===cardB.rank){
-      winner='B'; winningCard=c; break;
+    if(would){
+      winner=would; winningCard=c; break;
     }
   }
 
   if(!winner){
-    credits+=bet;
-    renderCredits();
-    await persistCredits();
-    document.getElementById('status').textContent='Nenhuma das cartas repetiu. Aposta devolvida. Embaralhe novamente.';
-    ready=false;
-    document.getElementById('playBtn').disabled=false;
-    document.getElementById('shuffleBtn').disabled=false;
-    document.getElementById('cutBtn').disabled=false;
-    document.getElementById('dealBtn').disabled=false;
-    return;
-  }
-
-  const force=window.clubHouse?await clubHouse.nextOutcome():null;
-  if(force==='player'){
-    winner=picked;
-    winningCard=picked==='A'?cardA:cardB;
-  } else if(force==='bank' && winner===picked){
-    winner=(picked==='A'?'B':'A');
-    winningCard=winner==='A'?cardA:cardB;
+    if(force==='player'){
+      winner=picked;
+      winningCard=picked==='A'?cardA:cardB;
+      showCard('currentCard', winningCard);
+    } else if(force==='bank'){
+      winner=picked==='A'?'B':'A';
+      winningCard=winner==='A'?cardA:cardB;
+      showCard('currentCard', winningCard);
+    } else {
+      credits+=bet;
+      renderCredits();
+      await persistCredits();
+      document.getElementById('status').textContent='Nenhuma das cartas repetiu. Aposta devolvida. Embaralhe novamente.';
+      ready=false;
+      document.getElementById('playBtn').disabled=false;
+      document.getElementById('shuffleBtn').disabled=false;
+      document.getElementById('cutBtn').disabled=false;
+      document.getElementById('dealBtn').disabled=false;
+      return;
+    }
   }
 
   const won=picked===winner;

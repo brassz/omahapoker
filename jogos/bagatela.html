@@ -1407,6 +1407,18 @@ function startFallPocket(pocket) {
 
 function finishPocket() {
   if (roundLocked) return;
+  getRoundForce().then((force) => {
+    if (roundLocked) return;
+    if (force === 'player') {
+      const h = pickHole(true);
+      if (h) { finishHole(h); return; }
+    }
+    settlePocketLose();
+  });
+}
+
+function settlePocketLose() {
+  if (roundLocked) return;
   roundLocked = true;
   shotActive = false;
   ball.visible = false;
@@ -1456,10 +1468,10 @@ async function finishHole(hole) {
   if (roundLocked) return;
 
   let target = hole;
-  /* Banca não pode dizer “perdeu” com a bola no buraco certo.
-     Se a casa quiser vitória, só então puxa para um buraco ganhador. */
   if (force === 'player' && !holeWins(target)) {
     target = pickHole(true) || target;
+  } else if (force === 'bank' && holeWins(target)) {
+    target = pickHole(false) || target;
   }
 
   roundLocked = true;
@@ -1517,13 +1529,20 @@ async function finishHole(hole) {
 function handleMiss() {
   if (!shotActive || roundLocked) return;
   shotActive = false;
-  roundLocked = true;
-  multiplierElement.textContent = '-';
-  resultValue.textContent = '0x';
-  resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
-  resultPayout.style.color = '#ff7d7d';
-  result.classList.add('show');
-  showAlert('lose', fmt(betAmount));
+  getRoundForce().then((force) => {
+    if (roundLocked) return;
+    if (force === 'player') {
+      const h = pickHole(true);
+      if (h) { finishHole(h); return; }
+    }
+    roundLocked = true;
+    multiplierElement.textContent = '-';
+    resultValue.textContent = '0x';
+    resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
+    resultPayout.style.color = '#ff7d7d';
+    result.classList.add('show');
+    showAlert('lose', fmt(betAmount));
+  });
 }
 
 function checkPockets() {
@@ -1690,6 +1709,7 @@ function shootFromAim() {
   multiplierElement.textContent = '-';
   resultPayout.textContent = '';
   holes.forEach((hole) => { hole.hit = false; });
+  getRoundForce();
 }
 
 function updateAimFromEvent(clientX, clientY) {

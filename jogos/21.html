@@ -133,7 +133,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 <script>
 let saldo=0, apostaAtual=0, baralho=[], maoJogador=[], maoBanca=[];
-let rodadaAtiva=false, bancaRevelada=false;
+let rodadaAtiva=false, bancaRevelada=false, roundForce=null;
 
 const naipes=['♠','♥','♦','♣'];
 const valores=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -216,6 +216,8 @@ async function novaRodada(){
   maoJogador=[];maoBanca=[];bancaRevelada=false;rodadaAtiva=true;
 
   comprar(maoJogador);comprar(maoBanca);comprar(maoJogador);comprar(maoBanca);
+  roundForce=null;
+  try{ roundForce=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ roundForce=null; }
   render();
 
   const p=valorMao(maoJogador);
@@ -231,7 +233,14 @@ async function novaRodada(){
 
 function pedirCarta(){
   if(!rodadaAtiva) return;
-  comprar(maoJogador);
+  if(roundForce==='player'){
+    const idx=baralho.findIndex(c=>valorMao(maoJogador.concat([c]))<=21);
+    if(idx>=0){
+      maoJogador.push(baralho.splice(idx,1)[0]);
+    }
+  }else{
+    comprar(maoJogador);
+  }
   render();
   const p=valorMao(maoJogador);
   if(p>21){
@@ -248,47 +257,69 @@ function pedirCarta(){
   }
 }
 
-function jogarBanca(){
+async function jogarBanca(){
   if(!rodadaAtiva) return;
+  const force=roundForce;
   bancaRevelada=true;
   render();
   const intervalo=setInterval(()=>{
+    if(!rodadaAtiva){ clearInterval(intervalo); return; }
     const b=valorMao(maoBanca);
-    if(b<17){
+    const p=valorMao(maoJogador);
+    let hit=b<17;
+    if(p<=21 && b<=21 && b<21){
+      if(force==='player' && b>=p) hit=true;
+      if(force==='bank' && b<p) hit=true;
+    }
+    if(hit){
       comprar(maoBanca);
       render();
     } else {
       clearInterval(intervalo);
+      apply21Force(force);
+      render();
       comparar();
     }
   },500);
+}
+
+function apply21Force(force){
+  const p=valorMao(maoJogador);
+  if(p>21) return;
+  const naipe=()=>naipes[Math.floor(Math.random()*4)];
+  if(force==='bank'){
+    const b=valorMao(maoBanca);
+    if(b>21 || b<p){
+      maoBanca=[{v:'A',n:naipe()},{v:'K',n:naipe()}];
+    }
+  } else if(force==='player' && p<=21){
+    let b=valorMao(maoBanca);
+    if(b<=21 && b>=p){
+      maoBanca.push({v:'K',n:naipe()});
+      if(valorMao(maoBanca)<=21) maoBanca.push({v:'Q',n:naipe()});
+    }
+  }
 }
 
 async function comparar(){
   const p=valorMao(maoJogador);
   const b=valorMao(maoBanca);
   const aposta=apostaAtual;
-  let playerWins=b>21||(p<=21&&p>b);
-  let force=null;
-  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
-  if(force==='player'&&p<=21) playerWins=true;
-  if(force==='bank') playerWins=false;
+  const playerWins=b>21||(p<=21&&p>b);
 
   if(playerWins){
     const pago=aposta*2;
     saldo+=pago;
     await persist();
-    if(force==='player'){
-      encerrar(`Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
-    } else if(b>21){
+    if(b>21){
       encerrar(`A banca passou de 21. Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
     } else {
       encerrar(`Você venceu: ${p} x ${b}. Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
     }
-  } else if(!force && b===p){
+  } else if(b===p){
     encerrar(`Empate: ${p} x ${b}. A banca venceu — aposta perdida.`);
   } else {
-    encerrar(`A banca venceu. Aposta de ${fmt(aposta)} perdida.`);
+    encerrar(`A banca venceu: ${p} x ${b}. Aposta de ${fmt(aposta)} perdida.`);
   }
 }
 

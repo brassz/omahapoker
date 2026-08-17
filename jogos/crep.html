@@ -357,11 +357,14 @@ function doubleLine(total, reason){
   setSteps(2);
   update();
 }
+function dicePair(total){
+  total=Math.max(2,Math.min(12,Number(total)||2));
+  const d1=Math.max(1,Math.min(6,total-1));
+  const d2=total-d1;
+  if(d2>=1 && d2<=6) return [d1,d2];
+  return [6,total-6];
+}
 async function applyHouse(naturalWin){
-  let force=null;
-  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
-  if(force==="player") return true;
-  if(force==="bank") return false;
   return naturalWin;
 }
 async function loseNow(msg){
@@ -399,7 +402,7 @@ async function cashOut(){
   persistBalance();
   finishRound();
 }
-function roll(){
+async function roll(){
   if(rolling||!["comeout","betting","pointPlay"].includes(phase))return;
   if(phase==="betting"){
     phase="pointPlay";
@@ -409,9 +412,24 @@ function roll(){
       status(`Sem aposta no ponto. Jogue até sair ${point} ou 7.`,"continue");
     }
   }
-  const d1=Math.floor(Math.random()*6)+1;
-  const d2=Math.floor(Math.random()*6)+1;
-  const total=d1+d2;
+  let d1=Math.floor(Math.random()*6)+1;
+  let d2=Math.floor(Math.random()*6)+1;
+  let total=d1+d2;
+  const comeout=phase==="comeout";
+  const resolving=comeout
+    ? (total===7||total===11||total===2||total===3||total===12)
+    : (total===point||total===7);
+  if(resolving){
+    let force=null;
+    try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
+    if(force==="bank"){
+      total=comeout ? [2,3,12][Math.floor(Math.random()*3)] : 7;
+    } else if(force==="player"){
+      total=comeout ? (Math.random()<0.5?7:11) : point;
+    }
+    [d1,d2]=dicePair(total);
+    total=d1+d2;
+  }
   animate(d1,d2,async()=>{
     $("sum").textContent="Soma: "+total;
     log(`Rodada ${round}: ${d1} + ${d2} = ${total}.`);

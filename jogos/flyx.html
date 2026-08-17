@@ -212,6 +212,7 @@ let crashAt = 2;
 let waitLeft = 3;
 let lastTs = performance.now();
 let starting = false;
+let houseForce = null;
 const bets = [
   { active:false, queued:false, amount:2, cashed:false },
   { active:false, queued:false, amount:10, cashed:false }
@@ -304,10 +305,11 @@ async function actionBet(i){
 
 function pickCrash(){
   const r = Math.random();
-  if(r<.42) return 1.02+Math.random()*.95;
-  if(r<.78) return 2+Math.random()*3;
-  if(r<.95) return 5+Math.random()*10;
-  return 15+Math.random()*35;
+  if(r<.22) return 1.20+Math.random()*0.70;
+  if(r<.62) return 1.90+Math.random()*2.40;
+  if(r<.88) return 4.20+Math.random()*6.50;
+  if(r<.97) return 10+Math.random()*18;
+  return 20+Math.random()*40;
 }
 
 async function startRound(){
@@ -316,10 +318,13 @@ async function startRound(){
   phase = 'flying';
   multiplier = 1;
   crashAt = pickCrash();
-  let force = null;
-  try{ if(window.clubHouse) force = await clubHouse.nextOutcome(); }catch(_){}
-  if(force==='bank') crashAt = 1.02 + Math.random()*0.38;
-  if(force==='player') crashAt = Math.max(crashAt, 2.4 + Math.random()*4);
+  houseForce = null;
+  const willBet = bets.some((b,i) => b.queued || (el('auto'+i) && el('auto'+i).checked));
+  if(willBet){
+    try{ if(window.clubHouse) houseForce = await clubHouse.nextOutcome(); }catch(_){}
+  }
+  if(houseForce==='bank') crashAt = 1.28 + Math.random()*0.55;
+  if(houseForce==='player') crashAt = 4.5 + Math.random()*8;
 
   el('status').textContent = 'VOANDO';
   el('game').classList.remove('crashed');
@@ -455,7 +460,7 @@ function animate(ts){
     setFlight(0);
     if(waitLeft<=0 && !starting) startRound();
   }else if(phase==='flying'){
-    multiplier *= Math.exp(dt*.26);
+    multiplier *= Math.exp(dt*.18);
     const shown = Math.min(multiplier, crashAt);
     el('multiplier').textContent = shown.toFixed(2)+'x';
     setFlight(Math.min(1,(shown-1)/8));
