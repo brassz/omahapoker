@@ -1495,7 +1495,7 @@ async function finishHole(hole) {
   if (gameMode === 'multiplier') {
     credits += payout;
     renderCredits();
-    persistCredits();
+    await persistCredits();
     if (won) {
       resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} créditos`;
       resultPayout.style.color = '#7dffb0';
@@ -1513,7 +1513,7 @@ async function finishHole(hole) {
   if (won) {
     credits += payout;
     renderCredits();
-    persistCredits();
+    await persistCredits();
     resultPayout.textContent = `Ganho: +${fmt(payout)} créditos`;
     resultPayout.style.color = '#7dffb0';
     result.classList.add('show');
@@ -1912,10 +1912,11 @@ syncModeUI();
 <script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=8"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 window.clubWalletReady.then((w) => {
   if (!w) return;
+  if (w.sealed) return;
   credits = Number(w.credits || 0);
   renderCredits();
 });

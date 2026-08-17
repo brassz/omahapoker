@@ -207,19 +207,26 @@ function log(text){
   li.textContent=text;
   $("history").prepend(li);
 }
+function shownBalance(){
+  return Number(playerBalance||0)+Number(lineStake||0)+Number(pointBet||0);
+}
 async function persistBalance(){
   if(window.clubWallet) await clubWallet.set(playerBalance);
+  update();
 }
 function canCashOut(){
   return lineStake>0 && !rolling && ["comeout","betting","pointPlay"].includes(phase);
 }
 function update(){
-  $("playerBalance").textContent=fmt(playerBalance);
+  const total=shownBalance();
+  $("playerBalance").textContent=fmt(total);
   $("lineTop").textContent=fmt(lineStake);
   $("pointTop").textContent=point ?? "—";
   $("roundTop").textContent=round;
   $("pointLabel").textContent="Ponto: "+(point ?? "nenhum");
   $("cashOut").disabled=!canCashOut();
+  const el=document.querySelector("#clubGateBar .user .saldo");
+  if(el) el.textContent=`Saldo: ${Number(total).toLocaleString("pt-BR")}`;
 }
 function setSteps(step){
   ["step1","step2","step3"].forEach((id,i)=>{
@@ -234,8 +241,9 @@ function rateForPoint(p){
   if(p===4||p===10)return 2;
   return 0;
 }
-function confirmBase(){
+async function confirmBase(){
   if(phase!=="idle")return;
+  if(!window.clubWallet){status("Carregando carteira...","lose");return}
   const check=clubBets.validate($("baseBet").value);
   if(!check.ok){status(check.message,"lose");return}
   const value=check.value;
@@ -262,7 +270,7 @@ function confirmBase(){
   status("Aposta em jogo. 7 ou 11 dobra; 2, 3 ou 12 perde. Você pode encerrar e receber a qualquer momento.","continue");
   log(`Rodada ${round}: ${fmt(lineStake)} créditos em jogo.`);
   update();
-  persistBalance();
+  await persistBalance();
 }
 function enablePointBets(){
   const rate=rateForPoint(point);
@@ -281,7 +289,7 @@ function enablePointBets(){
   log(`Rodada ${round}: ponto ${point} definido.`);
   update();
 }
-function confirmSide(){
+async function confirmSide(){
   if(phase!=="betting")return;
   const raw=String($("pointBet").value||"").trim();
   if(!raw){
@@ -308,7 +316,7 @@ function confirmSide(){
   status(`Aposta no ponto confirmada. Jogue até sair ${point} ou 7.`,"continue");
   log(`Rodada ${round}: ${fmt(pointBet)} no ponto (opcional).`);
   update();
-  persistBalance();
+  await persistBalance();
 }
 function animate(d1,d2,done){
   rolling=true;$("roll").disabled=true;$("cashOut").disabled=true;
@@ -371,7 +379,7 @@ async function loseNow(msg){
   status(msg,"lose");
   showResult(`Aposta em jogo perdida: ${fmt(lineStake)} créditos.${pointBet?`<br>Aposta no ponto perdida: ${fmt(pointBet)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
   log(`Rodada ${round}: perdeu ${fmt(lineStake)} em jogo.`);
-  persistBalance();
+  await persistBalance();
   finishRound();
 }
 async function resolveLine(naturalWin,total,winMsg,loseMsg){
@@ -385,7 +393,7 @@ async function resolveLine(naturalWin,total,winMsg,loseMsg){
     }else{
       log(`Rodada ${round}: aposta no ponto perdida (${fmt(pointBet)}).`);
     }
-    persistBalance();
+    await persistBalance();
   }
   pointBet=0;
   if(won) doubleLine(total, winMsg);
@@ -396,10 +404,12 @@ async function cashOut(){
   const paid=lineStake;
   const extra=pointBet;
   playerBalance+=paid+(extra||0);
+  lineStake=0;
+  pointBet=0;
   status(`Aposta encerrada. Você recebeu ${fmt(paid+(extra||0))} créditos.`,"win");
   showResult(`Recebeu ${fmt(paid)} da aposta em jogo.${extra?`<br>Devolução da aposta no ponto: ${fmt(extra)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
   log(`Rodada ${round}: encerrou e recebeu ${fmt(paid+(extra||0))}.`);
-  persistBalance();
+  await persistBalance();
   finishRound();
 }
 async function roll(){
@@ -476,14 +486,15 @@ $("cashOut").addEventListener("click",cashOut);
 update();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=5"></script>
+<script src="../js/config.js?v=7"></script>
+<script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=7"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;
+  if(w.sealed) return;
   playerBalance=Number(w.credits||0);
   update();
 });

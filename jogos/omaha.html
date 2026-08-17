@@ -214,7 +214,7 @@ function renderBet(){
     : 'Nenhuma aposta ativa.';
   if($('confirmBet'))$('confirmBet').disabled=!(stage===0 && activeBet<=0 && !roundOver);
 }
-function confirmBet(){
+async function confirmBet(){
   if(stage!==0 || roundOver){alert('Toque em NOVA RODADA e confirme a aposta antes de ver as cartas.');return;}
   if(activeBet>0){alert('Já existe uma aposta ativa nesta rodada.');return;}
   const check=clubBets.validate($('betCredits').value);
@@ -224,7 +224,8 @@ function confirmBet(){
   if(playerCredits<v){alert('Créditos insuficientes.');return;}
   playerCredits-=v;
   activeBet=v;
-  saveCredits();renderCredits();renderBet();
+  renderCredits();renderBet();
+  await saveCredits();
 
   // Só depois de confirmar/creditar a aposta a mesa é revelada
   handPersisted=false;
@@ -242,13 +243,14 @@ function confirmBet(){
   $('status').textContent=`Aposta confirmada: ${fmtCredits(v)} créditos. Abra o flop.`;
   render();
 }
-function settleBet(winner){
+async function settleBet(winner){
   if(activeBet<=0)return 0;
   const bet=activeBet;
   if(winner==='player') playerCredits+=bet*2;
   else if(winner==='tie') playerCredits+=bet;
   activeBet=0;
-  saveCredits();renderCredits();renderBet();
+  renderCredits();renderBet();
+  await saveCredits();
   return bet;
 }
 function settleFold(){
@@ -273,16 +275,17 @@ function renderUserBar(){
   }
 }
 async function saveCredits(){
-  if(!currentUser||syncing)return;
-  syncing=true;
+  if(!currentUser)return;
   try{
-    await omahaAuth.saveCredits(currentUser.id,playerCredits);
+    if(window.clubWallet){
+      await clubWallet.set(playerCredits);
+    }else{
+      await omahaAuth.saveCredits(currentUser.id,playerCredits);
+    }
     if(profile) profile.player_credits=playerCredits;
   }catch(err){
     console.error('Falha ao salvar créditos',err);
     $('status').textContent='Aviso: não foi possível salvar os créditos no servidor.';
-  }finally{
-    syncing=false;
   }
 }
 async function persistHand(result,extra={}){
@@ -304,6 +307,7 @@ async function persistHand(result,extra={}){
     });
     await omahaAuth.bumpStats(currentUser.id,result);
     profile=await omahaAuth.getProfile(currentUser.id);
+    if(profile) profile.player_credits=playerCredits;
     renderUserBar();
   }catch(err){
     console.error('Falha ao salvar mão',err);
@@ -536,7 +540,7 @@ async function evaluate(){
     let settledResult=null;
     let settledBet=0;
     if(activeBet>0){
-      settledBet=settleBet(show.result);
+      settledBet=await settleBet(show.result);
       settledResult=show.result;
     }else{
       settledResult=show.result;

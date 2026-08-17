@@ -260,7 +260,7 @@ body{display:flex;flex-direction:column}
 <script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=8"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 const slots = [
   {n:0,c:"green"},{n:1,c:"red"},{n:2,c:"black"},{n:3,c:"red"},{n:4,c:"black"},
@@ -507,7 +507,7 @@ async function spin(){
   spinButton.disabled=true;
   credits-=total;
   renderCredits();
-  persist();
+  await persist();
   message.textContent="Girando...";
   resultNumber.textContent="...";
 
@@ -535,7 +535,7 @@ async function spin(){
     });
   });
 
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     resultNumber.className="result-number is-"+result.c;
     resultNumber.textContent=`${result.n} • ${names[result.c]}`;
     history.unshift(result);
@@ -545,7 +545,7 @@ async function spin(){
     if(payout>0){
       credits+=payout;
       renderCredits();
-      persist();
+      try{ await persist(); }catch(_){}
     }
     pendingBets=[];
     updatePending();
@@ -578,6 +578,7 @@ renderCredits();
 
 window.clubWalletReady.then(w=>{
   if(!w) return;
+  if(w.sealed) return;
   credits=Number(w.credits||0);
   renderCredits();
 });

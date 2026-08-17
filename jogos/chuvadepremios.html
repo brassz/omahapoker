@@ -158,7 +158,7 @@ canvas{display:block;width:100%;height:100%}
 <script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=8"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 (function(){
 var canvas=document.getElementById('board');
@@ -421,7 +421,7 @@ async function finish(b){
  if(pending<=0 && roundActive){
   roundActive=false;
   playScreen.classList.add('done');
-  persistBalance();
+  await persistBalance();
   var net=roundGain-roundBet*roundCount;
   setTimeout(function(){
    flash((net>=0?'+':'')+money(net)+' no total', net>=0?'#32d583':'#ff5c77');
@@ -525,7 +525,7 @@ function loop(){
  }
 }
 
-function startRound(ev){
+async function startRound(ev){
  if(ev){ ev.preventDefault(); }
  if(starting || roundActive) return;
  var bet=betVal(), n=countVal(), total=bet*n;
@@ -544,7 +544,7 @@ function startRound(ev){
  try{ if(document.activeElement) document.activeElement.blur(); }catch(e){}
 
  balance-=total; wagered+=total;
- persistBalance();
+ await persistBalance();
  roundBet=bet; roundCount=n; pending=n; roundGain=0; roundActive=true;
  clearHits();
  speed=Number(document.getElementById('speed').value)||0.8;
@@ -614,6 +614,7 @@ updateUI();
 if(window.clubWalletReady){
  window.clubWalletReady.then(function(w){
   if(!w) return;
+  if(w.sealed) return;
   balance=Number(w.credits||0);
   updateUI();
  });

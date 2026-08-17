@@ -368,10 +368,11 @@ renderCredits();renderHistory();
 <script src="../js/auth.js?v=5"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=7"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;
+  if(w.sealed) return;
   credits=Number(w.credits||0);
   renderCredits();
 });

@@ -202,7 +202,7 @@ body{display:flex;flex-direction:column;color:#e8f7ff;font-family:Arial,Helvetic
 <script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=8"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 const el = id => document.getElementById(id);
 let credits = 0;
@@ -494,6 +494,7 @@ requestAnimationFrame(animate);
 
 window.clubWalletReady.then(w=>{
   if(!w) return;
+  if(w.sealed) return;
   credits = Number(w.credits||0);
   renderCredits();
 });

@@ -133,7 +133,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 <script>
 let saldo=0, apostaAtual=0, baralho=[], maoJogador=[], maoBanca=[];
-let rodadaAtiva=false, bancaRevelada=false, roundForce=null;
+let rodadaAtiva=false, bancaRevelada=false, roundForce=null, roundSettled=false;
 
 const naipes=['♠','♥','♦','♣'];
 const valores=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
@@ -171,7 +171,11 @@ function cartaHTML(c, escondida=false){
 function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
 
 async function persist(){
-  if(window.clubWallet) await clubWallet.set(saldo);
+  if(window.clubWallet){
+    await clubWallet.set(saldo);
+    saldo=Number(clubWallet.credits||saldo);
+  }
+  render();
 }
 
 function render(){
@@ -202,6 +206,7 @@ function comprar(mao){mao.push(baralho.pop())}
 
 async function novaRodada(){
   if(rodadaAtiva){mensagem('Termine a rodada atual primeiro.');return}
+  if(!window.clubWallet){mensagem('Carregando carteira...');return}
   const check=clubBets.validate(document.getElementById('aposta').value);
   if(!check.ok){mensagem(check.message);return}
   const aposta=check.value;
@@ -209,7 +214,9 @@ async function novaRodada(){
   if(aposta>saldo){mensagem('Créditos insuficientes para essa aposta.');return}
 
   apostaAtual=aposta;
+  roundSettled=false;
   saldo-=apostaAtual;
+  render();
   await persist();
   document.getElementById('mesa').style.display='';
   baralho=criarBaralho();
@@ -302,23 +309,28 @@ function apply21Force(force){
 }
 
 async function comparar(){
+  if(roundSettled) return;
   const p=valorMao(maoJogador);
   const b=valorMao(maoBanca);
   const aposta=apostaAtual;
   const playerWins=b>21||(p<=21&&p>b);
+  roundSettled=true;
 
   if(playerWins){
     const pago=aposta*2;
     saldo+=pago;
-    await persist();
+    render();
+    try{ await persist(); }catch(_){}
     if(b>21){
       encerrar(`A banca passou de 21. Você venceu! Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
     } else {
       encerrar(`Você venceu: ${p} x ${b}. Apostou ${fmt(aposta)} e recebeu ${fmt(pago)}.`);
     }
   } else if(b===p){
+    try{ await persist(); }catch(_){}
     encerrar(`Empate: ${p} x ${b}. A banca venceu — aposta perdida.`);
   } else {
+    try{ await persist(); }catch(_){}
     encerrar(`A banca venceu: ${p} x ${b}. Aposta de ${fmt(aposta)} perdida.`);
   }
 }
@@ -346,14 +358,15 @@ document.getElementById('btnParar').addEventListener('click',parar);
 render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=8"></script>
+<script src="../js/config.js?v=7"></script>
+<script src="../js/auth.js?v=13"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=7"></script>
+<script src="../js/gate.js?v=10"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w) return;
+  if(w.sealed) return;
   saldo=Number(w.credits||0);
   render();
 });

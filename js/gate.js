@@ -89,19 +89,27 @@
   }
 
   function makeWallet(user, profile) {
+    let writeChain = Promise.resolve();
     const wallet = {
       userId: user.id,
       credits: Number(profile?.player_credits || 0),
+      sealed: false,
       async refresh() {
         const p = await omahaAuth.getProfile(user.id);
         this.credits = Number(p?.player_credits || 0);
         return this.credits;
       },
       async set(credits) {
-        this.credits = Math.max(0, Number(credits) || 0);
-        await omahaAuth.saveCredits(user.id, this.credits);
-        const el = document.querySelector('#clubGateBar .user .saldo');
-        if (el) el.textContent = `Saldo: ${this.credits.toLocaleString('pt-BR')}`;
+        this.sealed = true;
+        const next = Math.max(0, Number(credits) || 0);
+        this.credits = next;
+        const run = writeChain.then(async () => {
+          await omahaAuth.saveCredits(user.id, next);
+          const el = document.querySelector('#clubGateBar .user .saldo');
+          if (el) el.textContent = `Saldo: ${next.toLocaleString('pt-BR')}`;
+        });
+        writeChain = run.catch(() => {});
+        await run;
         return this.credits;
       },
       async add(delta) {
@@ -116,8 +124,10 @@
     const wallet = {
       userId: 'preview',
       credits: 1000,
+      sealed: false,
       async refresh() { return this.credits; },
       async set(credits) {
+        this.sealed = true;
         this.credits = Math.max(0, Number(credits) || 0);
         const el = document.querySelector('#clubGateBar .user .saldo');
         if (el) el.textContent = `Saldo: ${this.credits.toLocaleString('pt-BR')}`;
