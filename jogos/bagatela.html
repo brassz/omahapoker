@@ -734,6 +734,7 @@ function setupGame() {
   ball.visible = true;
   buildPockets();
   createHoles();
+  rollGuardPins();
 }
 
 function shuffleArray(arr) {
@@ -1435,6 +1436,41 @@ function holeWins(h) {
   return isWinningNumber(h.number);
 }
 
+function rollGuardPins() {
+  holes.forEach((h) => {
+    h.guardPin = false;
+    if (roundForce === 'player') return;
+    if (!holeWins(h)) return;
+    let chance = 0.58;
+    if (gameMode === 'multiplier') {
+      const n = Number(h.number);
+      if (n >= 10) chance = 0.84;
+      else if (n >= 2) chance = 0.70;
+      else chance = 0.52;
+    }
+    h.guardPin = Math.random() < chance;
+  });
+}
+
+function bounceOffGuard(hole, dx, dy, distance) {
+  const pinR = hole.radius * 0.7;
+  const nx = dx / (distance || 1);
+  const ny = dy / (distance || 1);
+  const overlap = pinR + ball.radius * 0.55 - distance;
+  if (overlap > 0) {
+    ball.x += nx * (overlap + 0.6);
+    ball.y += ny * (overlap + 0.6);
+  }
+  const dot = ball.vx * nx + ball.vy * ny;
+  if (dot < 0) {
+    ball.vx = (ball.vx - 1.75 * dot * nx) * 0.78;
+    ball.vy = (ball.vy - 1.75 * dot * ny) * 0.78;
+  } else {
+    ball.vx += nx * 1.4;
+    ball.vy += ny * 1.4;
+  }
+}
+
 function pickHole(wantWin) {
   let best = null;
   let bestD = Infinity;
@@ -1574,6 +1610,11 @@ function checkHole() {
     const distance = Math.sqrt(dx * dx + dy * dy);
     if (distance > hole.radius * 0.95) continue;
 
+    if (hole.guardPin && distance < hole.radius * 0.82) {
+      bounceOffGuard(hole, dx, dy, distance);
+      return;
+    }
+
     if (speed > 3.2) {
       const pull = Math.min(0.08, 0.035 * (1 - distance / hole.radius));
       ball.vx += (-dx / (distance || 1)) * pull;
@@ -1709,7 +1750,7 @@ function shootFromAim() {
   multiplierElement.textContent = '-';
   resultPayout.textContent = '';
   holes.forEach((hole) => { hole.hit = false; });
-  getRoundForce();
+  getRoundForce().then(() => rollGuardPins());
 }
 
 function updateAimFromEvent(clientX, clientY) {
