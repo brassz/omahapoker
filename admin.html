@@ -98,6 +98,10 @@ body{margin:0;min-height:100vh}
 }
 .cfgActions .save{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
 .cfgActions .reset{background:linear-gradient(180deg,#b95b00,#6b2f00);border:2px solid #ff9f32}
+.cfgActions .del{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
+.cfgActions .open{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
+#maintPanel.on{border-color:#ff3434;box-shadow:0 0 18px #ff343488}
+#maintToggle{width:100%;padding:14px;font-size:15px;letter-spacing:.4px}
 @media(max-width:720px){
   .cfgGrid,.cfgStats{grid-template-columns:1fr}
 }
@@ -128,6 +132,21 @@ body{margin:0;min-height:100vh}
     </section>
 
     <div class="msg" id="msg">Carregando...</div>
+
+    <section class="panel" id="maintPanel">
+      <h2>★ MANUTENÇÃO DO SITE</h2>
+      <p class="cfgHelp">
+        Fecha <b>todos os jogos</b> para os jogadores. Quem já estiver numa sala
+        é enviado de volta ao lobby. Login, carteira e este painel continuam
+        acessíveis. Admin também não entra nos jogos enquanto estiver ativo.
+      </p>
+      <div class="cfgStats">
+        <div class="cfgStat"><span>STATUS DO SITE</span><b id="maintStatus">—</b></div>
+      </div>
+      <div class="cfgActions">
+        <button type="button" class="del" id="maintToggle">COLOCAR EM MANUTENÇÃO</button>
+      </div>
+    </section>
 
     <section class="panel">
       <h2>★ MANIPULAÇÃO DE APOSTAS</h2>
@@ -187,7 +206,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=13"></script>
+  <script src="js/auth.js?v=14"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -279,6 +298,20 @@ body{margin:0;min-height:100vh}
     $('cfgStatus').textContent = settings.enabled ? 'ATIVA' : 'OFF';
     $('cfgCounter').textContent = fmt(c);
     $('cfgRealized').textContent = realized == null ? '—' : `${realized}% (${fmt(wins)} vit.)`;
+    renderMaintenance(settings);
+  }
+
+  function renderMaintenance(s) {
+    const on = omahaAuth.isMaintenance(s || settings);
+    const panel = $('maintPanel');
+    const status = $('maintStatus');
+    const btn = $('maintToggle');
+    if (!panel || !status || !btn) return;
+    panel.classList.toggle('on', on);
+    status.textContent = on ? 'EM MANUTENÇÃO' : 'ABERTO';
+    status.style.color = on ? '#ff6262' : '#5cff1a';
+    btn.textContent = on ? 'REABRIR SITE E JOGOS' : 'COLOCAR SITE EM MANUTENÇÃO';
+    btn.className = on ? 'open' : 'del';
   }
 
   async function reloadSettings() {
@@ -409,6 +442,32 @@ body{margin:0;min-height:100vh}
       );
     } catch (err) {
       setMsg(err?.message || 'Falha ao salvar. Rode o SQL supabase/game-settings.sql no Supabase.', 'err');
+    }
+  };
+
+  $('maintToggle').onclick = async () => {
+    const on = omahaAuth.isMaintenance(settings);
+    const next = !on;
+    const ok = confirm(
+      next
+        ? 'Colocar o site em manutenção?\nTodos os jogos serão fechados para os jogadores.'
+        : 'Reabrir o site e liberar todos os jogos?'
+    );
+    if (!ok) return;
+    try {
+      const s = await omahaAuth.adminSetMaintenance(next);
+      renderSettings(s);
+      setMsg(
+        next
+          ? 'Site em manutenção. Todos os jogos estão fechados.'
+          : 'Site reaberto. Jogos liberados.',
+        'ok'
+      );
+    } catch (err) {
+      const tip = /admin_set_maintenance|function|schema cache|column/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/maintenance.sql no Supabase.'
+        : '';
+      setMsg((err?.message || 'Falha ao alterar manutenção.') + tip, 'err');
     }
   };
 

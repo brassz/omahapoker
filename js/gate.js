@@ -165,8 +165,26 @@
       if (profile && omahaAuth.isAdmin(profile)) {
         // Admin pode entrar nos jogos, mas o painel é admin.html
       }
+      try {
+        const settings = await omahaAuth.getGameSettings();
+        if (omahaAuth.isMaintenance(settings)) {
+          document.body.innerHTML = `
+            <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
+              <div>
+                <div style="font-size:22px;font-weight:1000;color:#ffd91a;letter-spacing:1px">SITE EM MANUTENÇÃO</div>
+                <p style="font-weight:800;color:#d8e7ff;line-height:1.45">Todos os jogos estão fechados.<br>Voltando ao lobby...</p>
+              </div>
+            </div>`;
+          resolveReady(null);
+          location.replace('../lobby.html');
+          return null;
+        }
+      } catch (_) {}
       injectClubBar(user, profile);
       const wallet = makeWallet(user, profile);
+      if (typeof omahaAuth.startMaintenanceWatch === 'function') {
+        omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
+      }
       resolveReady(wallet);
       return { user, profile, wallet };
     },

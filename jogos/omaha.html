@@ -194,7 +194,7 @@ button#river{
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=5"></script>
+<script src="../js/auth.js?v=14"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
 <script>
@@ -572,6 +572,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
     profile=await omahaAuth.ensureProfile(currentUser);
     playerCredits=Number(profile.player_credits??0);
     renderUserBar();
+    if (typeof omahaAuth.checkGamesClosed === 'function') {
+      const closed = await omahaAuth.checkGamesClosed({ lobbyUrl: '../lobby.html' });
+      if (closed) return;
+    }
+    if (typeof omahaAuth.startMaintenanceWatch === 'function') {
+      omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
+    }
   }catch(err){
     console.error(err);
     $('status').textContent='Erro ao carregar perfil. Tente sair e entrar novamente.';

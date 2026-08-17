@@ -99,6 +99,18 @@ body{margin:0;min-height:100vh}
   text-shadow:0 0 10px #17c8ff88;
 }
 .loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff4fd8;animation:clubNeonBlink 2.4s ease-in-out infinite}
+.maint-banner{
+  display:none;margin:0 0 14px;padding:14px 12px;text-align:center;font-weight:1000;
+  color:#fff;background:#3b0218;border:2px solid #ff3434;border-radius:14px;
+  box-shadow:0 0 18px #ff343488;letter-spacing:.4px;line-height:1.4;
+}
+.maint-banner.show{display:block}
+.game.closed{
+  opacity:.48;filter:grayscale(.75);pointer-events:none;cursor:not-allowed;
+}
+.game .closed-tag{
+  font-size:11px;font-weight:1000;letter-spacing:2px;color:#ff6262;
+}
 
 .modal{
   display:none;position:fixed;inset:0;z-index:9999;padding:16px;
@@ -213,7 +225,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=13"></script>
+  <script src="js/auth.js?v=14"></script>
   <script>
   const GAMES = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -230,6 +242,7 @@ body{margin:0;min-height:100vh}
   let currentCredits = 0;
   let currentUser = null;
   let currentProfile = null;
+  let siteMaintenance = false;
 
   const DEPOSIT = window.CLUB_DEPOSIT || {
     pixKey: '60.495.244/0001-14',
@@ -337,18 +350,9 @@ body{margin:0;min-height:100vh}
         </div>
       </section>
 
+      <div class="maint-banner" id="maintBanner">SITE EM MANUTENÇÃO — todos os jogos estão fechados.</div>
       <h2 class="section-title">★ SALAS DE JOGO ★</h2>
-      <nav class="grid" aria-label="Lista de jogos">
-        ${GAMES.map((g) => `
-          <a class="game" href="${g.href}" aria-label="Abrir ${g.name}">
-            ${logoImg(g.id)}
-            <span class="game-label">
-              <span>${g.name}</span>
-              ${g.launch ? '<span class="launch-tag">LANÇAMENTO</span>' : ''}
-            </span>
-          </a>
-        `).join('')}
-      </nav>
+      <nav class="grid" id="gamesGrid" aria-label="Lista de jogos"></nav>
       <p class="foot">ADICIONE SALDO PELA CARTEIRA · PIX</p>
     `;
 
@@ -359,6 +363,45 @@ body{margin:0;min-height:100vh}
       try { await omahaAuth.signOut(); } catch (_) {}
       location.replace('login.html');
     };
+
+    await syncMaintenance();
+    setInterval(syncMaintenance, 8000);
+  }
+
+  function gamesMarkup(closed) {
+    return GAMES.map((g) => {
+      const inner = `
+        ${logoImg(g.id)}
+        <span class="game-label">
+          <span>${g.name}</span>
+          ${closed ? '<span class="closed-tag">FECHADO</span>' : (g.launch ? '<span class="launch-tag">LANÇAMENTO</span>' : '')}
+        </span>
+      `;
+      if (closed) {
+        return `<div class="game closed" aria-disabled="true">${inner}</div>`;
+      }
+      return `<a class="game" href="${g.href}" aria-label="Abrir ${g.name}">${inner}</a>`;
+    }).join('');
+  }
+
+  function renderGames(closed) {
+    siteMaintenance = !!closed;
+    const banner = document.getElementById('maintBanner');
+    const grid = document.getElementById('gamesGrid');
+    const tag = document.querySelector('.hero .tag');
+    if (banner) banner.classList.toggle('show', closed);
+    if (grid) grid.innerHTML = gamesMarkup(closed);
+    if (tag) tag.textContent = closed ? 'Site em manutenção' : 'Escolha um jogo';
+  }
+
+  async function syncMaintenance() {
+    try {
+      const s = await omahaAuth.getGameSettings();
+      const on = omahaAuth.isMaintenance(s);
+      if (on !== siteMaintenance || !document.getElementById('gamesGrid')?.children.length) {
+        renderGames(on);
+      }
+    } catch (_) {}
   }
 
   document.getElementById('walletClose').onclick = closeWallet;

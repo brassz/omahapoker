@@ -191,6 +191,36 @@
       return data;
     },
 
+    isMaintenance(settings) {
+      const v = settings && settings.maintenance;
+      return v === true || v === 't' || v === 1 || v === '1';
+    },
+
+    async adminSetMaintenance(on) {
+      const { data, error } = await client.rpc('admin_set_maintenance', {
+        p_on: !!on,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async checkGamesClosed({ lobbyUrl = 'lobby.html' } = {}) {
+      try {
+        const settings = await this.getGameSettings();
+        if (!this.isMaintenance(settings)) return false;
+        location.replace(lobbyUrl);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    },
+
+    startMaintenanceWatch({ lobbyUrl = 'lobby.html', intervalMs = 8000 } = {}) {
+      const tick = () => this.checkGamesClosed({ lobbyUrl });
+      tick();
+      return setInterval(tick, intervalMs);
+    },
+
     async adminUpdateGameSettings({ enabled, rtpPercent }) {
       const rtp = Math.floor(Number(rtpPercent));
       const { data, error } = await client.rpc('admin_update_game_settings', {

@@ -22,6 +22,9 @@ alter table public.game_settings
 alter table public.game_settings
   add column if not exists player_win_counter bigint;
 
+alter table public.game_settings
+  add column if not exists maintenance boolean;
+
 -- 4) Preenche valores nulos (migra do modelo antigo: 1/N ≈ 100/N %)
 update public.game_settings
 set rtp_percent = greatest(
@@ -33,6 +36,10 @@ where rtp_percent is null;
 update public.game_settings
 set player_win_counter = 0
 where player_win_counter is null;
+
+update public.game_settings
+set maintenance = false
+where maintenance is null;
 
 -- 5) Defaults + NOT NULL
 alter table public.game_settings
@@ -46,6 +53,12 @@ alter table public.game_settings
 
 alter table public.game_settings
   alter column player_win_counter set not null;
+
+alter table public.game_settings
+  alter column maintenance set default false;
+
+alter table public.game_settings
+  alter column maintenance set not null;
 
 -- 6) Check 0–100 (idempotente)
 do $$
@@ -168,6 +181,37 @@ $$;
 revoke all on function public.admin_reset_bet_counter() from public;
 grant execute on function public.admin_reset_bet_counter() to authenticated;
 
+create or replace function public.admin_set_maintenance(p_on boolean)
+returns public.game_settings
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  row public.game_settings;
+begin
+  if not public.is_admin() then
+    raise exception 'Apenas admin';
+  end if;
+
+  update public.game_settings
+  set maintenance = coalesce(p_on, false), updated_at = now()
+  where id = 1
+  returning * into row;
+
+  if not found then
+    insert into public.game_settings (id, maintenance)
+    values (1, coalesce(p_on, false))
+    returning * into row;
+  end if;
+
+  return row;
+end;
+$$;
+
+revoke all on function public.admin_set_maintenance(boolean) from public;
+grant execute on function public.admin_set_maintenance(boolean) to authenticated;
+
 -- Retorna 'player' | 'bank' | 'fair'
 -- Quando ativo: sorteia com probabilidade rtp_percent% de vitória do jogador.
 create or replace function public.next_bet_outcome()
@@ -190,6 +234,10 @@ begin
   if not found then
     insert into public.game_settings (id) values (1)
     returning * into s;
+  end if;
+
+  if coalesce(s.maintenance, false) then
+    raise exception 'Site em manutenção';
   end if;
 
   if not s.enabled then
