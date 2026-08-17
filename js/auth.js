@@ -238,9 +238,50 @@
       return data;
     },
 
+    GAME_IDS: [
+      'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
+      'flyx', 'ronda', 'caipira', '21',
+    ],
+
+    normalizeGameId(id) {
+      const key = String(id || '').toLowerCase().replace(/\.html$/, '');
+      if (key === 'bagatela' || key === 'bacatela') return 'bacatela';
+      if (key === '21_index') return '21';
+      return key;
+    },
+
+    getMaintenanceGames(settings) {
+      if (!settings) return [];
+      const raw = settings.maintenance_games;
+      if (Array.isArray(raw) && raw.length) {
+        return raw.map((g) => this.normalizeGameId(g)).filter(Boolean);
+      }
+      const legacy = settings.maintenance;
+      if (legacy === true || legacy === 't' || legacy === 1 || legacy === '1') {
+        return this.GAME_IDS.slice();
+      }
+      return [];
+    },
+
     isMaintenance(settings) {
-      const v = settings && settings.maintenance;
-      return v === true || v === 't' || v === 1 || v === '1';
+      return this.getMaintenanceGames(settings).length > 0;
+    },
+
+    isGameInMaintenance(settings, gameId) {
+      const id = this.normalizeGameId(gameId);
+      if (!id) return false;
+      return this.getMaintenanceGames(settings).includes(id);
+    },
+
+    async adminSetMaintenanceGames(gameIds) {
+      const list = (Array.isArray(gameIds) ? gameIds : [])
+        .map((g) => this.normalizeGameId(g))
+        .filter((g) => this.GAME_IDS.includes(g));
+      const { data, error } = await client.rpc('admin_set_maintenance_games', {
+        p_games: list,
+      });
+      if (error) throw error;
+      return data;
     },
 
     async adminSetMaintenance(on) {
@@ -251,10 +292,10 @@
       return data;
     },
 
-    async checkGamesClosed({ lobbyUrl = 'lobby.html' } = {}) {
+    async checkGamesClosed({ gameId, lobbyUrl = 'lobby.html' } = {}) {
       try {
         const settings = await this.getGameSettings();
-        if (!this.isMaintenance(settings)) return false;
+        if (!this.isGameInMaintenance(settings, gameId)) return false;
         location.replace(lobbyUrl);
         return true;
       } catch (_) {
@@ -262,8 +303,8 @@
       }
     },
 
-    startMaintenanceWatch({ lobbyUrl = 'lobby.html', intervalMs = 8000 } = {}) {
-      const tick = () => this.checkGamesClosed({ lobbyUrl });
+    startMaintenanceWatch({ gameId, lobbyUrl = 'lobby.html', intervalMs = 8000 } = {}) {
+      const tick = () => this.checkGamesClosed({ gameId, lobbyUrl });
       tick();
       return setInterval(tick, intervalMs);
     },

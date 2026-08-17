@@ -115,7 +115,36 @@ body{margin:0;min-height:100vh}
 .cfgActions .del{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
 .cfgActions .open{background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
 #maintPanel.on{border-color:#ff3434;box-shadow:0 0 18px #ff343488}
-#maintToggle{width:100%;padding:14px;font-size:15px;letter-spacing:.4px}
+#maintOpenBtn{width:100%;padding:14px;font-size:15px;letter-spacing:.4px}
+.maintList{margin:8px 0 0;padding:0;list-style:none;font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.5}
+.maintList li{padding:4px 0;border-bottom:1px solid #263042}
+.maintList .tag{color:#ff6262}
+.modal{
+  display:none;position:fixed;inset:0;z-index:9999;padding:16px;
+  background:#000a;align-items:center;justify-content:center;
+}
+.modal.open{display:flex}
+.modalCard{
+  width:min(480px,100%);max-height:90vh;overflow:auto;
+  background:#080812;border:2px solid #17c8ff;border-radius:16px;
+  padding:16px;box-shadow:0 0 28px #17c8ff88;
+}
+.modalCard h3{margin:0 0 8px;color:var(--gold);text-align:center;font-size:18px}
+.modalCard .help{font-size:12px;font-weight:700;color:#d8e7ff;line-height:1.45;margin:0 0 12px}
+.maintGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.maintOpt{
+  display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;
+  background:#060912;border:1px solid #334;cursor:pointer;font-weight:800;font-size:13px;
+}
+.maintOpt input{width:18px;height:18px;accent-color:#17c8ff;cursor:pointer}
+.maintOpt.on{border-color:#ff3434;background:#3b021822}
+.modalActs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.modalActs button{
+  border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;color:#fff;
+}
+.modalActs .save{color:#041;background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76}
+.modalActs .ghost{background:#334;border:2px solid #556}
+.modalActs .all{grid-column:1/-1;background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff}
 @media(max-width:720px){
   .tabs{grid-template-columns:1fr 1fr}
   .cfgGrid,.cfgStats{grid-template-columns:1fr}
@@ -170,17 +199,17 @@ body{margin:0;min-height:100vh}
 
     <div class="tabPane" data-pane="config">
     <section class="panel" id="maintPanel">
-      <h2>★ MANUTENÇÃO DO SITE</h2>
+      <h2>★ MANUTENÇÃO POR JOGO</h2>
       <p class="cfgHelp">
-        Fecha <b>todos os jogos</b> para os jogadores. Quem já estiver numa sala
-        é enviado de volta ao lobby. Login, carteira e este painel continuam
-        acessíveis. Admin também não entra nos jogos enquanto estiver ativo.
+        Escolha quais salas ficam fechadas. Jogadores no lobby não entram nas salas
+        marcadas; quem já estiver dentro é enviado de volta ao lobby.
       </p>
       <div class="cfgStats">
-        <div class="cfgStat"><span>STATUS DO SITE</span><b id="maintStatus">—</b></div>
+        <div class="cfgStat"><span>SALAS FECHADAS</span><b id="maintStatus">—</b></div>
       </div>
+      <ul class="maintList" id="maintList"></ul>
       <div class="cfgActions">
-        <button type="button" class="del" id="maintToggle">COLOCAR EM MANUTENÇÃO</button>
+        <button type="button" class="del" id="maintOpenBtn">GERENCIAR MANUTENÇÃO</button>
       </div>
     </section>
 
@@ -245,9 +274,22 @@ body{margin:0;min-height:100vh}
     </div>
   </div>
 
+  <div class="modal" id="maintModal" aria-hidden="true">
+    <div class="modalCard">
+      <h3>Manutenção — selecionar jogos</h3>
+      <p class="help">Marque as salas que devem ficar fechadas. As demais continuam abertas no lobby.</p>
+      <div class="maintGrid" id="maintGrid"></div>
+      <div class="modalActs">
+        <button type="button" class="all" id="maintAll">MARCAR TODOS</button>
+        <button type="button" class="save" id="maintSave">SALVAR</button>
+        <button type="button" class="ghost" id="maintCancel">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=16"></script>
+  <script src="js/auth.js?v=17"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -260,6 +302,17 @@ body{margin:0;min-height:100vh}
   const PAGE_SIZE = 5;
   const LIVE_MS = 40000;
   let currentTab = 'live';
+  const MAINT_GAMES = [
+    { id: 'omaha', name: 'OMAHA5' },
+    { id: 'crep', name: 'CREP' },
+    { id: 'bacatela', name: 'BACATELA' },
+    { id: 'chuvadepremios', name: 'CHUVA DE PRÊMIOS' },
+    { id: 'roleta', name: 'ROLETA' },
+    { id: 'flyx', name: 'FLYX' },
+    { id: 'ronda', name: 'RONDA' },
+    { id: 'caipira', name: 'CAIPIRA' },
+    { id: '21', name: '21' },
+  ];
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
@@ -406,16 +459,50 @@ body{margin:0;min-height:100vh}
   }
 
   function renderMaintenance(s) {
-    const on = omahaAuth.isMaintenance(s || settings);
+    const list = omahaAuth.getMaintenanceGames(s || settings);
     const panel = $('maintPanel');
     const status = $('maintStatus');
-    const btn = $('maintToggle');
-    if (!panel || !status || !btn) return;
-    panel.classList.toggle('on', on);
-    status.textContent = on ? 'EM MANUTENÇÃO' : 'ABERTO';
-    status.style.color = on ? '#ff6262' : '#5cff1a';
-    btn.textContent = on ? 'REABRIR SITE E JOGOS' : 'COLOCAR SITE EM MANUTENÇÃO';
-    btn.className = on ? 'open' : 'del';
+    const ul = $('maintList');
+    if (!panel || !status) return;
+    panel.classList.toggle('on', list.length > 0);
+    status.textContent = list.length ? String(list.length) : '0';
+    status.style.color = list.length ? '#ff6262' : '#5cff1a';
+    if (ul) {
+      if (!list.length) {
+        ul.innerHTML = '<li>Nenhuma sala em manutenção — tudo aberto.</li>';
+      } else {
+        ul.innerHTML = list.map((id) =>
+          `<li><span class="tag">●</span> ${omahaAuth.gameLabel(id)}</li>`
+        ).join('');
+      }
+    }
+  }
+
+  function buildMaintGrid(selected) {
+    const sel = new Set(selected || []);
+    $('maintGrid').innerHTML = MAINT_GAMES.map((g) => `
+      <label class="maintOpt ${sel.has(g.id) ? 'on' : ''}">
+        <input type="checkbox" value="${g.id}" ${sel.has(g.id) ? 'checked' : ''}>
+        ${g.name}
+      </label>
+    `).join('');
+  }
+
+  function openMaintModal() {
+    buildMaintGrid(omahaAuth.getMaintenanceGames(settings));
+    $('maintAll').textContent = 'MARCAR TODOS';
+    $('maintModal').classList.add('open');
+    $('maintModal').setAttribute('aria-hidden', 'false');
+  }
+
+  function closeMaintModal() {
+    $('maintModal').classList.remove('open');
+    $('maintModal').setAttribute('aria-hidden', 'true');
+  }
+
+  function readMaintSelection() {
+    return [...$('maintGrid').querySelectorAll('input[type=checkbox]:checked')]
+      .map((el) => el.value);
   }
 
   async function reloadSettings() {
@@ -561,29 +648,42 @@ body{margin:0;min-height:100vh}
     }
   };
 
-  $('maintToggle').onclick = async () => {
-    const on = omahaAuth.isMaintenance(settings);
-    const next = !on;
-    const ok = confirm(
-      next
-        ? 'Colocar o site em manutenção?\nTodos os jogos serão fechados para os jogadores.'
-        : 'Reabrir o site e liberar todos os jogos?'
-    );
-    if (!ok) return;
+  $('maintOpenBtn').onclick = () => openMaintModal();
+  $('maintCancel').onclick = () => closeMaintModal();
+  $('maintModal').addEventListener('click', (e) => {
+    if (e.target.id === 'maintModal') closeMaintModal();
+  });
+  $('maintGrid').addEventListener('change', (e) => {
+    const lab = e.target.closest('.maintOpt');
+    if (lab) lab.classList.toggle('on', e.target.checked);
+  });
+  $('maintAll').onclick = () => {
+    const boxes = $('maintGrid').querySelectorAll('input[type=checkbox]');
+    const allOn = [...boxes].every((b) => b.checked);
+    boxes.forEach((b) => {
+      b.checked = !allOn;
+      b.closest('.maintOpt')?.classList.toggle('on', b.checked);
+    });
+    $('maintAll').textContent = allOn ? 'MARCAR TODOS' : 'DESMARCAR TODOS';
+  };
+  $('maintSave').onclick = async () => {
+    const selected = readMaintSelection();
     try {
-      const s = await omahaAuth.adminSetMaintenance(next);
-      renderSettings(s);
+      const s = await omahaAuth.adminSetMaintenanceGames(selected);
+      settings = s;
+      renderMaintenance(s);
+      closeMaintModal();
       setMsg(
-        next
-          ? 'Site em manutenção. Todos os jogos estão fechados.'
-          : 'Site reaberto. Jogos liberados.',
+        selected.length
+          ? `${selected.length} sala(s) em manutenção: ${selected.map((id) => omahaAuth.gameLabel(id)).join(', ')}.`
+          : 'Manutenção removida. Todas as salas estão abertas.',
         'ok'
       );
     } catch (err) {
-      const tip = /admin_set_maintenance|function|schema cache|column/i.test(err?.message || '')
-        ? ' Rode o SQL supabase/maintenance.sql no Supabase.'
+      const tip = /admin_set_maintenance|maintenance_games|schema cache/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/maintenance-games.sql no Supabase.'
         : '';
-      setMsg((err?.message || 'Falha ao alterar manutenção.') + tip, 'err');
+      setMsg((err?.message || 'Falha ao salvar manutenção.') + tip, 'err');
     }
   };
 

@@ -225,7 +225,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=16"></script>
+  <script src="js/auth.js?v=17"></script>
   <script>
   const GAMES = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -242,7 +242,7 @@ body{margin:0;min-height:100vh}
   let currentCredits = 0;
   let currentUser = null;
   let currentProfile = null;
-  let siteMaintenance = false;
+  let siteMaintenance = new Set();
 
   const DEPOSIT = window.CLUB_DEPOSIT || {
     pixKey: '60.495.244/0001-14',
@@ -371,13 +371,14 @@ body{margin:0;min-height:100vh}
     setInterval(syncMaintenance, 8000);
   }
 
-  function gamesMarkup(closed) {
+  function gamesMarkup(closedSet) {
     return GAMES.map((g) => {
+      const closed = closedSet.has(g.id);
       const inner = `
         ${logoImg(g.id)}
         <span class="game-label">
           <span>${g.name}</span>
-          ${closed ? '<span class="closed-tag">FECHADO</span>' : (g.launch ? '<span class="launch-tag">LANÇAMENTO</span>' : '')}
+          ${closed ? '<span class="closed-tag">MANUTENÇÃO</span>' : (g.launch ? '<span class="launch-tag">LANÇAMENTO</span>' : '')}
         </span>
       `;
       if (closed) {
@@ -387,22 +388,35 @@ body{margin:0;min-height:100vh}
     }).join('');
   }
 
-  function renderGames(closed) {
-    siteMaintenance = !!closed;
+  function setsEqual(a, b) {
+    if (a.size !== b.size) return false;
+    for (const x of a) if (!b.has(x)) return false;
+    return true;
+  }
+
+  function renderGames(closedSet) {
+    siteMaintenance = new Set(closedSet);
     const banner = document.getElementById('maintBanner');
     const grid = document.getElementById('gamesGrid');
     const tag = document.querySelector('.hero .tag');
-    if (banner) banner.classList.toggle('show', closed);
-    if (grid) grid.innerHTML = gamesMarkup(closed);
-    if (tag) tag.textContent = closed ? 'Site em manutenção' : 'Escolha um jogo';
+    const any = closedSet.size > 0;
+    if (banner) {
+      banner.classList.toggle('show', any);
+      banner.textContent = any
+        ? `${closedSet.size} jogo(s) em manutenção — salas fechadas no lobby.`
+        : 'SITE EM MANUTENÇÃO — todos os jogos estão fechados.';
+    }
+    if (grid) grid.innerHTML = gamesMarkup(closedSet);
+    if (tag) tag.textContent = any ? 'Algumas salas estão em manutenção' : 'Escolha um jogo';
   }
 
   async function syncMaintenance() {
     try {
       const s = await omahaAuth.getGameSettings();
-      const on = omahaAuth.isMaintenance(s);
-      if (on !== siteMaintenance || !document.getElementById('gamesGrid')?.children.length) {
-        renderGames(on);
+      const list = omahaAuth.getMaintenanceGames(s);
+      const next = new Set(list);
+      if (!setsEqual(next, siteMaintenance) || !document.getElementById('gamesGrid')?.children.length) {
+        renderGames(next);
       }
     } catch (_) {}
   }

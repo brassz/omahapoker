@@ -194,7 +194,7 @@ button#river{
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=16"></script>
+<script src="../js/auth.js?v=17"></script>
 <script src="../js/house.js?v=2"></script>
 <script src="../js/bets.js?v=2"></script>
 <script>
@@ -583,11 +583,11 @@ document.addEventListener('DOMContentLoaded',async()=>{
     playerCredits=Number(profile.player_credits??0);
     renderUserBar();
     if (typeof omahaAuth.checkGamesClosed === 'function') {
-      const closed = await omahaAuth.checkGamesClosed({ lobbyUrl: '../lobby.html' });
+      const closed = await omahaAuth.checkGamesClosed({ gameId: 'omaha', lobbyUrl: '../lobby.html' });
       if (closed) return;
     }
     if (typeof omahaAuth.startMaintenanceWatch === 'function') {
-      omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
+      omahaAuth.startMaintenanceWatch({ gameId: 'omaha', lobbyUrl: '../lobby.html', intervalMs: 8000 });
     }
     if (typeof omahaAuth.startPresence === 'function') {
       omahaAuth.startPresence('omaha');

@@ -1,9 +1,10 @@
 -- Manutenção por jogo (selecione quais salas ficam fechadas).
--- Rode no SQL Editor do Supabase (mesmo conteúdo de maintenance-games.sql).
+-- Rode no SQL Editor do Supabase.
 
 alter table public.game_settings
   add column if not exists maintenance_games text[] not null default '{}';
 
+-- Migra modo antigo (boolean = todos os jogos)
 update public.game_settings
 set maintenance_games = array[
   'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
@@ -56,6 +57,7 @@ $$;
 revoke all on function public.admin_set_maintenance_games(text[]) from public;
 grant execute on function public.admin_set_maintenance_games(text[]) to authenticated;
 
+-- Compat: RPC antigo vira "todos" ou "nenhum"
 create or replace function public.admin_set_maintenance(p_on boolean)
 returns public.game_settings
 language plpgsql

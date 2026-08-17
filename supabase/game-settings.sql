@@ -25,6 +25,9 @@ alter table public.game_settings
 alter table public.game_settings
   add column if not exists maintenance boolean;
 
+alter table public.game_settings
+  add column if not exists maintenance_games text[];
+
 -- 4) Preenche valores nulos (migra do modelo antigo: 1/N ≈ 100/N %)
 update public.game_settings
 set rtp_percent = greatest(
@@ -40,6 +43,16 @@ where player_win_counter is null;
 update public.game_settings
 set maintenance = false
 where maintenance is null;
+
+update public.game_settings
+set maintenance_games = '{}'
+where maintenance_games is null;
+
+alter table public.game_settings
+  alter column maintenance_games set default '{}';
+
+alter table public.game_settings
+  alter column maintenance_games set not null;
 
 -- 5) Defaults + NOT NULL
 alter table public.game_settings
@@ -236,7 +249,8 @@ begin
     returning * into s;
   end if;
 
-  if coalesce(s.maintenance, false) then
+  if coalesce(s.maintenance, false)
+     and coalesce(array_length(s.maintenance_games, 1), 0) = 0 then
     raise exception 'Site em manutenção';
   end if;
 

@@ -167,12 +167,16 @@
       }
       try {
         const settings = await omahaAuth.getGameSettings();
-        if (omahaAuth.isMaintenance(settings)) {
+        const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
+        const gameId = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : file === '21_index' ? '21'
+          : file;
+        if (omahaAuth.isGameInMaintenance(settings, gameId)) {
           document.body.innerHTML = `
             <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
               <div>
-                <div style="font-size:22px;font-weight:1000;color:#ffd91a;letter-spacing:1px">SITE EM MANUTENÇÃO</div>
-                <p style="font-weight:800;color:#d8e7ff;line-height:1.45">Todos os jogos estão fechados.<br>Voltando ao lobby...</p>
+                <div style="font-size:22px;font-weight:1000;color:#ffd91a;letter-spacing:1px">${omahaAuth.gameLabel(gameId)} EM MANUTENÇÃO</div>
+                <p style="font-weight:800;color:#d8e7ff;line-height:1.45">Esta sala está fechada no momento.<br>Voltando ao lobby...</p>
               </div>
             </div>`;
           resolveReady(null);
@@ -183,7 +187,11 @@
       injectClubBar(user, profile);
       const wallet = makeWallet(user, profile);
       if (typeof omahaAuth.startMaintenanceWatch === 'function') {
-        omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
+        const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
+        const gameId = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : file === '21_index' ? '21'
+          : file;
+        omahaAuth.startMaintenanceWatch({ gameId, lobbyUrl: '../lobby.html', intervalMs: 8000 });
       }
       if (typeof omahaAuth.startPresence === 'function') {
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
