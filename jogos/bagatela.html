@@ -637,6 +637,7 @@ let falling = null;
 let looping = false;
 let shotActive = false;
 let roundLocked = false;
+let roundForce = undefined;
 let alertTimer = null;
 let pockets = [];
 let holes = [];
@@ -972,6 +973,7 @@ function restartRound() {
   currentPower = 0;
   shotActive = false;
   roundLocked = false;
+  roundForce = undefined;
   stakeTaken = false;
   ball.vx = 0;
   ball.vy = 0;
@@ -1416,84 +1418,78 @@ function finishPocket() {
   showAlert('lose', fmt(betAmount));
 }
 
+function holeWins(h) {
+  if (gameMode === 'multiplier') return Number(h.number) >= 1;
+  return isWinningNumber(h.number);
+}
+
+function pickHole(wantWin) {
+  let best = null;
+  let bestD = Infinity;
+  for (const h of holes) {
+    if (holeWins(h) !== wantWin) continue;
+    const d = (h.x - ball.x) ** 2 + (h.y - ball.y) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = h;
+    }
+  }
+  return best;
+}
+
+async function getRoundForce() {
+  if (roundForce !== undefined) return roundForce;
+  try {
+    roundForce = window.clubHouse ? await clubHouse.nextOutcome() : null;
+  } catch (_) {
+    roundForce = null;
+  }
+  if (roundForce !== 'player' && roundForce !== 'bank') roundForce = null;
+  return roundForce;
+}
+
 async function finishHole(hole) {
   if (roundLocked) return;
   shotActive = false;
-  roundLocked = true;
 
-  ball.x = hole.x;
-  ball.y = hole.y;
+  const force = await getRoundForce();
+  if (roundLocked) return;
+
+  let target = hole;
+  /* Banca não pode dizer “perdeu” com a bola no buraco certo.
+     Se a casa quiser vitória, só então puxa para um buraco ganhador. */
+  if (force === 'player' && !holeWins(target)) {
+    target = pickHole(true) || target;
+  }
+
+  roundLocked = true;
+  ball.x = target.x;
+  ball.y = target.y;
   ball.scale = 0.15;
   ball.vx = 0;
   ball.vy = 0;
   ball.stopped = true;
 
   holes.forEach((h) => { h.hit = false; });
-  hole.hit = true;
+  target.hit = true;
 
-  let hitNumber = hole.number;
-  let won = isWinningNumber(hitNumber);
-  let force = null;
-
-  try {
-    force = window.clubHouse ? await clubHouse.nextOutcome() : null;
-  } catch (_) {
-    force = null;
-  }
-
-  if (gameMode === 'multiplier') {
-    if (force === 'bank') {
-      hitNumber = 0.10;
-      hole.number = 0.10;
-      won = false;
-    } else if (force === 'player') {
-      hitNumber = Math.max(Number(hitNumber) || 0, 2);
-      hole.number = hitNumber;
-      won = true;
-    } else {
-      /* Natural: paga o buraco; vitória clara só se ≥1x */
-      won = Number(hitNumber) >= 1;
-    }
-  } else if (force === 'bank' || force === 'player') {
-    const wantPlayer = force === 'player';
-    const wantEven = wantPlayer
-      ? selectedParity === 'even'
-      : selectedParity !== 'even';
-    let n = Math.round(Number(hitNumber)) || 1;
-    if ((n % 2 === 0) !== wantEven) {
-      n += 1;
-      if (n > selectedValue) n -= 2;
-      if (n < 1) n = wantEven ? 2 : 1;
-    }
-    hitNumber = n;
-    hole.number = n;
-    won = wantPlayer;
-  }
-
+  const hitNumber = Number(target.number);
+  const won = holeWins(target);
   const payout = Math.round(betAmount * hitNumber * 100) / 100;
   const label = gameMode === 'multiplier' ? holeLabel(hitNumber) + 'x' : hitNumber + 'x';
   multiplierElement.textContent = label;
   resultValue.textContent = label;
 
   if (gameMode === 'multiplier') {
-    if (force === 'bank') {
-      resultPayout.textContent = `${holeLabel(hitNumber)}x — a banca venceu`;
-      resultPayout.style.color = '#ff7d7d';
-      result.classList.add('show');
-      showAlert('lose', fmt(betAmount));
-      return;
-    }
-
     credits += payout;
     renderCredits();
     persistCredits();
-    if (won || force === 'player') {
+    if (won) {
       resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} créditos`;
       resultPayout.style.color = '#7dffb0';
       result.classList.add('show');
       showAlert('win', `${holeLabel(hitNumber)}x → +${fmt(payout)}`);
     } else {
-      /* Natural abaixo de 1x: recebe o valor, sem celebrar vitória */
       resultPayout.textContent = `${holeLabel(hitNumber)}x → +${fmt(payout)} (abaixo da aposta)`;
       resultPayout.style.color = '#ffd91a';
       result.classList.add('show');
