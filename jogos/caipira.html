@@ -215,6 +215,17 @@ async function play(){
   document.getElementById('status').textContent='Aposta confirmada. Sorteando os 3 dados...';
 
   const dice=[];
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
+  for(let i=0;i<3;i++) dice.push(Math.floor(Math.random()*6));
+  if(force==='bank'){
+    for(let i=0;i<3;i++){
+      if(dice[i]===chosen) dice[i]=(chosen+1+Math.floor(Math.random()*5))%6;
+    }
+  }else if(force==='player'){
+    if(!dice.some(x=>x===chosen)) dice[Math.floor(Math.random()*3)]=chosen;
+  }
+
   for(let i=0;i<3;i++)document.getElementById('die'+i).classList.add('spin');
 
   for(let k=0;k<12;k++){
@@ -223,18 +234,6 @@ async function play(){
       showDie(i,teams[r]);
     }
     await new Promise(r=>setTimeout(r,80));
-  }
-
-  for(let i=0;i<3;i++){
-    const r=Math.floor(Math.random()*6);
-    dice.push(r);
-  }
-
-  const force=window.clubHouse?await clubHouse.nextOutcome():null;
-  if(force==='bank'){
-    for(let i=0;i<3;i++){ if(dice[i]===chosen) dice[i]=(chosen+1)%6; }
-  }else if(force==='player'){
-    if(!dice.some(x=>x===chosen)) dice[Math.floor(Math.random()*3)]=chosen;
   }
 
   for(let i=0;i<3;i++){
@@ -267,10 +266,10 @@ renderCredits();renderTeams();renderHistory();resetDice(true);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

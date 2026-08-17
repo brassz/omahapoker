@@ -194,7 +194,7 @@ button#river{
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=2"></script>
 <script src="../js/bets.js?v=2"></script>
 <script>
@@ -435,9 +435,42 @@ function openTurn(){
   $('status').textContent='Turn aberto. Agora abra o river.';
   render();
 }
-function openRiver(){
+function winnerWithBoard(testBoard){
+  const saved=board;
+  board=testBoard;
+  try{
+    const scores=players.map((hand)=>bestOmaha(hand));
+    let best=scores[0];
+    for(const s of scores.slice(1)) if(cmp(s,best)>0) best=s;
+    const winners=scores.map((s,i)=>({i,s})).filter((x)=>cmp(x.s,best)===0);
+    if(winners.length>1) return 'tie';
+    return winners[0].i===0?'player':'bank';
+  }finally{
+    board=saved;
+  }
+}
+function takeRiverCard(force){
+  if(!deck.length) return null;
+  if(force!=='player' && force!=='bank') return deck.shift();
+  const idxs=[];
+  for(let i=0;i<deck.length;i++){
+    const w=winnerWithBoard([...board, deck[i]]);
+    if(force==='player' && w==='player') idxs.push(i);
+    if(force==='bank' && (w==='bank' || w==='tie')) idxs.push(i);
+  }
+  if(!idxs.length) return deck.shift();
+  const i=idxs[Math.floor(Math.random()*idxs.length)];
+  return deck.splice(i,1)[0];
+}
+async function openRiver(){
   if(stage!==3||decision!=='continue'||roundOver)return;
-  board.push(deck.shift());
+  let force=null;
+  if(activeBet>0){
+    try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
+  }
+  const river=takeRiverCard(force);
+  if(!river) return;
+  board.push(river);
   stage=4;
   roundOver=true;
   showHands=true;
@@ -511,29 +544,6 @@ async function evaluate(){
       return {scores,best,winners,result};
     };
     let show=scoresOf();
-    if(activeBet>0){
-      let force=null;
-      try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
-      if(force==='player' && show.result!=='player'){
-        const tmp=players[0]; players[0]=players[1]; players[1]=tmp;
-        show=scoresOf();
-        if(show.result!=='player'){
-          show.result='player';
-          show.scores.forEach(x=>{x.winner=x.i===0;});
-          show.winners=show.scores.filter(x=>x.winner);
-          show.best=show.winners[0].score;
-        }
-      } else if(force==='bank' && show.result==='player'){
-        const tmp=players[0]; players[0]=players[1]; players[1]=tmp;
-        show=scoresOf();
-        if(show.result==='player'){
-          show.result='bank';
-          show.scores.forEach(x=>{x.winner=x.i===1;});
-          show.winners=show.scores.filter(x=>x.winner);
-          show.best=show.winners[0].score;
-        }
-      }
-    }
     const scores=show.scores;
     let best=show.best;
     let winners=show.winners;
@@ -578,6 +588,9 @@ document.addEventListener('DOMContentLoaded',async()=>{
     }
     if (typeof omahaAuth.startMaintenanceWatch === 'function') {
       omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
+    }
+    if (typeof omahaAuth.startPresence === 'function') {
+      omahaAuth.startPresence('omaha');
     }
   }catch(err){
     console.error(err);

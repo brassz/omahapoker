@@ -369,10 +369,13 @@ async function winNow(total, reason){
 }
 function dicePair(total){
   total=Math.max(2,Math.min(12,Number(total)||2));
-  const d1=Math.max(1,Math.min(6,total-1));
-  const d2=total-d1;
-  if(d2>=1 && d2<=6) return [d1,d2];
-  return [6,total-6];
+  const opts=[];
+  for(let a=1;a<=6;a++){
+    const b=total-a;
+    if(b>=1 && b<=6) opts.push([a,b]);
+  }
+  if(!opts.length) return [1,1];
+  return opts[Math.floor(Math.random()*opts.length)];
 }
 async function applyHouse(naturalWin){
   return naturalWin;
@@ -442,6 +445,11 @@ async function roll(){
     } else if(force==="player"){
       total=comeout ? (Math.random()<0.5?7:11) : point;
     }
+    if(!comeout && (total===point || total===7)) {
+      /* ponto: só 7 ou o ponto encerram — ambos legais */
+    } else if(comeout && !(total===2||total===3||total===7||total===11||total===12)){
+      total=force==="player"?7:2;
+    }
     [d1,d2]=dicePair(total);
     total=d1+d2;
   }
@@ -473,10 +481,10 @@ update();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=2"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=12"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

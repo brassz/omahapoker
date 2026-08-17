@@ -155,10 +155,10 @@ canvas{display:block;width:100%;height:100%}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 (function(){
 var canvas=document.getElementById('board');
@@ -395,15 +395,7 @@ function addHit(m){
 
 function forceSink(b){
  if(b.sink || b.dead) return;
- var slot=nearestSlot(b.x);
- if(b.force==='bank' && slots.length){
-  slot=slots.reduce(function(a,s){ return s.m<a.m?s:a; });
- } else if(b.force==='player' && slots.length){
-  var winSlots=slots.filter(function(s){ return s.m>=1; });
-  var pool=winSlots.length?winSlots:slots;
-  slot=pool.reduce(function(a,s){ return s.m>a.m?s:a; });
- }
- b.slot=slot;
+ b.slot=nearestSlot(b.x);
  b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
 }
 
@@ -446,6 +438,20 @@ function stepBall(b){
  b.vx*=0.992;
  b.x+=b.vx*speed;
  b.y+=b.vy*speed;
+ if(b.force && slots.length){
+  var wantWin=b.force==='player';
+  var pool=slots.filter(function(s){ return wantWin ? s.m>=1 : s.m<1; });
+  if(pool.length){
+    var t=pool[0], best=1e9, k, d, cx;
+    for(k=0;k<pool.length;k++){
+      cx=pool[k].x+pool[k].w*0.5;
+      d=Math.abs(cx-b.x);
+      if(d<best){ best=d; t=pool[k]; }
+    }
+    cx=t.x+t.w*0.5;
+    b.vx+=(cx>b.x?0.045:-0.045)*speed;
+  }
+ }
 
  min=b.r+pegR+0.4;
  min2=min*min;

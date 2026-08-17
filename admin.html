@@ -29,6 +29,20 @@ body{margin:0;min-height:100vh}
 }
 .bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
 .bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
+.tabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;
+}
+.tabs button{
+  border:2px solid #17c8ff;border-radius:10px;padding:10px 6px;font-weight:900;cursor:pointer;
+  color:#7af0ff;background:#060912;font-size:12px;letter-spacing:.3px;
+}
+.tabs button.on{
+  background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border-color:#7dd3fc;
+}
+.tabPane{display:none}
+.tabPane.on{display:block}
+.liveGame{color:#5cff1a;font-weight:1000;text-shadow:0 0 8px #5cff1a66}
+.liveOff{color:var(--muted);font-weight:800}
 .panel{
   background:#080812;border:2px solid var(--blue);border-radius:16px;
   padding:12px;box-shadow:0 0 14px #17c8ff55;margin-bottom:12px;
@@ -103,6 +117,7 @@ body{margin:0;min-height:100vh}
 #maintPanel.on{border-color:#ff3434;box-shadow:0 0 18px #ff343488}
 #maintToggle{width:100%;padding:14px;font-size:15px;letter-spacing:.4px}
 @media(max-width:720px){
+  .tabs{grid-template-columns:1fr 1fr}
   .cfgGrid,.cfgStats{grid-template-columns:1fr}
 }
 @media(max-width:720px){
@@ -133,6 +148,27 @@ body{margin:0;min-height:100vh}
 
     <div class="msg" id="msg">Carregando...</div>
 
+    <nav class="tabs" id="adminTabs">
+      <button type="button" class="on" data-tab="live">EM JOGO</button>
+      <button type="button" data-tab="players">JOGADORES</button>
+      <button type="button" data-tab="withdraw">SAQUES</button>
+      <button type="button" data-tab="config">CONFIG</button>
+    </nav>
+
+    <div class="tabPane on" data-pane="live">
+      <section class="panel">
+        <h2>★ QUEM ESTÁ JOGANDO</h2>
+        <p class="cfgHelp">
+          Jogadores com uma sala aberta agora. Atualiza sozinho a cada poucos segundos.
+        </p>
+        <div class="cfgStats">
+          <div class="cfgStat"><span>NAS SALAS</span><b id="liveCount">0</b></div>
+        </div>
+        <div id="liveList"><div class="empty">Carregando...</div></div>
+      </section>
+    </div>
+
+    <div class="tabPane" data-pane="config">
     <section class="panel" id="maintPanel">
       <h2>★ MANUTENÇÃO DO SITE</h2>
       <p class="cfgHelp">
@@ -179,7 +215,9 @@ body{margin:0;min-height:100vh}
         <button type="button" class="reset" id="cfgReset">ZERAR CONTADOR</button>
       </div>
     </section>
+    </div>
 
+    <div class="tabPane" data-pane="withdraw">
     <section class="panel">
       <h2>★ SAQUES PIX</h2>
       <p class="cfgHelp">
@@ -188,7 +226,9 @@ body{margin:0;min-height:100vh}
       </p>
       <div id="withdrawList"><div class="empty">Carregando saques...</div></div>
     </section>
+    </div>
 
+    <div class="tabPane" data-pane="players">
     <section class="panel">
       <h2>★ JOGADORES</h2>
       <div class="searchRow">
@@ -202,11 +242,12 @@ body{margin:0;min-height:100vh}
         <button type="button" id="pageNext">PRÓXIMA →</button>
       </div>
     </section>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=14"></script>
+  <script src="js/auth.js?v=16"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -217,6 +258,8 @@ body{margin:0;min-height:100vh}
   let searchQuery = '';
   let playerPage = 1;
   const PAGE_SIZE = 5;
+  const LIVE_MS = 40000;
+  let currentTab = 'live';
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
@@ -226,6 +269,67 @@ body{margin:0;min-height:100vh}
   }
   function fmtDate(v){
     try { return new Date(v).toLocaleString('pt-BR'); } catch(_) { return v || '—'; }
+  }
+  function gameName(id){
+    return typeof omahaAuth.gameLabel === 'function' ? omahaAuth.gameLabel(id) : (id || '—');
+  }
+  function isPlaying(p){
+    if (!p || !p.current_game) return false;
+    const t = Date.parse(p.game_seen_at);
+    if (!Number.isFinite(t)) return false;
+    return (Date.now() - t) < LIVE_MS;
+  }
+  function timeAgo(iso){
+    const t = Date.parse(iso);
+    if (!Number.isFinite(t)) return '—';
+    const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 8) return 'agora';
+    if (s < 60) return s + 's';
+    return Math.floor(s / 60) + ' min';
+  }
+  function setTab(id){
+    currentTab = id;
+    document.querySelectorAll('#adminTabs button').forEach((b) => {
+      b.classList.toggle('on', b.dataset.tab === id);
+    });
+    document.querySelectorAll('.tabPane').forEach((el) => {
+      el.classList.toggle('on', el.dataset.pane === id);
+    });
+    if (id === 'live') renderLive();
+    if (id === 'players') render();
+  }
+  function renderLive(){
+    const box = $('liveList');
+    const countEl = $('liveCount');
+    if (!box) return;
+    const live = players.filter(isPlaying).sort((a, b) => String(a.current_game).localeCompare(String(b.current_game)));
+    if (countEl) countEl.textContent = String(live.length);
+    if (!live.length) {
+      box.innerHTML = '<div class="empty">Ninguém nas salas agora. Quem abrir um jogo aparece aqui em alguns segundos.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGADOR</th>
+            <th>JOGO</th>
+            <th>ATIVO</th>
+            <th>SALDO</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${live.map((p) => `
+            <tr>
+              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}<br><small style="color:#889">${p.email || ''}</small></td>
+              <td data-label="JOGO"><span class="liveGame">${gameName(p.current_game)}</span></td>
+              <td data-label="ATIVO">${timeAgo(p.game_seen_at)}</td>
+              <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
   }
 
   function renderWithdrawals() {
@@ -360,6 +464,7 @@ body{margin:0;min-height:100vh}
             <th>JOGADOR</th>
             <th>E-MAIL</th>
             <th>CELULAR</th>
+            <th>JOGO</th>
             <th>SALDO</th>
             <th>AJUSTAR</th>
             <th></th>
@@ -371,6 +476,7 @@ body{margin:0;min-height:100vh}
               <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}</td>
               <td data-label="E-MAIL">${p.email || '—'}</td>
               <td data-label="CELULAR">${p.phone || '—'}</td>
+              <td data-label="JOGO">${isPlaying(p) ? `<span class="liveGame">${gameName(p.current_game)}</span>` : '<span class="liveOff">lobby / fora</span>'}</td>
               <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
               <td data-label="AJUSTAR">
                 <div class="actions">
@@ -394,21 +500,25 @@ body{margin:0;min-height:100vh}
     `;
   }
 
-  async function reload() {
+  async function reload({ keepPage = false, silent = false } = {}) {
     try {
       players = await omahaAuth.listPlayers();
-      playerPage = 1;
+      if (!keepPage) playerPage = 1;
       const admins = players.filter((p) => p.is_admin).length;
-      render();
-      setMsg(`${players.length} conta(s) · ${admins} admin · saldo inicial de novas contas = 0`, 'ok');
+      renderLive();
+      if (!silent) {
+        render();
+        setMsg(`${players.length} conta(s) · ${admins} admin · ${players.filter(isPlaying).length} em jogo`, 'ok');
+      }
     } catch (err) {
       players = [];
-      playerPage = 1;
+      if (!keepPage) playerPage = 1;
       render();
-      const tip = /admin_list_players|function|schema cache/i.test(err?.message || '')
-        ? ' Rode o SQL supabase/admin-list-players.sql no Supabase e atualize a página.'
+      renderLive();
+      const tip = /admin_list_players|function|schema cache|current_game/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/player-presence.sql no Supabase e atualize a página.'
         : '';
-      setMsg((err?.message || 'Falha ao listar jogadores.') + tip, 'err');
+      if (!silent) setMsg((err?.message || 'Falha ao listar jogadores.') + tip, 'err');
     }
   }
 
@@ -422,7 +532,13 @@ body{margin:0;min-height:100vh}
     }
     $('adminName').textContent = me.display_name || me.email || 'Admin';
     await Promise.all([reload(), reloadSettings(), reloadWithdrawals()]);
+    setInterval(() => { reload({ keepPage: true, silent: true }); }, 8000);
   }
+
+  $('adminTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-tab]');
+    if (btn) setTab(btn.dataset.tab);
+  });
 
   $('cfgSave').onclick = async () => {
     const enabled = $('cfgEnabled').value === '1';

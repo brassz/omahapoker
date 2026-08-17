@@ -240,14 +240,7 @@ async function novaRodada(){
 
 function pedirCarta(){
   if(!rodadaAtiva) return;
-  if(roundForce==='player'){
-    const idx=baralho.findIndex(c=>valorMao(maoJogador.concat([c]))<=21);
-    if(idx>=0){
-      maoJogador.push(baralho.splice(idx,1)[0]);
-    }
-  }else{
-    comprar(maoJogador);
-  }
+  comprar(maoJogador);
   render();
   const p=valorMao(maoJogador);
   if(p>21){
@@ -264,6 +257,14 @@ function pedirCarta(){
   }
 }
 
+function tirarCarta(pred){
+  if(typeof pred==='function' && baralho.length){
+    const idx=baralho.findIndex(pred);
+    if(idx>=0) return baralho.splice(idx,1)[0];
+  }
+  return baralho.pop();
+}
+
 async function jogarBanca(){
   if(!rodadaAtiva) return;
   const force=roundForce;
@@ -272,40 +273,28 @@ async function jogarBanca(){
   const intervalo=setInterval(()=>{
     if(!rodadaAtiva){ clearInterval(intervalo); return; }
     const b=valorMao(maoBanca);
-    const p=valorMao(maoJogador);
-    let hit=b<17;
-    if(p<=21 && b<=21 && b<21){
-      if(force==='player' && b>=p) hit=true;
-      if(force==='bank' && b<p) hit=true;
-    }
-    if(hit){
-      comprar(maoBanca);
-      render();
-    } else {
+    if(b>=17){
       clearInterval(intervalo);
-      apply21Force(force);
       render();
       comparar();
+      return;
     }
+    const p=valorMao(maoJogador);
+    if(force==='bank' && p<=21){
+      maoBanca.push(tirarCarta((c)=>{
+        const t=valorMao(maoBanca.concat([c]));
+        return t<=21 && t>=p;
+      }));
+    } else if(force==='player' && p<=21){
+      maoBanca.push(tirarCarta((c)=>{
+        const t=valorMao(maoBanca.concat([c]));
+        return t>21 || t<p;
+      }));
+    } else {
+      comprar(maoBanca);
+    }
+    render();
   },500);
-}
-
-function apply21Force(force){
-  const p=valorMao(maoJogador);
-  if(p>21) return;
-  const naipe=()=>naipes[Math.floor(Math.random()*4)];
-  if(force==='bank'){
-    const b=valorMao(maoBanca);
-    if(b>21 || b<p){
-      maoBanca=[{v:'A',n:naipe()},{v:'K',n:naipe()}];
-    }
-  } else if(force==='player' && p<=21){
-    let b=valorMao(maoBanca);
-    if(b<=21 && b>=p){
-      maoBanca.push({v:'K',n:naipe()});
-      if(valorMao(maoBanca)<=21) maoBanca.push({v:'Q',n:naipe()});
-    }
-  }
 }
 
 async function comparar(){
@@ -359,10 +348,10 @@ render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w) return;

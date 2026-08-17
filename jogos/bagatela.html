@@ -1408,14 +1408,7 @@ function startFallPocket(pocket) {
 
 function finishPocket() {
   if (roundLocked) return;
-  getRoundForce().then((force) => {
-    if (roundLocked) return;
-    if (force === 'player') {
-      const h = pickHole(true);
-      if (h) { finishHole(h); return; }
-    }
-    settlePocketLose();
-  });
+  settlePocketLose();
 }
 
 function settlePocketLose() {
@@ -1437,19 +1430,7 @@ function holeWins(h) {
 }
 
 function rollGuardPins() {
-  holes.forEach((h) => {
-    h.guardPin = false;
-    if (roundForce === 'player') return;
-    if (!holeWins(h)) return;
-    let chance = 0.58;
-    if (gameMode === 'multiplier') {
-      const n = Number(h.number);
-      if (n >= 10) chance = 0.84;
-      else if (n >= 2) chance = 0.70;
-      else chance = 0.52;
-    }
-    h.guardPin = Math.random() < chance;
-  });
+  holes.forEach((h) => { h.guardPin = false; });
 }
 
 function bounceOffGuard(hole, dx, dy, distance) {
@@ -1504,10 +1485,13 @@ async function finishHole(hole) {
   if (roundLocked) return;
 
   let target = hole;
-  if (force === 'player' && !holeWins(target)) {
-    target = pickHole(true) || target;
-  } else if (force === 'bank' && holeWins(target)) {
-    target = pickHole(false) || target;
+  if (force === 'player' || force === 'bank') {
+    const near = holes.filter((h) => {
+      const d = (h.x - ball.x) ** 2 + (h.y - ball.y) ** 2;
+      return d <= (h.radius * 2.1) ** 2;
+    });
+    const match = near.find((h) => force === 'player' ? holeWins(h) : !holeWins(h));
+    if (match) target = match;
   }
 
   roundLocked = true;
@@ -1565,20 +1549,13 @@ async function finishHole(hole) {
 function handleMiss() {
   if (!shotActive || roundLocked) return;
   shotActive = false;
-  getRoundForce().then((force) => {
-    if (roundLocked) return;
-    if (force === 'player') {
-      const h = pickHole(true);
-      if (h) { finishHole(h); return; }
-    }
-    roundLocked = true;
-    multiplierElement.textContent = '-';
-    resultValue.textContent = '0x';
-    resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
-    resultPayout.style.color = '#ff7d7d';
-    result.classList.add('show');
-    showAlert('lose', fmt(betAmount));
-  });
+  roundLocked = true;
+  multiplierElement.textContent = '-';
+  resultValue.textContent = '0x';
+  resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
+  resultPayout.style.color = '#ff7d7d';
+  result.classList.add('show');
+  showAlert('lose', fmt(betAmount));
 }
 
 function checkPockets() {
@@ -1950,10 +1927,10 @@ syncModeUI();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 window.clubWalletReady.then((w) => {
   if (!w) return;

@@ -284,15 +284,24 @@ async function playRound(){
   let force=null;
   try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
 
+  if(force==='player' || force==='bank'){
+    const want=force==='player'?picked:(picked==='A'?'B':'A');
+    const wantRank=want==='A'?cardA.rank:cardB.rank;
+    const otherRank=want==='A'?cardB.rank:cardA.rank;
+    const iWant=deck.findIndex(c=>c.rank===wantRank);
+    const iOther=deck.findIndex(c=>c.rank===otherRank);
+    if(iWant>=0 && iOther>=0 && iWant>iOther){
+      const tmp=deck[iWant];
+      deck[iWant]=deck[iOther];
+      deck[iOther]=tmp;
+    }
+  }
+
   while(deck.length){
     const c=deck.shift();
     let would=null;
     if(c.rank===cardA.rank) would='A';
     else if(c.rank===cardB.rank) would='B';
-    if(would){
-      if(force==='bank' && would===picked) continue;
-      if(force==='player' && would!==picked) continue;
-    }
     turned++;
     showCard('currentCard',c);
     document.getElementById('status').textContent=
@@ -306,26 +315,16 @@ async function playRound(){
   }
 
   if(!winner){
-    if(force==='player'){
-      winner=picked;
-      winningCard=picked==='A'?cardA:cardB;
-      showCard('currentCard', winningCard);
-    } else if(force==='bank'){
-      winner=picked==='A'?'B':'A';
-      winningCard=winner==='A'?cardA:cardB;
-      showCard('currentCard', winningCard);
-    } else {
-      credits+=bet;
-      renderCredits();
-      await persistCredits();
-      document.getElementById('status').textContent='Nenhuma das cartas repetiu. Aposta devolvida. Embaralhe novamente.';
-      ready=false;
-      document.getElementById('playBtn').disabled=false;
-      document.getElementById('shuffleBtn').disabled=false;
-      document.getElementById('cutBtn').disabled=false;
-      document.getElementById('dealBtn').disabled=false;
-      return;
-    }
+    credits+=bet;
+    renderCredits();
+    await persistCredits();
+    document.getElementById('status').textContent='Nenhuma das cartas repetiu. Aposta devolvida. Embaralhe novamente.';
+    ready=false;
+    document.getElementById('playBtn').disabled=false;
+    document.getElementById('shuffleBtn').disabled=false;
+    document.getElementById('cutBtn').disabled=false;
+    document.getElementById('dealBtn').disabled=false;
+    return;
   }
 
   const won=picked===winner;
@@ -365,10 +364,10 @@ renderCredits();renderHistory();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=14"></script>
+<script src="../js/auth.js?v=16"></script>
 <script src="../js/house.js?v=1"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=14"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;

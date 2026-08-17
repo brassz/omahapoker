@@ -185,6 +185,13 @@
       if (typeof omahaAuth.startMaintenanceWatch === 'function') {
         omahaAuth.startMaintenanceWatch({ lobbyUrl: '../lobby.html', intervalMs: 8000 });
       }
+      if (typeof omahaAuth.startPresence === 'function') {
+        const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
+        const game = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : file === '21_index' ? '21'
+          : file;
+        omahaAuth.startPresence(game);
+      }
       resolveReady(wallet);
       return { user, profile, wallet };
     },

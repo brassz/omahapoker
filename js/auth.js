@@ -131,6 +131,53 @@
       return data || [];
     },
 
+    gameLabel(id) {
+      const map = {
+        omaha: 'OMAHA5',
+        crep: 'CREP',
+        bacatela: 'BACATELA',
+        bagatela: 'BACATELA',
+        chuvadepremios: 'CHUVA DE PRÊMIOS',
+        roleta: 'ROLETA',
+        flyx: 'FLYX',
+        ronda: 'RONDA',
+        caipira: 'CAIPIRA',
+        '21': '21',
+      };
+      const key = String(id || '').toLowerCase();
+      return map[key] || (key ? key.toUpperCase() : '—');
+    },
+
+    async setPresence(game) {
+      const { error } = await client.rpc('set_player_presence', {
+        p_game: game ? String(game) : '',
+      });
+      if (error) throw error;
+    },
+
+    startPresence(game) {
+      this.stopPresence();
+      if (!game) return;
+      const beat = () => { this.setPresence(game).catch(() => {}); };
+      beat();
+      this._presenceTimer = setInterval(beat, 12000);
+      this._presenceVis = () => {
+        if (document.visibilityState === 'visible') beat();
+      };
+      document.addEventListener('visibilitychange', this._presenceVis);
+    },
+
+    stopPresence() {
+      if (this._presenceTimer) {
+        clearInterval(this._presenceTimer);
+        this._presenceTimer = null;
+      }
+      if (this._presenceVis) {
+        document.removeEventListener('visibilitychange', this._presenceVis);
+        this._presenceVis = null;
+      }
+    },
+
     async adminAdjustCredits(userId, delta) {
       const { data, error } = await client.rpc('admin_adjust_credits', {
         target_user: userId,
