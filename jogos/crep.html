@@ -121,7 +121,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 </section>
 
 <section class="card steps">
-  <div id="step1" class="step active"><strong>1</strong>Aposta inicial</div>
+  <div id="step1" class="step active"><strong>1</strong>Aposta</div>
   <div id="step2" class="step"><strong>2</strong>Definir o ponto</div>
   <div id="step3" class="step"><strong>3</strong>Ponto (opcional)</div>
 </section>
@@ -159,11 +159,10 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 <section class="card">
   <div class="seq">
-    <button id="confirmBase" class="yellow">1 · Confirmar aposta inicial</button>
+    <button id="confirmBase" class="yellow">1 · Confirmar aposta</button>
     <button id="roll" class="blue" disabled>2 · Jogar os dados</button>
     <button id="confirmSide" class="yellow" disabled>3 · Apostar no ponto (opcional)</button>
     <button id="cashOut" class="green" disabled>ENCERRAR E RECEBER</button>
-    <button id="newRound" class="gray" disabled>Nova rodada</button>
   </div>
 </section>
 
@@ -182,11 +181,11 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <h3>Objetivo</h3>
 <p>Apostar nos dados no come-out e, se houver ponto, tentar acertar o ponto antes do 7.</p>
 <ul>
-  <li><b>Aposta inicial:</b> confirme o valor. Ela fica em jogo e <b>dobra a cada vitória</b> (7/11 no come-out ou acertar o ponto).</li>
-  <li>Você pode <b>encerrar e receber</b> o valor em jogo a qualquer momento e começar outra rodada.</li>
-  <li>Se perder (2, 3 ou 12 no come-out, ou 7 antes do ponto), perde o valor em jogo.</li>
-  <li><b>Aposta no ponto é opcional.</b> Depois que o ponto sair, você pode apostar nele ou só continuar jogando os dados.</li>
-  <li>Come-out: 7 ou 11 — vitória (dobra). 2, 3 ou 12 — banca. Outros totais abrem o ponto.</li>
+  <li><b>Aposta:</b> confirme o valor. Cada rodada é independente — <b>não dobra</b>.</li>
+  <li>Ganhou (7 ou 11 no come-out, ou acertar o ponto): recebe 1 a 1 e já pode começar outra rodada.</li>
+  <li>Perdeu (2, 3 ou 12 no come-out, ou 7 antes do ponto): perde a aposta e já pode começar outra rodada.</li>
+  <li>Com ponto aberto, você pode <b>encerrar e receber</b> o valor em jogo (sem prêmio) para sair da rodada.</li>
+  <li><b>Aposta no ponto é opcional.</b> Depois que o ponto sair, você pode apostar nele ou só continuar nos dados.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -260,14 +259,13 @@ async function confirmBase(){
   $("baseBet").disabled=true;
   $("confirmBase").disabled=true;
   $("roll").disabled=false;
-  $("newRound").disabled=true;
   $("result").style.display="none";
   $("tableCard").style.display="";
   $("preTableCard").style.display="none";
   setDie($("die1"),1);setDie($("die2"),1);
   $("sum").textContent="Soma: —";
   setSteps(2);
-  status("Aposta em jogo. 7 ou 11 dobra; 2, 3 ou 12 perde. Você pode encerrar e receber a qualquer momento.","continue");
+  status("Aposta em jogo. 7 ou 11 ganha 1 a 1; 2, 3 ou 12 perde. Outros totais abrem o ponto.","continue");
   log(`Rodada ${round}: ${fmt(lineStake)} créditos em jogo.`);
   update();
   await persistBalance();
@@ -337,33 +335,37 @@ function showResult(html){
   $("result").style.display="block";
   $("result").innerHTML=`<strong>Resultado da rodada ${round}</strong><br>${html}`;
 }
-function finishRound(){
-  phase="finished";
+function readyNextRound(){
+  phase="idle";
   point=null;
   lineStake=0;
-  $("roll").disabled=true;
+  pointBet=0;
+  $("baseBet").disabled=false;
+  $("pointBet").value="";
+  $("pointBet").disabled=true;
+  $("confirmBase").disabled=false;
   $("confirmSide").disabled=true;
+  $("roll").disabled=true;
   $("cashOut").disabled=true;
-  $("newRound").disabled=false;
+  $("tableCard").style.display="none";
+  $("preTableCard").style.display="";
   $("pointCard").classList.add("disabled");
   $("pointCard").classList.remove("active");
+  $("pointTitle").textContent="🎯 Aposta no ponto";
+  $("pointText").textContent="Aguarde a banca definir o ponto. Esta aposta é opcional.";
+  $("pointPay").textContent="Pagamento: —";
+  setSteps(1);
   update();
 }
-function doubleLine(total, reason){
-  const before=lineStake;
-  lineStake=lineStake*2;
-  status(`${reason} A aposta em jogo dobrou: ${fmt(before)} → ${fmt(lineStake)}. Encerrar e receber ou continuar.`,"win");
-  showResult(`Vitória. Em jogo agora: ${fmt(lineStake)} créditos.<br>Encerrar para receber ou jogar de novo para dobrar.` );
-  log(`Rodada ${round}: saiu ${total}. Aposta dobrou para ${fmt(lineStake)}.`);
-  phase="comeout";
-  point=null;
-  $("roll").disabled=false;
-  $("pointBet").disabled=true;
-  $("confirmSide").disabled=true;
-  $("pointCard").classList.add("disabled");
-  $("pointCard").classList.remove("active");
-  setSteps(2);
-  update();
+async function winNow(total, reason){
+  const stake=lineStake;
+  playerBalance+=stake*2;
+  lineStake=0;
+  status(`${reason} Você ganhou ${fmt(stake)}. Confirme outra aposta para a próxima rodada.`,"win");
+  showResult(`Vitória: +${fmt(stake)} (devolução ${fmt(stake)} + prêmio ${fmt(stake)}).<br>Saldo: ${fmt(playerBalance)}.`);
+  log(`Rodada ${round}: saiu ${total}. Ganhou ${fmt(stake)}.`);
+  await persistBalance();
+  readyNextRound();
 }
 function dicePair(total){
   total=Math.max(2,Math.min(12,Number(total)||2));
@@ -375,29 +377,32 @@ function dicePair(total){
 async function applyHouse(naturalWin){
   return naturalWin;
 }
-async function loseNow(msg){
+async function loseNow(msg, extraPoint=0){
+  const lost=lineStake;
   status(msg,"lose");
-  showResult(`Aposta em jogo perdida: ${fmt(lineStake)} créditos.${pointBet?`<br>Aposta no ponto perdida: ${fmt(pointBet)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
-  log(`Rodada ${round}: perdeu ${fmt(lineStake)} em jogo.`);
+  showResult(`A banca venceu. Perdeu ${fmt(lost)} créditos.${extraPoint?`<br>Aposta no ponto perdida: ${fmt(extraPoint)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
+  log(`Rodada ${round}: perdeu ${fmt(lost)} em jogo.`);
+  lineStake=0;
   await persistBalance();
-  finishRound();
+  readyNextRound();
 }
 async function resolveLine(naturalWin,total,winMsg,loseMsg){
   const won=await applyHouse(naturalWin);
-  if(pointBet>0 && point){
+  const extraPoint=pointBet;
+  if(extraPoint>0 && point){
     if(won){
       const rate=rateForPoint(point);
-      const pointProfit=pointBet*(rate||1);
-      playerBalance+=(pointBet+pointProfit);
+      const pointProfit=extraPoint*(rate||1);
+      playerBalance+=(extraPoint+pointProfit);
       log(`Rodada ${round}: ponto pagou +${fmt(pointProfit)}.`);
     }else{
-      log(`Rodada ${round}: aposta no ponto perdida (${fmt(pointBet)}).`);
+      log(`Rodada ${round}: aposta no ponto perdida (${fmt(extraPoint)}).`);
     }
     await persistBalance();
   }
   pointBet=0;
-  if(won) doubleLine(total, winMsg);
-  else await loseNow(loseMsg);
+  if(won) await winNow(total, winMsg);
+  else await loseNow(loseMsg, extraPoint);
 }
 async function cashOut(){
   if(!canCashOut()) return;
@@ -406,11 +411,11 @@ async function cashOut(){
   playerBalance+=paid+(extra||0);
   lineStake=0;
   pointBet=0;
-  status(`Aposta encerrada. Você recebeu ${fmt(paid+(extra||0))} créditos.`,"win");
+  status(`Aposta encerrada. Você recebeu ${fmt(paid+(extra||0))} créditos. Confirme outra aposta para jogar de novo.`,"win");
   showResult(`Recebeu ${fmt(paid)} da aposta em jogo.${extra?`<br>Devolução da aposta no ponto: ${fmt(extra)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
   log(`Rodada ${round}: encerrou e recebeu ${fmt(paid+(extra||0))}.`);
   await persistBalance();
-  finishRound();
+  readyNextRound();
 }
 async function roll(){
   if(rolling||!["comeout","betting","pointPlay"].includes(phase))return;
@@ -460,37 +465,18 @@ async function roll(){
     }
   });
 }
-function newRound(){
-  baseBet=0;pointBet=0;point=null;lineStake=0;phase="idle";
-  $("baseBet").disabled=false;
-  $("pointBet").value="";$("pointBet").disabled=true;
-  $("confirmBase").disabled=false;$("confirmSide").disabled=true;
-  $("roll").disabled=true;$("newRound").disabled=true;$("cashOut").disabled=true;
-  $("result").style.display="none";
-  $("tableCard").style.display="none";
-  $("preTableCard").style.display="";
-  $("pointCard").classList.add("disabled");
-  $("pointCard").classList.remove("active");
-  $("pointTitle").textContent="🎯 Aposta no ponto";
-  $("pointText").textContent="Aguarde a banca definir o ponto. Esta aposta é opcional.";
-  $("pointPay").textContent="Pagamento: —";
-  setSteps(1);
-  status("Confirme a aposta inicial para começar.","");
-  update();
-}
 $("confirmBase").addEventListener("click",confirmBase);
 $("confirmSide").addEventListener("click",confirmSide);
 $("roll").addEventListener("click",roll);
-$("newRound").addEventListener("click",newRound);
 $("cashOut").addEventListener("click",cashOut);
 update();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
 <script src="../js/auth.js?v=14"></script>
-<script src="../js/house.js?v=1"></script>
+<script src="../js/house.js?v=2"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=11"></script>
+<script src="../js/gate.js?v=12"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w)return;
