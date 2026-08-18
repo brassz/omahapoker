@@ -149,7 +149,7 @@ canvas{display:block;width:100%;height:100%}
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
   <li>Risco baixo: valores mais estáveis. Alto: as pontas pagam mais.</li>
-  <li>O centro (mais comum) devolve a aposta (<b>1x</b>). Ao lado há <b>0,5x</b> e <b>0,2x</b> (perda). Lucro fica nas pontas e é mais raro.</li>
+  <li>No meio há só <b>dois 1x</b> (empate) e <b>dois 0,50x</b> (perda). O restante é 0,2x ou o prêmio das pontas.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -177,21 +177,31 @@ var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=fal
 var bgCache=null,needStatic=true,raf=0;
 
 var MULT={
- /* Centro 1x (empate). 0.5 e 0.2 ao lado (perda). Lucro só nas pontas. */
- low:[1.4, 0.5, 0.2, 0.5, 1, 1, 1, 0.5, 0.2, 0.5, 1.4],
- medium:[2.5, 1.2, 0.5, 0.2, 1, 1, 1, 0.2, 0.5, 1.2, 2.5],
- high:[5, 2, 0.5, 0.2, 1, 1, 1, 0.2, 0.5, 2, 5]
+ /* Meio: 0.5, 1, 1, 0.5. Pontas pagam mais. Resto 0.2. */
+ low:[1.4, 0.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 0.2, 1.4],
+ medium:[2.5, 1.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 1.2, 2.5],
+ high:[5, 2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 2, 5]
 };
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function pickMults(set,n){
- if(!set || !set.length) return [];
- if(set.length===n) return set.slice();
- var out=[], den=Math.max(1,n-1), i, v;
- for(i=0;i<n;i++){
-  v=set[Math.round(i*(set.length-1)/den)];
-  out.push(v);
+ var out=[], i, one;
+ for(i=0;i<n;i++) out.push(0.2);
+ if(set && set.length){
+  out[0]=set[0];
+  out[n-1]=set[set.length-1];
+  if(n>6){
+   out[1]=set[1];
+   out[n-2]=set[set.length-2];
+  }
  }
+ one=Math.floor((n-2)/2);
+ if(one<1) one=1;
+ if(one+2>=n) one=Math.max(1, n-4);
+ out[one-1]=0.5;
+ out[one]=1;
+ out[one+1]=1;
+ out[one+2]=0.5;
  return out;
 }
 function boardLeft(){ return slots.length ? slots[0].x : 8; }
