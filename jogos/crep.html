@@ -163,6 +163,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
     <button id="roll" class="blue" disabled>2 · Jogar os dados</button>
     <button id="confirmSide" class="yellow" disabled>3 · Apostar no ponto (opcional)</button>
     <button id="cashOut" class="green" disabled>ENCERRAR E RECEBER</button>
+    <button id="newRound" class="gray" disabled>Nova rodada</button>
   </div>
 </section>
 
@@ -259,6 +260,7 @@ async function confirmBase(){
   $("baseBet").disabled=true;
   $("confirmBase").disabled=true;
   $("roll").disabled=false;
+  $("newRound").disabled=true;
   $("result").style.display="none";
   $("tableCard").style.display="";
   $("preTableCard").style.display="none";
@@ -336,6 +338,23 @@ function showResult(html){
   $("result").innerHTML=`<strong>Resultado da rodada ${round}</strong><br>${html}`;
 }
 function readyNextRound(){
+  phase="finished";
+  lineStake=0;
+  pointBet=0;
+  $("baseBet").disabled=true;
+  $("pointBet").disabled=true;
+  $("confirmBase").disabled=true;
+  $("confirmSide").disabled=true;
+  $("roll").disabled=true;
+  $("cashOut").disabled=true;
+  $("newRound").disabled=false;
+  $("tableCard").style.display="";
+  $("preTableCard").style.display="none";
+  $("pointCard").classList.add("disabled");
+  $("pointCard").classList.remove("active");
+  update();
+}
+function startNewRound(){
   phase="idle";
   point=null;
   lineStake=0;
@@ -347,6 +366,8 @@ function readyNextRound(){
   $("confirmSide").disabled=true;
   $("roll").disabled=true;
   $("cashOut").disabled=true;
+  $("newRound").disabled=true;
+  $("result").style.display="none";
   $("tableCard").style.display="none";
   $("preTableCard").style.display="";
   $("pointCard").classList.add("disabled");
@@ -354,14 +375,17 @@ function readyNextRound(){
   $("pointTitle").textContent="🎯 Aposta no ponto";
   $("pointText").textContent="Aguarde a banca definir o ponto. Esta aposta é opcional.";
   $("pointPay").textContent="Pagamento: —";
+  setDie($("die1"),1);setDie($("die2"),1);
+  $("sum").textContent="Soma: —";
   setSteps(1);
+  status("Confirme a aposta inicial para começar.","");
   update();
 }
 async function winNow(total, reason){
   const stake=lineStake;
   playerBalance+=stake*2;
   lineStake=0;
-  status(`${reason} Você ganhou ${fmt(stake)}. Confirme outra aposta para a próxima rodada.`,"win");
+  status(`${reason} Você ganhou ${fmt(stake)}. Toque em Nova rodada para jogar de novo.`,"win");
   showResult(`Vitória: +${fmt(stake)} (devolução ${fmt(stake)} + prêmio ${fmt(stake)}).<br>Saldo: ${fmt(playerBalance)}.`);
   log(`Rodada ${round}: saiu ${total}. Ganhou ${fmt(stake)}.`);
   await persistBalance();
@@ -414,7 +438,7 @@ async function cashOut(){
   playerBalance+=paid+(extra||0);
   lineStake=0;
   pointBet=0;
-  status(`Aposta encerrada. Você recebeu ${fmt(paid+(extra||0))} créditos. Confirme outra aposta para jogar de novo.`,"win");
+  status(`Aposta encerrada. Você recebeu ${fmt(paid+(extra||0))} créditos. Toque em Nova rodada para jogar de novo.`,"win");
   showResult(`Recebeu ${fmt(paid)} da aposta em jogo.${extra?`<br>Devolução da aposta no ponto: ${fmt(extra)}.` : ""}<br>Saldo: ${fmt(playerBalance)}.`);
   log(`Rodada ${round}: encerrou e recebeu ${fmt(paid+(extra||0))}.`);
   await persistBalance();
@@ -477,6 +501,7 @@ $("confirmBase").addEventListener("click",confirmBase);
 $("confirmSide").addEventListener("click",confirmSide);
 $("roll").addEventListener("click",roll);
 $("cashOut").addEventListener("click",cashOut);
+$("newRound").addEventListener("click",startNewRound);
 update();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

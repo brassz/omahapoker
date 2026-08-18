@@ -2,7 +2,30 @@
 -- Rode no SQL Editor do Supabase.
 
 alter table public.game_settings
-  add column if not exists maintenance_games text[] not null default '{}';
+  add column if not exists maintenance boolean;
+
+alter table public.game_settings
+  add column if not exists maintenance_games text[];
+
+update public.game_settings
+set maintenance = false
+where maintenance is null;
+
+update public.game_settings
+set maintenance_games = '{}'
+where maintenance_games is null;
+
+alter table public.game_settings
+  alter column maintenance set default false;
+
+alter table public.game_settings
+  alter column maintenance_games set default '{}';
+
+alter table public.game_settings
+  alter column maintenance set not null;
+
+alter table public.game_settings
+  alter column maintenance_games set not null;
 
 -- Migra modo antigo (boolean = todos os jogos)
 update public.game_settings
@@ -10,8 +33,8 @@ set maintenance_games = array[
   'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
   'flyx', 'ronda', 'caipira', '21'
 ]::text[]
-where coalesce(maintenance, false) = true
-  and (maintenance_games is null or maintenance_games = '{}');
+where maintenance = true
+  and maintenance_games = '{}';
 
 create or replace function public.admin_set_maintenance_games(p_games text[])
 returns public.game_settings

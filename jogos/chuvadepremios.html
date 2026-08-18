@@ -103,8 +103,8 @@ canvas{display:block;width:100%;height:100%}
       <h3>Montar aposta</h3>
       <button type="button" class="helpBtn" id="openHelp">❓ COMO JOGAR / REGRAS</button>
       <div class="field"><label>Valor por bolinha <span id="betLabel">2</span></label><input id="bet" type="number" inputmode="numeric" min="2" max="200" step="1" value="2" placeholder="Digite o valor"></div>
-      <div class="field"><label>Quantidade de bolinhas</label><input id="count" type="number" inputmode="numeric" min="1" max="50" value="1"></div>
-      <div class="total-box"><span>Total da aposta</span><b id="totalLabel">2</b></div>
+      <div class="field"><label>Quantidade de bolinhas (máx. 10)</label><input id="count" type="number" inputmode="numeric" min="1" max="10" value="1"></div>
+      <div class="total-box"><span>Total da aposta (máx. 200)</span><b id="totalLabel">2</b></div>
       <h3>Risco</h3>
       <div class="risk">
         <button type="button" data-risk="low">Baixo</button>
@@ -115,7 +115,7 @@ canvas{display:block;width:100%;height:100%}
         <div class="field"><label>Linhas</label><select id="rows"><option>8</option><option selected>10</option><option>12</option><option>14</option></select></div>
         <div class="field"><label>Velocidade</label><select id="speed"><option value="0.6">Lenta</option><option value="0.8" selected>Normal</option><option value="1.05">Rápida</option></select></div>
       </div>
-      <div class="note">Aposta por bolinha: 2 a 200 créditos. O saldo é o da sua carteira do clube.</div>
+      <div class="note">Aposta por bolinha: 2 a 200. Máximo 10 bolinhas. O total (valor × quantidade) não pode passar de 200.</div>
     </div>
     <div class="footer">
       <button type="button" class="primary" id="confirmBet">CONFIRMAR E JOGAR</button>
@@ -145,8 +145,8 @@ canvas{display:block;width:100%;height:100%}
 <h2>❓ COMO JOGAR — CHUVA DE PRÊMIOS</h2>
 <p>As bolinhas descem pelos pinos e caem em um multiplicador.</p>
 <ul>
-  <li>Escolha o valor por bolinha (2 a 200), a quantidade e o risco.</li>
-  <li>O total (valor × quantidade) é debitado da sua carteira ao confirmar.</li>
+  <li>Valor por bolinha: 2 a 200. Até 10 bolinhas por rodada.</li>
+  <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
   <li>Risco baixo: prêmios mais estáveis. Alto: laterais pagam mais, o centro paga menos.</li>
 </ul>
@@ -188,6 +188,9 @@ function pickMults(set,n){
  for(i=0;i<n;i++) out.push(set[Math.round(i*(set.length-1)/den)]);
  return out;
 }
+var BALL_MAX=10;
+var TOTAL_MAX=200;
+
 function betVal(){
  var raw=String(document.getElementById('bet').value||'').trim();
  if(raw==='') return 0;
@@ -195,7 +198,7 @@ function betVal(){
  if(!Number.isFinite(n)) return 0;
  return n;
 }
-function countVal(){return Math.min(50, Math.max(1, Math.floor(Number(document.getElementById('count').value)||1)));}
+function countVal(){return Math.min(BALL_MAX, Math.max(1, Math.floor(Number(document.getElementById('count').value)||1)));}
 
 async function persistBalance(){
  if(window.clubWallet) await clubWallet.set(balance);
@@ -209,7 +212,9 @@ function updateUI(){
  document.getElementById('wagered').textContent=money(wagered);
  document.getElementById('profit').textContent=money(profit);
  document.getElementById('betLabel').textContent=b>0?money(b):'—';
- document.getElementById('totalLabel').textContent=money(total);
+ var totalEl=document.getElementById('totalLabel');
+ totalEl.textContent=money(total);
+ totalEl.style.color=total>TOTAL_MAX?'#ff5c77':'';
  confirmBtn.textContent=n===1?'CONFIRMAR E JOGAR 1 BOLINHA':'CONFIRMAR E JOGAR '+n+' BOLINHAS';
 }
 
@@ -535,6 +540,10 @@ async function startRound(ev){
  if(ev){ ev.preventDefault(); }
  if(starting || roundActive) return;
  var bet=betVal(), n=countVal(), total=bet*n;
+ if(n>BALL_MAX){
+  alert('Máximo de '+BALL_MAX+' bolinhas por rodada.');
+  return;
+ }
  if(window.clubBets){
   var check=clubBets.validate(bet);
   if(!check.ok){ alert(check.message); return; }
@@ -542,6 +551,10 @@ async function startRound(ev){
   total=bet*n;
  } else if(!(bet>=2)){
   alert('Informe o valor por bolinha.');
+  return;
+ }
+ if(total>TOTAL_MAX){
+  alert('O total da aposta (valor × bolinhas) não pode passar de '+TOTAL_MAX+'. Com '+n+' bolinha(s), o máximo por bolinha é '+Math.floor(TOTAL_MAX/n)+'.');
   return;
  }
  if(balance<total){ alert('Saldo insuficiente'); return; }
