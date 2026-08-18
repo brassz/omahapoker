@@ -149,6 +149,7 @@ canvas{display:block;width:100%;height:100%}
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
   <li>O slot do meio paga <b>1x</b> (devolve a aposta). Os da lateral pagam <b>0,75x</b>.</li>
+  <li>A maioria das bolinhas cai nas laterais: no longo prazo o jogador perde mais do que recupera.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -188,6 +189,8 @@ function pickMults(set,n){
  for(i=0;i<n;i++) out.push(i===mid ? 1 : 0.75);
  return out;
 }
+function boardLeft(){ return slots.length ? slots[0].x : 8; }
+function boardRight(){ return slots.length ? slots[slots.length-1].x+slots[slots.length-1].w : W-8; }
 var BALL_MAX=10;
 var TOTAL_MAX=200;
 
@@ -258,16 +261,23 @@ function buildBoard(){
  var usable=Math.max(100, boardBottom-boardTop);
  var dy=usable/(rows+1);
  var cx=W*0.5;
- pegSpace=Math.min(W/(rows+3), Math.max(22, W*0.07));
- pegR=Math.max(3, Math.min(4.5, pegSpace*0.11));
- var r,c,count,y,start;
- for(r=0;r<rows;r++){
-  count=r+1; y=boardTop+r*dy; start=cx-(count-1)*pegSpace*0.5;
-  for(c=0;c<count;c++) pegs.push({x:start+c*pegSpace,y:y});
- }
- var n=rows+1, sw=pegSpace, sx=cx-rows*pegSpace*0.5-sw*0.5;
+ var n=rows+1;
+ pegSpace=Math.min(W/(n+0.8), Math.max(18, W*0.062));
+ pegR=Math.max(3, Math.min(4.4, pegSpace*0.11));
+ var sw=pegSpace, sx=cx-(n*sw)*0.5;
  var vals=pickMults(MULT[risk], n), i;
  for(i=0;i<n;i++) slots.push({x:sx+i*sw, w:sw, y:boardBottom+4, m:vals[i]});
+ var r,c,count,y,start,x,odd;
+ for(r=0;r<rows;r++){
+  y=boardTop+r*dy;
+  odd=r%2;
+  count=n+(odd?0:1);
+  start=cx-(count-1)*pegSpace*0.5;
+  for(c=0;c<count;c++){
+   x=start+c*pegSpace;
+   if(x>boardLeft()+6 && x<boardRight()-6) pegs.push({x:x,y:y});
+  }
+ }
  needStatic=true;
 }
 
@@ -301,13 +311,6 @@ function draw(){
  ctx.lineWidth=2.5+pulse*1.5;
  ctx.strokeRect(3,3,W-6,H-6);
  ctx.shadowBlur=0;
-
- // drop point piscando
- pulse=0.45+0.55*Math.sin(now*0.012);
- ctx.shadowBlur=10+pulse*14;
- ctx.shadowColor='#00e5ff';
- ctx.fillStyle='rgba(0,229,255,'+(0.35+pulse*0.55)+')';
- ctx.beginPath(); ctx.arc(W*0.5, boardTop*0.4, 5+pulse*2, 0, Math.PI*2); ctx.fill();
 
  // pinos azul neon piscando
  for(i=0;i<pegs.length;i++){
@@ -365,11 +368,12 @@ function draw(){
 }
 
 function spawn(bet){
+ var left=boardLeft(), right=boardRight(), span=Math.max(20, right-left);
  balls.push({
-  x:W*0.5+(Math.random()-0.5)*pegSpace,
-  y:Math.max(16, boardTop*0.4),
-  vx:(Math.random()-0.5)*1.8,
-  vy:0.55,
+  x:left+span*(0.08+Math.random()*0.84),
+  y:Math.max(16, boardTop*0.35),
+  vx:(Math.random()-0.5)*2.4,
+  vy:0.5+Math.random()*0.35,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
   bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
   stall:0, lastY:0, age:0
@@ -409,7 +413,7 @@ async function finish(b){
  b.dead=true;
  var slot=b.slot||nearestSlot(b.x);
  b.slot=slot;
- var m=slot?slot.m:1;
+ var m=slot?slot.m:0.75;
  var gain=Math.round(b.bet*m*100)/100;
  balance+=gain; played++; profit+=gain-b.bet; roundGain+=gain; pending--;
  addHit(m);
@@ -427,7 +431,7 @@ async function finish(b){
 }
 
 function stepBall(b){
- var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,half,t,pad;
+ var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,pad,kick,away;
  b.age=(b.age||0)+1;
  if(b.sink){
   if(!b.slot){ finish(b); return; }
@@ -466,18 +470,19 @@ function stepBall(b){
   dot=b.vx*nx+b.vy*ny;
   b.vx=(b.vx-1.4*dot*nx)*0.62;
   b.vy=Math.abs(b.vy-1.4*dot*ny)*0.45+0.55;
-  b.vx+=(Math.random()-0.5)*1.15;
+  /* quique aleatório, um pouco mais para as laterais (0,75x) do que para o 1x */
+  kick=0.45+Math.random()*1.15;
+  away=b.x>=W*0.5?1:-1;
+  b.vx+=(Math.random()<0.66?away:-away)*kick;
   b.hit=4;
   break;
  }
  if(b.hit>0) b.hit--;
 
- t=Math.max(0, Math.min(1, (b.y-boardTop)/Math.max(1,boardBottom-boardTop)));
- half=pegSpace*(0.7+t*rows*0.48);
- left=W*0.5-half; right=W*0.5+half;
+ left=boardLeft(); right=boardRight();
  pad=b.r+4;
- if(b.x<left+pad){ b.x=left+pad; b.vx=Math.abs(b.vx)*0.45+0.15; }
- if(b.x>right-pad){ b.x=right-pad; b.vx=-Math.abs(b.vx)*0.45-0.15; }
+ if(b.x<left+pad){ b.x=left+pad; b.vx=Math.abs(b.vx)*0.55+0.2; }
+ if(b.x>right-pad){ b.x=right-pad; b.vx=-Math.abs(b.vx)*0.55-0.2; }
  if(b.x<b.r){ b.x=b.r; b.vx=Math.abs(b.vx)*0.45; }
  if(b.x>W-b.r){ b.x=W-b.r; b.vx=-Math.abs(b.vx)*0.45; }
  if(b.vx>2.4) b.vx=2.4; if(b.vx<-2.4) b.vx=-2.4;
