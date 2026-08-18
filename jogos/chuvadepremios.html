@@ -149,7 +149,7 @@ canvas{display:block;width:100%;height:100%}
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
   <li>Risco baixo: valores mais estáveis. Alto: as pontas pagam mais.</li>
-  <li>O centro (mais comum) devolve a aposta (<b>1x</b>). Lucro nas laterais é mais raro.</li>
+  <li>O centro (mais comum) devolve a aposta (<b>1x</b>). Ao lado há <b>0,5x</b> e <b>0,2x</b> (perda). Lucro fica nas pontas e é mais raro.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -177,10 +177,10 @@ var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=fal
 var bgCache=null,needStatic=true,raf=0;
 
 var MULT={
- /* Centro (mais comum) = 1x, empate. Lucro só nas pontas. */
- low:[1.4, 1.1, 1, 1, 1, 1, 1, 1, 1, 1.1, 1.4],
- medium:[2.5, 1.4, 1.1, 1, 1, 1, 1, 1, 1.1, 1.4, 2.5],
- high:[5, 2, 1.2, 1, 1, 1, 1, 1, 1.2, 2, 5]
+ /* Centro 1x (empate). 0.5 e 0.2 ao lado (perda). Lucro só nas pontas. */
+ low:[1.4, 0.5, 0.2, 0.5, 1, 1, 1, 0.5, 0.2, 0.5, 1.4],
+ medium:[2.5, 1.2, 0.5, 0.2, 1, 1, 1, 0.2, 0.5, 1.2, 2.5],
+ high:[5, 2, 0.5, 0.2, 1, 1, 1, 0.2, 0.5, 2, 5]
 };
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
