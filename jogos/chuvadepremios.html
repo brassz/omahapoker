@@ -148,7 +148,7 @@ canvas{display:block;width:100%;height:100%}
   <li>Valor por bolinha: 2 a 200. Até 10 bolinhas por rodada.</li>
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
-  <li>Risco baixo: prêmios mais estáveis. Alto: laterais pagam mais, o centro paga menos.</li>
+  <li>O centro da mesa devolve a aposta (1x). Lucro nas laterais é raro.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -176,9 +176,10 @@ var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=fal
 var bgCache=null,needStatic=true,raf=0;
 
 var MULT={
- low:[2,1.2,1,0.8,0.5,1,0.5,0.8,1,1.2,2],
- medium:[5,1.5,1.25,0.75,0.5,1,0.5,0.75,1.25,1.5,5],
- high:[12,4,2,1,0.5,1,0.5,1,2,4,12]
+ /* Centro (mais comum) = 1x. Lucro só nas pontas, bem raro. */
+ low:[1.5, 1, 1, 0.9, 1, 1, 1, 0.9, 1, 1, 1.5],
+ medium:[2.5, 1.2, 1, 0.8, 1, 1, 1, 0.8, 1, 1.2, 2.5],
+ high:[6, 1.5, 1, 0.5, 1, 1, 1, 0.5, 1, 1.5, 6]
 };
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
@@ -368,7 +369,7 @@ function spawn(bet, force){
  balls.push({
   x:W*0.5+(Math.random()-0.5)*6,
   y:Math.max(16, boardTop*0.4),
-  vx:(Math.random()-0.5)*0.8,
+  vx:(Math.random()-0.5)*0.28,
   vy:0.55,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
   bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
@@ -443,9 +444,16 @@ function stepBall(b){
  b.vx*=0.992;
  b.x+=b.vx*speed;
  b.y+=b.vy*speed;
+ /* puxa para o centro: cai mais em 1x, laterais (lucro) quase não acontecem */
+ b.vx+=(W*0.5-b.x)*0.0018*speed;
+ b.vx*=0.988;
  if(b.force && slots.length){
   var wantWin=b.force==='player';
-  var pool=slots.filter(function(s){ return wantWin ? s.m>=1 : s.m<1; });
+  var pool=slots.filter(function(s){
+   if(wantWin) return s.m>=1 && s.m<=1.01;
+   return s.m<1;
+  });
+  if(!pool.length && wantWin) pool=slots.filter(function(s){ return s.m>=1 && s.m<1.3; });
   if(pool.length){
     var t=pool[0], best=1e9, k, d, cx;
     for(k=0;k<pool.length;k++){
