@@ -149,7 +149,8 @@ canvas{display:block;width:100%;height:100%}
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
   <li>Risco baixo: valores mais estáveis. Alto: as pontas pagam mais.</li>
-  <li>No meio há só <b>dois 1x</b> (empate) e <b>dois 0,50x</b> (perda). O restante é 0,2x ou o prêmio das pontas.</li>
+  <li>No meio há só <b>dois 1x</b> (empate) e <b>dois 0,50x</b> (perda). O restante é 0,2x.</li>
+  <li>Lucro só nas duas pontas da mesa, e é raro.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -177,10 +178,10 @@ var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=fal
 var bgCache=null,needStatic=true,raf=0;
 
 var MULT={
- /* Meio: 0.5, 1, 1, 0.5. Pontas pagam mais. Resto 0.2. */
+ /* Meio: 0.5, 1, 1, 0.5. Lucro só nas duas pontas. */
  low:[1.4, 0.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 0.2, 1.4],
- medium:[2.5, 1.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 1.2, 2.5],
- high:[5, 2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 2, 5]
+ medium:[2.5, 0.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 0.2, 2.5],
+ high:[5, 0.2, 0.2, 0.5, 1, 1, 0.5, 0.2, 0.2, 0.2, 5]
 };
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
@@ -190,10 +191,6 @@ function pickMults(set,n){
  if(set && set.length){
   out[0]=set[0];
   out[n-1]=set[set.length-1];
-  if(n>6){
-   out[1]=set[1];
-   out[n-2]=set[set.length-2];
-  }
  }
  one=Math.floor((n-2)/2);
  if(one<1) one=1;
@@ -203,6 +200,23 @@ function pickMults(set,n){
  out[one+1]=1;
  out[one+2]=0.5;
  return out;
+}
+function pickHouseSlot(){
+ var r=Math.random(), last=slots.length-1, pool=[], i;
+ if(r<0.04) return null;
+ function ofM(m, skipEdge){
+  var a=[], j;
+  for(j=0;j<slots.length;j++){
+   if(skipEdge && (j===0 || j===last)) continue;
+   if(slots[j].m===m) a.push(slots[j]);
+  }
+  return a;
+ }
+ if(r<0.54) pool=ofM(0.5, true);
+ else if(r<0.82) pool=ofM(1, true);
+ else pool=ofM(0.2, true);
+ if(!pool.length) return slots[Math.floor(slots.length/2)]||null;
+ return pool[Math.floor(Math.random()*pool.length)];
 }
 function boardLeft(){ return slots.length ? slots[0].x : 8; }
 function boardRight(){ return slots.length ? slots[slots.length-1].x+slots[slots.length-1].w : W-8; }
@@ -376,15 +390,16 @@ function draw(){
 }
 
 function spawn(bet){
- var wild=Math.random()<0.12;
+ var target=pickHouseSlot();
+ var wild=!target;
  balls.push({
-  x:W*0.5+(Math.random()-0.5)*pegSpace*(wild?1.1:0.35),
+  x:W*0.5+(Math.random()-0.5)*pegSpace*(wild?0.9:0.22),
   y:Math.max(16, boardTop*0.4),
-  vx:(Math.random()-0.5)*(wild?2.1:0.4),
+  vx:(Math.random()-0.5)*(wild?1.8:0.22),
   vy:0.5+Math.random()*0.3,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
   bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
-  stall:0, lastY:0, age:0, wild:wild
+  stall:0, lastY:0, age:0, wild:wild, target:target
  });
 }
 
@@ -393,6 +408,18 @@ function nearestSlot(x){
  for(i=0;i<slots.length;i++){
   d=Math.abs(slots[i].x+slots[i].w*0.5-x);
   if(d<dmin){dmin=d;best=slots[i];}
+ }
+ return best;
+}
+function safeSlot(x, allowWin){
+ var s=nearestSlot(x);
+ if(allowWin || !s || s.m<=1) return s;
+ var best=s, dmin=1e9, i,d, cx;
+ for(i=0;i<slots.length;i++){
+  if(slots[i].m>1) continue;
+  cx=slots[i].x+slots[i].w*0.5;
+  d=Math.abs(cx-x);
+  if(d<dmin){ dmin=d; best=slots[i]; }
  }
  return best;
 }
@@ -412,14 +439,14 @@ function addHit(m){
 
 function forceSink(b){
  if(b.sink || b.dead) return;
- b.slot=nearestSlot(b.x);
+ b.slot=safeSlot(b.x, b.wild);
  b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
 }
 
 async function finish(b){
  if(b.dead) return;
  b.dead=true;
- var slot=b.slot||nearestSlot(b.x);
+ var slot=b.slot||safeSlot(b.x, b.wild);
  b.slot=slot;
  var m=slot?slot.m:1;
  var gain=Math.round(b.bet*m*100)/100;
@@ -439,7 +466,7 @@ async function finish(b){
 }
 
 function stepBall(b){
- var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,pad;
+ var i,p,dx,dy,d2,min,min2,nx,ny,over,dot,left,right,pad,tx;
  b.age=(b.age||0)+1;
  if(b.sink){
   if(!b.slot){ finish(b); return; }
@@ -452,12 +479,16 @@ function stepBall(b){
 
  b.vy+=0.12*speed;
  if(b.vy<0.35) b.vy=0.35;
- b.vx*=0.992;
+ b.vx*=0.99;
  b.x+=b.vx*speed;
  b.y+=b.vy*speed;
- if(!b.wild){
-  b.vx+=(W*0.5-b.x)*0.0024*speed;
-  b.vx*=0.985;
+ if(b.target){
+  tx=b.target.x+b.target.w*0.5;
+  b.vx+=(tx-b.x)*0.0042*speed;
+  b.vx*=0.978;
+ } else if(!b.wild){
+  b.vx+=(W*0.5-b.x)*0.0032*speed;
+  b.vx*=0.982;
  }
 
  min=b.r+pegR+0.4;
@@ -484,9 +515,12 @@ function stepBall(b){
   b.vy=Math.abs(b.vy-1.4*dot*ny)*0.45+0.55;
   if(b.wild){
    b.vx+=(Math.random()-0.5)*1.35;
+  } else if(b.target){
+   tx=b.target.x+b.target.w*0.5;
+   b.vx+=(tx>b.x?0.55:-0.55)*(0.5+Math.random()*0.45);
   } else {
    var inward=b.x>W*0.5?-1:1;
-   b.vx+=(Math.random()<0.78?inward:(Math.random()-0.5)*2)*(0.35+Math.random()*0.7);
+   b.vx+=(Math.random()<0.86?inward:(Math.random()-0.5)*2)*(0.3+Math.random()*0.55);
   }
   b.hit=4;
   break;
@@ -514,7 +548,7 @@ function stepBall(b){
  if(b.age>420) forceSink(b);
 
  if(b.y>=boardBottom-6){
-  b.slot=nearestSlot(b.x);
+  b.slot=safeSlot(b.x, b.wild);
   b.sink=true; b.t=0; b.vx=0; b.vy=1.6;
   if(b.slot){
    b.x=Math.max(b.slot.x+6, Math.min(b.slot.x+b.slot.w-6, b.x));
