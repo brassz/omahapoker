@@ -366,14 +366,15 @@ function draw(){
 }
 
 function spawn(bet){
+ var wild=Math.random()<0.12;
  balls.push({
-  x:W*0.5+(Math.random()-0.5)*pegSpace*0.7,
+  x:W*0.5+(Math.random()-0.5)*pegSpace*(wild?1.1:0.35),
   y:Math.max(16, boardTop*0.4),
-  vx:(Math.random()-0.5)*1.4,
+  vx:(Math.random()-0.5)*(wild?2.1:0.4),
   vy:0.5+Math.random()*0.3,
   r:Math.max(5, Math.min(6.5, pegSpace*0.14)),
   bet:bet, sink:false, t:0, slot:null, dead:false, hit:0,
-  stall:0, lastY:0, age:0
+  stall:0, lastY:0, age:0, wild:wild
  });
 }
 
@@ -441,9 +442,13 @@ function stepBall(b){
 
  b.vy+=0.12*speed;
  if(b.vy<0.35) b.vy=0.35;
- b.vx*=0.996;
+ b.vx*=0.992;
  b.x+=b.vx*speed;
  b.y+=b.vy*speed;
+ if(!b.wild){
+  b.vx+=(W*0.5-b.x)*0.0024*speed;
+  b.vx*=0.985;
+ }
 
  min=b.r+pegR+0.4;
  min2=min*min;
@@ -467,7 +472,12 @@ function stepBall(b){
   dot=b.vx*nx+b.vy*ny;
   b.vx=(b.vx-1.4*dot*nx)*0.62;
   b.vy=Math.abs(b.vy-1.4*dot*ny)*0.45+0.55;
-  b.vx+=(Math.random()-0.5)*1.15;
+  if(b.wild){
+   b.vx+=(Math.random()-0.5)*1.35;
+  } else {
+   var inward=b.x>W*0.5?-1:1;
+   b.vx+=(Math.random()<0.78?inward:(Math.random()-0.5)*2)*(0.35+Math.random()*0.7);
+  }
   b.hit=4;
   break;
  }
