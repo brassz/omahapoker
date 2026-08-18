@@ -148,8 +148,8 @@ canvas{display:block;width:100%;height:100%}
   <li>Valor por bolinha: 2 a 200. Até 10 bolinhas por rodada.</li>
   <li>O total (valor × quantidade) não pode passar de 200 e é debitado ao confirmar.</li>
   <li>Cada bolinha paga <b>aposta × multiplicador</b> do slot em que cair.</li>
-  <li>Risco baixo: valores mais estáveis. Alto: as pontas pagam mais, o centro paga menos.</li>
-  <li>O centro (mais comum) fica abaixo de 1x. Lucro nas laterais é raro, então no longo prazo o jogador perde mais do que ganha.</li>
+  <li>Risco baixo: valores mais estáveis. Alto: as pontas pagam mais.</li>
+  <li>O centro (mais comum) devolve a aposta (<b>1x</b>). Lucro nas laterais é mais raro.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -177,10 +177,10 @@ var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=fal
 var bgCache=null,needStatic=true,raf=0;
 
 var MULT={
- /* Centro (mais comum) < 1x. Lucro só nas pontas, raro. */
- low:[1.6, 1.2, 1, 0.8, 0.5, 0.4, 0.5, 0.8, 1, 1.2, 1.6],
- medium:[3, 1.8, 1.1, 0.6, 0.3, 0.2, 0.3, 0.6, 1.1, 1.8, 3],
- high:[8, 3, 1.5, 0.5, 0.2, 0.1, 0.2, 0.5, 1.5, 3, 8]
+ /* Centro (mais comum) = 1x, empate. Lucro só nas pontas. */
+ low:[1.4, 1.1, 1, 1, 1, 1, 1, 1, 1, 1.1, 1.4],
+ medium:[2.5, 1.4, 1.1, 1, 1, 1, 1, 1, 1.1, 1.4, 2.5],
+ high:[5, 2, 1.2, 1, 1, 1, 1, 1, 1.2, 2, 5]
 };
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
@@ -411,7 +411,7 @@ async function finish(b){
  b.dead=true;
  var slot=b.slot||nearestSlot(b.x);
  b.slot=slot;
- var m=slot?slot.m:0.4;
+ var m=slot?slot.m:1;
  var gain=Math.round(b.bet*m*100)/100;
  balance+=gain; played++; profit+=gain-b.bet; roundGain+=gain; pending--;
  addHit(m);
