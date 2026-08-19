@@ -250,7 +250,7 @@ body{display:flex;flex-direction:column}
     <li>Informe o valor (2 a 200) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.</li>
     <li><b>Somente cor:</b> vermelho/preto pagam 2x; verde paga 15x (só na cor).</li>
     <li><b>Cor + número:</b> só no vermelho ou preto; acertou a cor e o número, paga 5x.</li>
-    <li>Pode juntar várias apostas na mesma rodada. O total é debitado ao girar.</li>
+    <li>Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de 200 e é debitado ao girar.</li>
   </ul>
   <button type="button" class="closeHelp" id="closeHelp">FECHAR REGRAS</button>
 </div></div>
@@ -291,6 +291,8 @@ let selections={
 let spinning=false;
 let history=[slots[3],slots[10],slots[12],slots[0],slots[7],slots[2],slots[13],slots[4],slots[11]];
 
+const BET_MAX=200;
+
 function money(v){
   return Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2});
 }
@@ -301,6 +303,17 @@ function readAmount(){
   const raw=String(amount.value||"").trim();
   if(raw==="") return 0;
   return Math.floor(Number(raw));
+}
+function pendingTotal(){
+  return pendingBets.reduce((a,b)=>a+b.amount,0);
+}
+function setAmount(n){
+  const cap=window.clubBets ? clubBets.MAX : BET_MAX;
+  n=Math.floor(Number(n)||0);
+  if(n<2) n=2;
+  if(n>cap) n=cap;
+  amount.value=n;
+  return n;
 }
 
 function colorSlots(color){ return slots.filter(x=>x.c===color); }
@@ -381,8 +394,12 @@ function addBet(color){
     const check=clubBets.validate(value);
     if(!check.ok){ message.textContent=check.message; return; }
     value=check.value;
-  } else if(!(value>=2)){
-    message.textContent="Informe um valor válido para a aposta.";
+  } else if(!(value>=2 && value<=BET_MAX)){
+    message.textContent="A aposta deve ser de 2 a 200.";
+    return;
+  }
+  if(pendingTotal()+value>BET_MAX){
+    message.textContent="O total das apostas nesta rodada não pode passar de 200.";
     return;
   }
   const sel=selections[color];
@@ -418,20 +435,16 @@ function betWins(b, result){
 
 document.querySelectorAll("[data-add]").forEach(btn=>{
   btn.onclick=()=>{
-    let value=readAmount()||0;
-    value+=Number(btn.dataset.add);
-    amount.value=Math.max(2,value);
+    setAmount((readAmount()||0)+Number(btn.dataset.add));
   };
 });
-document.getElementById("half").onclick=()=>{ amount.value=Math.max(2,Math.floor((readAmount()||2)/2)); };
-document.getElementById("double").onclick=()=>{
-  const n=Math.max(2,(readAmount()||2)*2);
-  amount.value=window.clubBets ? Math.min(clubBets.MAX,n) : n;
-};
+document.getElementById("half").onclick=()=>{ setAmount(Math.floor((readAmount()||2)/2)); };
+document.getElementById("double").onclick=()=>{ setAmount((readAmount()||2)*2); };
 document.getElementById("max").onclick=()=>{
-  const cap=window.clubBets ? clubBets.MAX : 200;
-  amount.value=Math.max(2, Math.min(cap, Math.floor(credits)||cap));
+  const cap=window.clubBets ? clubBets.MAX : BET_MAX;
+  setAmount(Math.min(cap, Math.floor(credits)||cap));
 };
+amount.addEventListener("change",()=>{ if(readAmount()>0) setAmount(readAmount()); });
 
 function buildTrack(){
   track.innerHTML="";
@@ -494,6 +507,10 @@ async function spin(){
     return;
   }
   const total=pendingBets.reduce((a,b)=>a+b.amount,0);
+  if(total>BET_MAX){
+    message.textContent="O total das apostas nesta rodada não pode passar de 200.";
+    return;
+  }
   if(total>credits){
     message.textContent="Saldo insuficiente para o total das apostas.";
     return;

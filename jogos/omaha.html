@@ -107,6 +107,13 @@ button{
 button#new{
   background:linear-gradient(135deg,#00b96b,#00a8e8);
 }
+button#new:disabled{
+  opacity:.4;
+  filter:grayscale(.35);
+  cursor:not-allowed;
+  pointer-events:none;
+  box-shadow:none;
+}
 button#flop{
   background:linear-gradient(135deg,#ff8a00,#ffd000);
   color:#321900;
@@ -178,8 +185,8 @@ button#river{
 <div class="title" style="color:#ff3434">BANCA — 5 CARTAS</div>
 <div id="bankHand"></div>
 </section>
-<section class="panel"><div class="actions"><button id="flop">ABRIR FLOP</button><button id="turn" class="secondary">ABRIR TURN</button><button id="river" class="secondary">ABRIR RIVER</button></div></section>
-<section class="panel"><button id="new" class="big">🃏 NOVA RODADA</button><button id="openHelp" class="helpBtn" type="button">❓ COMO JOGAR / REGRAS</button>
+<section class="panel"><div class="actions"><button id="flop" type="button">ABRIR FLOP</button><button id="turn" class="secondary" type="button">ABRIR TURN</button><button id="river" class="secondary" type="button">ABRIR RIVER</button></div></section>
+<section class="panel"><button id="new" class="big" type="button" disabled>🃏 NOVA RODADA</button><button id="openHelp" class="helpBtn" type="button">❓ COMO JOGAR / REGRAS</button>
 <div id="decisionBox" style="display:none;margin-top:8px">
   <div style="text-align:center;color:white;font-weight:900;margin-bottom:6px">DISPUTAR A MÃO?</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -377,15 +384,16 @@ function render(){
   $('flop').disabled=stage!==1 || activeBet<=0 || roundOver;
   $('turn').disabled=stage!==2 || decision!=='continue' || roundOver;
   $('river').disabled=stage!==3 || decision!=='continue' || roundOver;
+  /* Nova rodada só depois do resultado ou da desistência */
+  $('new').disabled=!roundOver;
   $('decisionBox').style.display=(stage===2 && decision===null && !roundOver)?'block':'none';
   renderBet();
   if(showHands && board.length>=5) void evaluate();
 }
 function newRound(){
-  if(activeBet>0){
-    playerCredits+=activeBet;
-    activeBet=0;
-    saveCredits();renderCredits();
+  if(!roundOver && (stage>0 || activeBet>0)){
+    alert('Nova rodada só depois que esta jogada terminar. Dispute a mão ou desista.');
+    return;
   }
   handPersisted=false;
   lastFoldFee=0;
@@ -633,7 +641,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <p><b>Objetivo:</b> formar uma mão de poker melhor que a da Banca usando obrigatoriamente <b>2 das suas 5 cartas</b> e <b>3 das 5 cartas comunitárias</b>.</p>
 <h3>1. Créditos</h3><p>Use os créditos do seu saldo para jogar. A banca não tem saldo limitado.</p>
 <h3>2. Aposta</h3><p>Digite o valor e toque em <b>CONFIRMAR</b>. A aposta é debitada e só então as cartas da mesa aparecem.</p>
-<h3>3. Nova rodada</h3><p>Toque em <b>NOVA RODADA</b> para limpar a mesa. Depois confirme a aposta para receber as cartas (Jogador aberto, Banca fechada).</p>
+<h3>3. Nova rodada</h3><p>O botão <b>NOVA RODADA</b> fica desligado durante a jogada. Só acende depois do resultado ou da desistência. Depois de abrir o flop, não dá para cancelar nem ver outro flop de graça: é preciso disputar ou desistir.</p>
 <h3>4. Flop</h3><p>Toque em <b>ABRIR FLOP</b> para revelar as três primeiras cartas comunitárias.</p>
 <h3>5. Disputar ou desistir</h3><p>Depois do flop, o Jogador escolhe <b>DISPUTAR A MÃO</b> ou <b>DESISTIR</b>. Se desistir, perde <b>10% do valor da aposta</b>; os outros 90% retornam ao Jogador e a penalidade de 10% vai para a Banca.</p>
 <h3>6. Turn e River</h3><p>Se continuar, abra o <b>TURN</b> e depois o <b>RIVER</b>. Ao final, as cartas da Banca são reveladas.</p>
