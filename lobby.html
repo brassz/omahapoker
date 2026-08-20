@@ -164,11 +164,14 @@ body{margin:0;min-height:100vh}
   text-shadow:0 0 10px #ffd91a66;word-break:break-all;
 }
 .pix-box .pix-company{font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.35}
+.pix-box .pix-qr{
+  display:block;margin:10px auto 12px;width:min(220px,100%);height:auto;
+  border-radius:12px;background:#fff;padding:8px;
+}
 .pix-box .pix-copy{
-  margin-top:10px;width:100%;border:0;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;
+  margin-top:4px;width:100%;border:0;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;
   color:#00131b;background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
 }
-.wa-btn{
   width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;color:#fff;
   background:linear-gradient(180deg,#128C7E,#25D366);border:2px solid #8ef0b5;
   box-shadow:0 0 14px #25D36655;font-size:14px;
@@ -206,9 +209,9 @@ body{margin:0;min-height:100vh}
         </div>
         <div id="depPixBox" style="display:none">
           <div class="pix-box">
-            <div class="pix-label">PIX COPIA E COLA</div>
-            <div class="pix-key" id="depositPixKey" style="font-size:12px;word-break:break-all">—</div>
-            <button type="button" class="pix-copy" id="depositCopyPix">COPIAR PIX</button>
+            <div class="pix-label">ESCANEIE O QR CODE PIX</div>
+            <img id="depPixQr" class="pix-qr" alt="QR Code PIX" width="220" height="220" hidden>
+            <button type="button" class="pix-copy" id="depositCopyPix">COPIAR CÓDIGO PIX</button>
           </div>
           <p class="deposit-hint" id="depStatus">Aguardando pagamento...</p>
         </div>
@@ -286,6 +289,36 @@ body{margin:0;min-height:100vh}
     document.getElementById('depositForm').style.display = 'none';
     document.getElementById('withdrawForm').style.display = 'none';
     document.querySelector('.wallet-btns').style.display = '';
+    resetPixQr();
+  }
+
+  function showPixQr(pix) {
+    const img = document.getElementById('depPixQr');
+    if (!img) return;
+    const emv = String(pix?.pix_copy_paste || '').trim();
+    const qr = String(pix?.pix_qr_code || '').trim();
+    let src = '';
+    if (qr.startsWith('data:') || qr.startsWith('http://') || qr.startsWith('https://')) {
+      src = qr;
+    } else if (qr.length > 40 && /^[A-Za-z0-9+/=\s]+$/.test(qr)) {
+      src = 'data:image/png;base64,' + qr.replace(/\s/g, '');
+    } else if (emv) {
+      src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data=' + encodeURIComponent(emv);
+    }
+    if (src) {
+      img.src = src;
+      img.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      img.hidden = true;
+    }
+  }
+
+  function resetPixQr() {
+    const img = document.getElementById('depPixQr');
+    if (!img) return;
+    img.removeAttribute('src');
+    img.hidden = true;
   }
 
   function stopPixPoll() {
@@ -476,7 +509,11 @@ body{margin:0;min-height:100vh}
     setWalletMsg('');
   };
   document.getElementById('depositCopyPix').onclick = async () => {
-    const key = pendingPix?.pix_copy_paste || document.getElementById('depositPixKey').textContent;
+    const key = pendingPix?.pix_copy_paste || '';
+    if (!key) {
+      setWalletMsg('Gere o PIX antes de copiar.', 'err');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(key);
       setWalletMsg('PIX copiado! Cole no app do banco.', 'ok');
@@ -506,7 +543,7 @@ body{margin:0;min-height:100vh}
     try {
       const pix = await omahaAuth.createPixDeposit({ amount, document: documentCpf, phone });
       pendingPix = pix;
-      document.getElementById('depositPixKey').textContent = pix.pix_copy_paste || '—';
+      showPixQr(pix);
       document.getElementById('depPixBox').style.display = '';
       document.getElementById('depStatus').textContent = 'Aguardando pagamento... o saldo entra sozinho.';
       setWalletMsg('PIX gerado. Pague no banco; a confirmação é automática.', 'ok');
