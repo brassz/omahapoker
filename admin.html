@@ -97,10 +97,11 @@ body{margin:0;min-height:100vh}
 .empty{text-align:center;padding:20px;color:var(--muted);font-weight:800}
 .cfgGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cfgField label{display:block;font-size:11px;font-weight:900;color:var(--muted);margin-bottom:4px;letter-spacing:.5px}
-.cfgField input[type="number"],.cfgField select{
+.cfgField input[type="number"],.cfgField select,.rtpOn,.rtpPct{
   width:100%;padding:10px;border-radius:10px;border:1px solid #445;
   background:#090b14;color:#fff;font-weight:800;
 }
+.rtpPct{max-width:90px}
 .cfgHelp{font-size:12px;font-weight:700;color:#d8e7ff;line-height:1.45;margin:8px 0 12px}
 .cfgStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .cfgStat{background:#060912;border:1px solid #334;border-radius:10px;padding:8px;text-align:center}
@@ -216,10 +217,9 @@ body{margin:0;min-height:100vh}
     <section class="panel">
       <h2>★ MANIPULAÇÃO DE APOSTAS</h2>
       <p class="cfgHelp">
-        Quando ativo, cada aposta (todos os jogos) sorteia o resultado pela
-        <b>porcentagem de RTP</b>: chance de vitória do jogador.
-        Ex.: RTP <b>20</b> ≈ jogador vence 20% das apostas; o restante vai para a banca.
-        Desativado = jogo justo (RNG natural).
+        Quando ativo, cada aposta sorteia o resultado pela <b>porcentagem de RTP</b>
+        (chance de vitória do jogador). Ex.: RTP <b>20</b> ≈ jogador vence 20% das apostas.
+        Desativado = jogo justo (RNG natural) nas salas que <b>não</b> tiverem manipulação própria.
       </p>
       <div class="cfgStats">
         <div class="cfgStat"><span>STATUS</span><b id="cfgStatus">—</b></div>
@@ -244,14 +244,27 @@ body{margin:0;min-height:100vh}
         <button type="button" class="reset" id="cfgReset">ZERAR CONTADOR</button>
       </div>
     </section>
+
+    <section class="panel">
+      <h2>★ MANIPULAÇÃO POR JOGO</h2>
+      <p class="cfgHelp">
+        Salas com <b>manipulação própria = SIM</b> usam só o RTP da linha — ignoram a configuração geral.
+        Com <b>NÃO</b>, a sala segue a manipulação geral acima (ou jogo justo se ela estiver desativada).
+      </p>
+      <div id="rtpTableWrap" style="margin-top:4px;overflow:auto">
+        <div class="empty">Carregando jogos...</div>
+      </div>
+      <div class="cfgActions" style="margin-top:12px">
+        <button type="button" class="save" id="cfgSaveGames">SALVAR POR JOGO</button>
+      </div>
+    </section>
     </div>
 
     <div class="tabPane" data-pane="withdraw">
     <section class="panel">
       <h2>★ SAQUES PIX</h2>
       <p class="cfgHelp">
-        Solicitações dos jogadores. Prazo informado ao cliente: <b>até 2 horas</b>.
-        Ao marcar como PAGO, o valor já foi debitado na solicitação. Ao RECUSAR, o saldo volta para o jogador.
+        Saques são pagos automaticamente via CajuPay. Use PAGO/RECUSAR só se o automático falhar.
       </p>
       <div id="withdrawList"><div class="empty">Carregando saques...</div></div>
     </section>
@@ -289,7 +302,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=17"></script>
+  <script src="js/auth.js?v=18"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -297,6 +310,7 @@ body{margin:0;min-height:100vh}
   let withdrawals = [];
   let me = null;
   let settings = null;
+  let gameRtp = [];
   let searchQuery = '';
   let playerPage = 1;
   const PAGE_SIZE = 5;
@@ -312,6 +326,7 @@ body{margin:0;min-height:100vh}
     { id: 'ronda', name: 'RONDA' },
     { id: 'caipira', name: 'CAIPIRA' },
     { id: '21', name: '21' },
+    { id: 'bacbo', name: 'BAC BO' },
   ];
 
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
@@ -456,6 +471,78 @@ body{margin:0;min-height:100vh}
     $('cfgCounter').textContent = fmt(c);
     $('cfgRealized').textContent = realized == null ? '—' : `${realized}% (${fmt(wins)} vit.)`;
     renderMaintenance(settings);
+    renderRtpTable();
+  }
+
+  function readRtpRows() {
+    return [...document.querySelectorAll('#rtpTableWrap tr[data-gid]')];
+  }
+
+  function validateRtpRows(rows) {
+    for (const tr of rows) {
+      const rtpPercent = Math.floor(Number(tr.querySelector('.rtpPct').value));
+      if (!(rtpPercent >= 0 && rtpPercent <= 100)) {
+        setMsg(`RTP inválido em ${tr.dataset.gid} (use 0 a 100).`, 'err');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async function saveGameRtpRows(rows) {
+    for (const tr of rows) {
+      const rtpPercent = Math.floor(Number(tr.querySelector('.rtpPct').value));
+      const on = tr.querySelector('.rtpOn').value === '1';
+      await omahaAuth.adminUpsertGameRtp({
+        gameId: tr.dataset.gid,
+        enabled: on,
+        rtpPercent,
+      });
+    }
+  }
+
+  function renderRtpTable() {
+    const box = $('rtpTableWrap');
+    if (!box) return;
+    const rows = MAINT_GAMES.map((g) => {
+      const row = gameRtp.find((r) => r.game_id === g.id) || {
+        game_id: g.id, enabled: false, rtp_percent: Number(settings?.rtp_percent) || 20,
+        bet_counter: 0, player_win_counter: 0,
+      };
+      const bets = Number(row.bet_counter) || 0;
+      const wins = Number(row.player_win_counter) || 0;
+      const real = bets > 0 ? Math.round((wins / bets) * 1000) / 10 : null;
+      return `
+        <tr data-gid="${g.id}">
+          <td data-label="JOGO"><b>${g.name}</b></td>
+          <td data-label="PRÓPRIO">
+            <select class="rtpOn">
+              <option value="1" ${row.enabled ? 'selected' : ''}>SIM</option>
+              <option value="0" ${row.enabled ? '' : 'selected'}>NÃO (usa geral)</option>
+            </select>
+          </td>
+          <td data-label="RTP %">
+            <input class="rtpPct" type="number" min="0" max="100" step="1" value="${Number(row.rtp_percent) || 20}">
+          </td>
+          <td data-label="REALIZADO">${real == null ? '—' : real + '%'}</td>
+          <td data-label="APOSTAS">${fmt(bets)}</td>
+        </tr>
+      `;
+    }).join('');
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGO</th>
+            <th>PRÓPRIO</th>
+            <th>RTP %</th>
+            <th>REALIZADO</th>
+            <th>APOSTAS</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   function renderMaintenance(s) {
@@ -507,6 +594,11 @@ body{margin:0;min-height:100vh}
 
   async function reloadSettings() {
     settings = await omahaAuth.getGameSettings();
+    try {
+      gameRtp = await omahaAuth.listGameRtp();
+    } catch (_) {
+      gameRtp = [];
+    }
     renderSettings(settings);
   }
 
@@ -639,12 +731,31 @@ body{margin:0;min-height:100vh}
       renderSettings(s);
       setMsg(
         enabled
-          ? `Manipulação salva: RTP ${rtpPercent}% (chance de vitória do jogador).`
-          : `Manipulação desativada (jogo justo). RTP configurado: ${rtpPercent}%.`,
+          ? `Manipulação geral salva: RTP ${rtpPercent}% (salas sem configuração própria).`
+          : `Manipulação geral desativada. Salas com "próprio = SIM" continuam com RTP individual.`,
         'ok'
       );
     } catch (err) {
       setMsg(err?.message || 'Falha ao salvar. Rode o SQL supabase/game-settings.sql no Supabase.', 'err');
+    }
+  };
+
+  $('cfgSaveGames').onclick = async () => {
+    const rows = readRtpRows();
+    if (!rows.length) {
+      setMsg('Tabela de jogos ainda não carregou. Rode o SQL supabase/game-rtp.sql no Supabase.', 'err');
+      return;
+    }
+    if (!validateRtpRows(rows)) return;
+    try {
+      await saveGameRtpRows(rows);
+      await reloadSettings();
+      setMsg('RTP por jogo salvo. Salas com "próprio = SIM" ignoram a configuração geral.', 'ok');
+    } catch (err) {
+      const tip = /list_game_rtp|admin_upsert_game_rtp|schema cache/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/game-rtp.sql no Supabase.'
+        : '';
+      setMsg((err?.message || 'Falha ao salvar por jogo.') + tip, 'err');
     }
   };
 

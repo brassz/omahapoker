@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Bac Bo — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column}
+.game{
+  flex:1;min-height:0;width:min(720px,100%);margin:0 auto;
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;overflow:hidden;gap:6px;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;
+}
+.title{font-size:clamp(18px,4.6vw,28px);font-weight:1000;line-height:1}
+.credits{
+  background:#0a0614;border:2px solid #17c8ff;border-radius:10px;
+  padding:5px 10px;font-weight:900;text-align:right;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.credits small{display:block;color:#7af0ff;font-size:9px;letter-spacing:.5px}
+.credits b{font-size:16px;color:#ffd91a}
+.last-results{
+  display:flex;gap:5px;justify-content:center;flex-wrap:nowrap;overflow:hidden;flex:0 0 auto;
+}
+.last-chip{
+  min-width:28px;height:28px;padding:0 6px;display:grid;place-items:center;
+  border-radius:6px;font-size:11px;font-weight:900;color:#fff;flex:0 0 auto;
+}
+.last-chip.player{background:#1565c0!important}
+.last-chip.banker{background:#c62828!important}
+.last-chip.tie{background:#2e7d32!important}
+.card{
+  flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  background:#0a0614;border:2px solid #17c8ff;border-radius:14px;padding:8px;
+  box-shadow:0 0 14px #17c8ff55;animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.table{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:stretch;
+  flex:0 0 auto;margin-bottom:6px;
+}
+.side{
+  border-radius:12px;padding:8px 6px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  min-height:130px;position:relative;
+}
+.side.player{background:linear-gradient(180deg,#0d2a5e,#1565c0);border:2px solid #42a5f5}
+.side.banker{background:linear-gradient(180deg,#5c1010,#c62828);border:2px solid #ef5350}
+.side-label{font-size:11px;font-weight:1000;letter-spacing:1px;color:#fff;text-transform:uppercase}
+.side-score{
+  font-size:clamp(36px,10vw,52px);font-weight:1000;line-height:1;
+  color:#ffd91a;text-shadow:0 0 12px #ffd91a88;
+}
+.dice-row{display:flex;gap:8px;justify-content:center;margin:4px 0;flex-shrink:0}
+.die{
+  --die:52px;
+  --pip:#111;
+  width:var(--die);height:var(--die);min-width:var(--die);min-height:var(--die);
+  flex-shrink:0;border-radius:10px;
+  background:#fff;border:3px solid #17c8ff;
+  box-shadow:0 0 10px #17c8ff66,0 4px 10px rgba(0,0,0,.4);
+  position:relative;user-select:none;
+  display:grid;place-items:center;
+  animation:dieBorderRainbow 1.5s ease-in-out infinite;
+}
+.pip-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  width:76%;height:76%;
+}
+.pip{
+  width:72%;height:72%;border-radius:50%;background:var(--pip);
+  opacity:0;place-self:center;
+}
+.pip.on{opacity:1}
+.side.player .die{animation:dieBorderRainbowPlayer 1.5s ease-in-out infinite}
+.side.banker .die{animation:dieBorderRainbowBanker 1.5s ease-in-out infinite}
+@keyframes dieBorderRainbow{
+  0%,100%{border-color:#17c8ff;box-shadow:0 0 12px #17c8ffaa,0 0 20px #17c8ff55,0 4px 10px rgba(0,0,0,.4)}
+  16%{border-color:#ff4fd8;box-shadow:0 0 12px #ff4fd8aa,0 0 20px #ff4fd855,0 4px 10px rgba(0,0,0,.4)}
+  33%{border-color:#ffd91a;box-shadow:0 0 12px #ffd91aaa,0 0 20px #ffd91a55,0 4px 10px rgba(0,0,0,.4)}
+  50%{border-color:#5cff1a;box-shadow:0 0 12px #5cff1aaa,0 0 20px #5cff1a55,0 4px 10px rgba(0,0,0,.4)}
+  66%{border-color:#ff8c15;box-shadow:0 0 12px #ff8c15aa,0 0 20px #ff8c1555,0 4px 10px rgba(0,0,0,.4)}
+  83%{border-color:#a78bfa;box-shadow:0 0 12px #a78bfaaa,0 0 20px #a78bfa55,0 4px 10px rgba(0,0,0,.4)}
+}
+@keyframes dieBorderRainbowPlayer{
+  0%,100%{border-color:#42a5f5;box-shadow:0 0 12px #42a5f5cc,0 0 18px #17c8ff88,0 4px 10px rgba(0,0,0,.4)}
+  25%{border-color:#17c8ff;box-shadow:0 0 14px #17c8ffcc,0 0 22px #7af0ff88,0 4px 10px rgba(0,0,0,.4)}
+  50%{border-color:#5cff1a;box-shadow:0 0 12px #5cff1aaa,0 0 20px #17c8ff66,0 4px 10px rgba(0,0,0,.4)}
+  75%{border-color:#a78bfa;box-shadow:0 0 12px #a78bfaaa,0 0 20px #42a5f588,0 4px 10px rgba(0,0,0,.4)}
+}
+@keyframes dieBorderRainbowBanker{
+  0%,100%{border-color:#ef5350;box-shadow:0 0 12px #ef5350cc,0 0 18px #ff343488,0 4px 10px rgba(0,0,0,.4)}
+  25%{border-color:#ff4fd8;box-shadow:0 0 14px #ff4fd8cc,0 0 22px #ff343466,0 4px 10px rgba(0,0,0,.4)}
+  50%{border-color:#ffd91a;box-shadow:0 0 12px #ffd91aaa,0 0 20px #ef535088,0 4px 10px rgba(0,0,0,.4)}
+  75%{border-color:#ff8c15;box-shadow:0 0 12px #ff8c15aa,0 0 20px #ef535066,0 4px 10px rgba(0,0,0,.4)}
+}
+.die.rolling{animation:shake .1s linear infinite,dieBorderRainbowFast .45s ease-in-out infinite}
+.side.player .die.rolling{animation:shake .1s linear infinite,dieBorderRainbowPlayerFast .45s ease-in-out infinite}
+.side.banker .die.rolling{animation:shake .1s linear infinite,dieBorderRainbowBankerFast .45s ease-in-out infinite}
+@keyframes dieBorderRainbowFast{
+  0%,100%{border-color:#17c8ff;box-shadow:0 0 16px #17c8ff,0 0 28px #17c8ff99,0 4px 10px rgba(0,0,0,.4)}
+  20%{border-color:#ff4fd8;box-shadow:0 0 16px #ff4fd8,0 0 28px #ff4fd899,0 4px 10px rgba(0,0,0,.4)}
+  40%{border-color:#ffd91a;box-shadow:0 0 16px #ffd91a,0 0 28px #ffd91a99,0 4px 10px rgba(0,0,0,.4)}
+  60%{border-color:#5cff1a;box-shadow:0 0 16px #5cff1a,0 0 28px #5cff1a99,0 4px 10px rgba(0,0,0,.4)}
+  80%{border-color:#ff8c15;box-shadow:0 0 16px #ff8c15,0 0 28px #ff8c1599,0 4px 10px rgba(0,0,0,.4)}
+}
+@keyframes dieBorderRainbowPlayerFast{
+  0%,100%{border-color:#17c8ff;box-shadow:0 0 18px #17c8ff,0 0 30px #42a5f5cc,0 4px 10px rgba(0,0,0,.4)}
+  33%{border-color:#5cff1a;box-shadow:0 0 18px #5cff1a,0 0 30px #17c8ffcc,0 4px 10px rgba(0,0,0,.4)}
+  66%{border-color:#a78bfa;box-shadow:0 0 18px #a78bfa,0 0 30px #42a5f5cc,0 4px 10px rgba(0,0,0,.4)}
+}
+@keyframes dieBorderRainbowBankerFast{
+  0%,100%{border-color:#ff3434;box-shadow:0 0 18px #ff3434,0 0 30px #ef5350cc,0 4px 10px rgba(0,0,0,.4)}
+  33%{border-color:#ffd91a;box-shadow:0 0 18px #ffd91a,0 0 30px #ff3434cc,0 4px 10px rgba(0,0,0,.4)}
+  66%{border-color:#ff4fd8;box-shadow:0 0 18px #ff4fd8,0 0 30px #ef5350cc,0 4px 10px rgba(0,0,0,.4)}
+}
+@keyframes shake{0%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}100%{transform:rotate(-5deg)}}
+.vs-col{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-width:48px;
+}
+.vs-badge{
+  width:40px;height:40px;border-radius:50%;background:#060912;border:2px solid #ffd91a;
+  display:grid;place-items:center;font-size:13px;font-weight:1000;color:#ffd91a;
+  box-shadow:0 0 10px #ffd91a55;
+}
+.tie-badge{
+  font-size:9px;font-weight:900;color:#81c784;padding:3px 6px;
+  border:1px solid #2e7d32;border-radius:6px;background:#1b3a1f;
+}
+.result-banner{
+  text-align:center;font-size:clamp(14px,3.5vw,18px);font-weight:1000;
+  min-height:24px;color:#ffd91a;margin-bottom:4px;flex:0 0 auto;
+}
+.result-banner.win{color:#5cff1a}
+.result-banner.lose{color:#ff6b64}
+.amount-row{
+  display:grid;grid-template-columns:minmax(100px,160px) 1fr;gap:6px;align-items:end;
+  padding-bottom:6px;border-bottom:1px solid #334;flex:0 0 auto;
+}
+.label{display:block;color:#7af0ff;font-size:10px;font-weight:900;margin-bottom:3px;letter-spacing:.4px}
+.amount-box{
+  height:34px;background:#060912;border:2px solid #17c8ff;border-radius:8px;
+  display:flex;align-items:center;padding:0 8px;gap:6px;
+}
+.coin{
+  width:20px;height:20px;border-radius:50%;background:#ffd91a;color:#3b3210;
+  display:grid;place-items:center;font-size:9px;font-weight:900;flex:0 0 auto;
+}
+.amount-box input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:#fff;font-size:14px;font-weight:800;
+}
+.quick{display:flex;flex-wrap:nowrap;gap:3px;overflow:hidden}
+.quick button{
+  height:34px;flex:1;min-width:0;padding:0 3px;background:#12101c!important;
+  border:1px solid #556!important;border-radius:8px;color:#d8e7ff!important;
+  cursor:pointer;font-weight:800;font-size:10px;
+  background-image:none!important;animation:none!important;box-shadow:none!important;
+}
+.bets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:6px;flex:0 0 auto}
+.bet-card{
+  border:2px solid #334;border-radius:10px;overflow:hidden;background:#060912;
+  display:flex;flex-direction:column;
+}
+.bet-card.tone-player{border-color:#1565c0}
+.bet-card.tone-banker{border-color:#c62828}
+.bet-card.tone-tie{border-color:#2e7d32}
+.bet-head{
+  padding:5px 6px;display:flex;justify-content:space-between;align-items:center;gap:4px;
+  border-bottom:1px solid #334;
+}
+.bet-card.tone-player .bet-head{background:#1565c0;color:#fff}
+.bet-card.tone-banker .bet-head{background:#c62828;color:#fff}
+.bet-card.tone-tie .bet-head{background:#2e7d32;color:#fff}
+.bet-name{font-size:11px;font-weight:1000}
+.multiplier{color:#041;font-size:10px;font-weight:900;padding:2px 5px;border-radius:4px;background:#ffd91a}
+.bet-content{padding:5px;display:flex;flex-direction:column;gap:4px}
+.place{
+  width:100%;height:30px;border:2px solid #fff4!important;border-radius:7px;
+  color:#fff!important;font-size:10px;font-weight:900;cursor:pointer;
+  background-image:none!important;animation:none!important;box-shadow:none!important;
+}
+.place.player{background:#1565c0!important}
+.place.banker{background:#c62828!important}
+.place.tie{background:#2e7d32!important}
+.place:disabled{opacity:.4;cursor:not-allowed}
+.bet-status{font-size:9px;color:#a4adb7;font-weight:700;text-align:center}
+.bet-status strong{color:#ffd91a}
+.active-bets{
+  margin-top:5px;background:#060912;border:1px solid #334;border-radius:8px;
+  padding:5px 6px;display:flex;justify-content:space-between;gap:6px;align-items:center;
+  flex:0 0 auto;
+}
+.active-text{font-size:11px;color:#d8e7ff;font-weight:700;min-width:0}
+.play{
+  min-width:120px;height:38px;border:0;border-radius:10px;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;color:#120018;font-weight:1000;
+  cursor:pointer;border:2px solid #fff8;padding:0 10px;font-size:13px;
+}
+.play:disabled{cursor:not-allowed;opacity:.5;animation:none}
+.message{
+  margin-top:5px;padding:5px 7px;border-radius:8px;background:#060912;border:1px solid #334;
+  color:#d8e7ff;font-size:11px;font-weight:700;flex:0 0 auto;
+  line-height:1.35;
+}
+.helpBtn{
+  width:auto;margin:0;padding:7px 10px;border-radius:10px;font-weight:900;cursor:pointer;
+  color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;
+  font-size:11px;white-space:nowrap;
+}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{
+  max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;
+  border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700;
+}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}
+.helpCard h3{color:#81c784;margin:10px 0 4px}
+.helpCard li{margin:4px 0}
+.closeHelp{
+  width:100%;background:#d32f2f!important;color:#fff!important;border:0;border-radius:10px;
+  padding:12px;font-weight:900;cursor:pointer;margin-top:12px;
+  background-image:none!important;animation:none!important;
+}
+.side.winner{box-shadow:0 0 20px #ffd91a, inset 0 0 12px #ffd91a44;border-color:#ffd91a!important}
+@media(max-width:500px){
+  .die{--die:44px}
+  .dice-row{gap:6px}
+  .amount-row{grid-template-columns:1fr}
+  .side{min-height:110px;padding:6px 4px}
+}
+@media(max-width:360px){
+  .die{--die:38px}
+  .dice-row{gap:4px}
+  .table{gap:4px}
+  .vs-col{min-width:36px}
+  .vs-badge{width:34px;height:34px;font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="topbar">
+    <div class="title club-rainbow">BAC BO</div>
+    <button type="button" class="helpBtn" id="openHelp">❓ REGRAS</button>
+    <div class="credits"><small>CRÉDITOS</small><b id="credits">0</b></div>
+  </div>
+
+  <div class="last-results" id="lastResults"></div>
+
+  <div class="card">
+    <div class="result-banner" id="resultBanner">Escolha suas apostas e toque em Jogar.</div>
+
+    <div class="table">
+      <div class="side player" id="sidePlayer">
+        <div class="side-label">🔵 Jogador</div>
+        <div class="dice-row">
+          <div class="die" id="pDie1" data-face="1"></div>
+          <div class="die" id="pDie2" data-face="1"></div>
+        </div>
+        <div class="side-score" id="playerScore">—</div>
+      </div>
+      <div class="vs-col">
+        <div class="vs-badge">VS</div>
+        <div class="tie-badge">EMPATE 8:1</div>
+      </div>
+      <div class="side banker" id="sideBanker">
+        <div class="side-label">🔴 Banca</div>
+        <div class="dice-row">
+          <div class="die" id="bDie1" data-face="1"></div>
+          <div class="die" id="bDie2" data-face="1"></div>
+        </div>
+        <div class="side-score" id="bankerScore">—</div>
+      </div>
+    </div>
+
+    <div class="amount-row">
+      <div>
+        <label class="label">VALOR DA APOSTA</label>
+        <div class="amount-box">
+          <div class="coin">$</div>
+          <input id="amount" type="number" min="2" max="200" value="10">
+        </div>
+      </div>
+      <div>
+        <label class="label">ATALHOS</label>
+        <div class="quick">
+          <button data-add="2">+2</button>
+          <button data-add="10">+10</button>
+          <button data-add="50">+50</button>
+          <button id="half">½</button>
+          <button id="double">2×</button>
+          <button id="max">MAX</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bets">
+      <div class="bet-card tone-player">
+        <div class="bet-head"><span class="bet-name">JOGADOR</span><span class="multiplier">1:1</span></div>
+        <div class="bet-content">
+          <button class="place player" data-bet="player">APOSTAR AZUL</button>
+          <div class="bet-status" id="statusPlayer">Nenhuma aposta</div>
+        </div>
+      </div>
+      <div class="bet-card tone-tie">
+        <div class="bet-head"><span class="bet-name">EMPATE</span><span class="multiplier">8:1</span></div>
+        <div class="bet-content">
+          <button class="place tie" data-bet="tie">APOSTAR EMPATE</button>
+          <div class="bet-status" id="statusTie">Nenhuma aposta</div>
+        </div>
+      </div>
+      <div class="bet-card tone-banker">
+        <div class="bet-head"><span class="bet-name">BANCA</span><span class="multiplier">1:1</span></div>
+        <div class="bet-content">
+          <button class="place banker" data-bet="banker">APOSTAR VERMELHO</button>
+          <div class="bet-status" id="statusBanker">Nenhuma aposta</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="active-bets">
+      <div class="active-text" id="activeText">Nenhuma aposta adicionada.</div>
+      <button class="play" id="playBtn">🎲 JOGAR</button>
+    </div>
+
+    <div class="message" id="message">Aposte no Jogador (azul), Banca (vermelho) ou Empate.</div>
+  </div>
+</div>
+
+<div class="helpModal" id="helpModal">
+  <div class="helpCard">
+    <h2>❓ COMO JOGAR — BAC BO</h2>
+    <h3>Objetivo</h3>
+    <p>Dois dados para o Jogador (azul) e dois para a Banca (vermelho). Quem tiver a pontuação mais alta vence.</p>
+    <h3>Pontuação</h3>
+    <ul>
+      <li>A pontuação é o último dígito da soma dos dois dados (ex.: 4+6=10 → pontuação 0; 5+6=11 → pontuação 1).</li>
+    </ul>
+    <h3>Apostas</h3>
+    <ul>
+      <li><b>Jogador (azul):</b> paga 1 para 1 se o Jogador vencer.</li>
+      <li><b>Banca (vermelho):</b> paga 1 para 1 se a Banca vencer.</li>
+      <li><b>Empate:</b> paga 8 para 1 se as pontuações forem iguais.</li>
+      <li>Aposta mínima 2 e máxima 200 créditos por aposta. Total máximo por rodada: 200.</li>
+      <li>Você pode apostar em mais de uma opção na mesma rodada.</li>
+    </ul>
+    <button class="closeHelp" id="closeHelp" type="button">FECHAR REGRAS</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=7"></script>
+<script src="../js/auth.js?v=18"></script>
+<script src="../js/house.js?v=3"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=15"></script>
+<script>
+const BET_MAX = 200;
+const PAYOUT = { player: 2, banker: 2, tie: 9 };
+const NAMES = { player: 'Jogador', banker: 'Banca', tie: 'Empate' };
+
+let credits = 0;
+let pendingBets = [];
+let history = [];
+let playing = false;
+
+const amountEl = document.getElementById('amount');
+const creditsEl = document.getElementById('credits');
+const messageEl = document.getElementById('message');
+const resultBanner = document.getElementById('resultBanner');
+const playBtn = document.getElementById('playBtn');
+const activeText = document.getElementById('activeText');
+const lastResults = document.getElementById('lastResults');
+
+function money(n){ return Number(n).toLocaleString('pt-BR'); }
+function readAmount(){
+  const v = Number(amountEl.value);
+  return Number.isFinite(v) ? Math.floor(v) : 0;
+}
+function setAmount(v){
+  const cap = window.clubBets ? clubBets.MAX : BET_MAX;
+  const clamped = Math.max(2, Math.min(cap, Math.floor(v) || 2));
+  amountEl.value = clamped;
+}
+const DIE_PIPS = {
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8],
+};
+function setDie(el, n){
+  if (!el.querySelector('.pip-grid')){
+    const grid = document.createElement('div');
+    grid.className = 'pip-grid';
+    for (let i = 0; i < 9; i++){
+      const pip = document.createElement('span');
+      pip.className = 'pip';
+      grid.appendChild(pip);
+    }
+    el.appendChild(grid);
+  }
+  const face = Math.max(1, Math.min(6, n | 0));
+  el.dataset.face = String(face);
+  const on = new Set(DIE_PIPS[face]);
+  el.querySelectorAll('.pip').forEach((pip, i) => pip.classList.toggle('on', on.has(i)));
+}
+['pDie1','pDie2','bDie1','bDie2'].forEach(id => setDie(document.getElementById(id), 1));
+
+function score(d1, d2){ return (d1 + d2) % 10; }
+
+const ALL_OUTCOMES = (() => {
+  const list = [];
+  for (let p1 = 1; p1 <= 6; p1++)
+    for (let p2 = 1; p2 <= 6; p2++)
+      for (let b1 = 1; b1 <= 6; b1++)
+        for (let b2 = 1; b2 <= 6; b2++) {
+          const ps = score(p1, p2);
+          const bs = score(b1, b2);
+          const winner = ps > bs ? 'player' : ps < bs ? 'banker' : 'tie';
+          list.push({ p1, p2, b1, b2, ps, bs, winner });
+        }
+  return list;
+})();
+
+function betPayout(bet, winner){
+  if (bet.type === winner) return bet.amount * PAYOUT[bet.type];
+  return 0;
+}
+
+function pendingTotal(){
+  return pendingBets.reduce((a, b) => a + b.amount, 0);
+}
+
+async function persist(){
+  if (window.clubWallet) await clubWallet.set(credits);
+}
+
+function renderCredits(){
+  creditsEl.textContent = money(credits);
+  const bar = document.querySelector('#clubGateBar .user .saldo');
+  if (bar) bar.textContent = 'Saldo: ' + money(credits);
+}
+
+function renderBetStatus(){
+  const totals = { player: 0, banker: 0, tie: 0 };
+  pendingBets.forEach(b => { totals[b.type] += b.amount; });
+  ['player', 'banker', 'tie'].forEach(type => {
+    const el = document.getElementById('status' + type.charAt(0).toUpperCase() + type.slice(1));
+    if (!el) return;
+    el.innerHTML = totals[type]
+      ? `<strong>${money(totals[type])}</strong> créditos`
+      : 'Nenhuma aposta';
+  });
+}
+
+function updatePending(){
+  if (!pendingBets.length){
+    activeText.textContent = 'Nenhuma aposta adicionada.';
+    return;
+  }
+  const total = pendingTotal();
+  activeText.innerHTML = `<strong>${pendingBets.length}</strong> aposta(s) • Total: <strong>${money(total)}</strong>`;
+}
+
+function renderLast(){
+  lastResults.innerHTML = history.slice(0, 12).map(h =>
+    `<div class="last-chip ${h}">${h === 'player' ? 'J' : h === 'banker' ? 'B' : 'E'}</div>`
+  ).join('');
+}
+
+function addBet(type){
+  if (playing) return;
+  const check = clubBets.validate(amountEl.value);
+  if (!check.ok){ messageEl.textContent = check.message; return; }
+  const value = check.value;
+  if (pendingTotal() + value > BET_MAX){
+    messageEl.textContent = 'O total das apostas nesta rodada não pode passar de 200.';
+    return;
+  }
+  pendingBets.push({ type, amount: value });
+  messageEl.textContent = `Aposta adicionada: ${NAMES[type]} — ${money(value)}.`;
+  renderBetStatus();
+  updatePending();
+}
+
+async function pickOutcome(){
+  let pool = ALL_OUTCOMES;
+  let force = null;
+  try { if (window.clubHouse) force = await clubHouse.nextOutcome(); } catch (_) {}
+
+  if (force === 'bank' && pendingBets.length){
+    const losers = pool.filter(o => pendingBets.every(b => betPayout(b, o.winner) === 0));
+    if (losers.length) pool = losers;
+  } else if (force === 'player' && pendingBets.length){
+    const winners = pool.filter(o => pendingBets.some(b => betPayout(b, o.winner) > 0));
+    if (winners.length) pool = winners;
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function animateDice(outcome, done){
+  const dies = [
+    document.getElementById('pDie1'),
+    document.getElementById('pDie2'),
+    document.getElementById('bDie1'),
+    document.getElementById('bDie2'),
+  ];
+  dies.forEach(d => d.classList.add('rolling'));
+  let t = 0;
+  const timer = setInterval(() => {
+    dies.forEach(d => setDie(d, 1 + Math.floor(Math.random() * 6)));
+    if (++t >= 14){
+      clearInterval(timer);
+      dies.forEach(d => d.classList.remove('rolling'));
+      setDie(document.getElementById('pDie1'), outcome.p1);
+      setDie(document.getElementById('pDie2'), outcome.p2);
+      setDie(document.getElementById('bDie1'), outcome.b1);
+      setDie(document.getElementById('bDie2'), outcome.b2);
+      done();
+    }
+  }, 80);
+}
+
+function highlightWinner(winner){
+  document.getElementById('sidePlayer').classList.remove('winner');
+  document.getElementById('sideBanker').classList.remove('winner');
+  if (winner === 'player') document.getElementById('sidePlayer').classList.add('winner');
+  else if (winner === 'banker') document.getElementById('sideBanker').classList.add('winner');
+  else {
+    document.getElementById('sidePlayer').classList.add('winner');
+    document.getElementById('sideBanker').classList.add('winner');
+  }
+}
+
+async function playRound(){
+  if (playing) return;
+  if (!window.clubWallet){
+    messageEl.textContent = 'Carregando carteira da plataforma...';
+    return;
+  }
+  if (!pendingBets.length){
+    messageEl.textContent = 'Adicione pelo menos uma aposta antes de jogar.';
+    return;
+  }
+  const total = pendingTotal();
+  if (total > BET_MAX){
+    messageEl.textContent = 'O total das apostas nesta rodada não pode passar de 200.';
+    return;
+  }
+  credits = Number(clubWallet.credits || credits || 0);
+  renderCredits();
+  if (total > credits){
+    messageEl.textContent = 'Saldo insuficiente para o total das apostas.';
+    return;
+  }
+
+  playing = true;
+  playBtn.disabled = true;
+  document.querySelectorAll('.place').forEach(b => b.disabled = true);
+  credits -= total;
+  renderCredits();
+  await persist();
+
+  resultBanner.textContent = 'Jogando os dados...';
+  resultBanner.className = 'result-banner';
+  messageEl.textContent = 'Os dados estão rolando...';
+
+  document.getElementById('playerScore').textContent = '—';
+  document.getElementById('bankerScore').textContent = '—';
+  document.getElementById('sidePlayer').classList.remove('winner');
+  document.getElementById('sideBanker').classList.remove('winner');
+
+  const outcome = await pickOutcome();
+
+  animateDice(outcome, async () => {
+    document.getElementById('playerScore').textContent = outcome.ps;
+    document.getElementById('bankerScore').textContent = outcome.bs;
+    highlightWinner(outcome.winner);
+    history.unshift(outcome.winner);
+    history = history.slice(0, 12);
+    renderLast();
+
+    let payout = 0;
+    const wins = [];
+    pendingBets.forEach(b => {
+      const win = betPayout(b, outcome.winner);
+      if (win > 0){
+        payout += win;
+        wins.push(`${NAMES[b.type]} +${money(win - b.amount)}`);
+      }
+    });
+
+    if (payout > 0){
+      credits += payout;
+      renderCredits();
+      await persist();
+      const profit = payout - total;
+      resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU! +${money(profit)}`;
+      resultBanner.className = 'result-banner win';
+      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Prêmio: <strong>${money(payout)}</strong> (${wins.join(', ')})`;
+    } else {
+      resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU`;
+      resultBanner.className = 'result-banner lose';
+      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Nenhuma aposta vencedora. Perdeu ${money(total)}.`;
+    }
+
+    pendingBets = [];
+    renderBetStatus();
+    updatePending();
+    playing = false;
+    playBtn.disabled = false;
+    document.querySelectorAll('.place').forEach(b => b.disabled = false);
+  });
+}
+
+document.querySelectorAll('[data-bet]').forEach(btn => {
+  btn.onclick = () => addBet(btn.dataset.bet);
+});
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.onclick = () => setAmount((readAmount() || 0) + Number(btn.dataset.add));
+});
+document.getElementById('half').onclick = () => setAmount(Math.floor((readAmount() || 2) / 2));
+document.getElementById('double').onclick = () => setAmount((readAmount() || 2) * 2);
+document.getElementById('max').onclick = () => {
+  const cap = window.clubBets ? clubBets.MAX : BET_MAX;
+  setAmount(Math.min(cap, Math.floor(credits) || cap));
+};
+amountEl.addEventListener('change', () => { if (readAmount() > 0) setAmount(readAmount()); });
+playBtn.onclick = playRound;
+
+const hm = document.getElementById('helpModal');
+document.getElementById('openHelp').onclick = () => { hm.style.display = 'block'; };
+document.getElementById('closeHelp').onclick = () => { hm.style.display = 'none'; };
+hm.addEventListener('click', e => { if (e.target === hm) hm.style.display = 'none'; });
+
+renderLast();
+renderBetStatus();
+updatePending();
+renderCredits();
+
+window.clubWalletReady.then(w => {
+  if (!w) return;
+  if (w.sealed) return;
+  credits = Number(w.credits || 0);
+  renderCredits();
+});
+</script>
+</body>
+</html>

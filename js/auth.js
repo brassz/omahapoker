@@ -143,6 +143,7 @@
         ronda: 'RONDA',
         caipira: 'CAIPIRA',
         '21': '21',
+        bacbo: 'BAC BO',
       };
       const key = String(id || '').toLowerCase();
       return map[key] || (key ? key.toUpperCase() : '—');
@@ -240,7 +241,7 @@
 
     GAME_IDS: [
       'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
-      'flyx', 'ronda', 'caipira', '21',
+      'flyx', 'ronda', 'caipira', '21', 'bacbo',
     ],
 
     normalizeGameId(id) {
@@ -248,6 +249,13 @@
       if (key === 'bagatela' || key === 'bacatela') return 'bacatela';
       if (key === '21_index') return '21';
       return key;
+    },
+
+    isGameHidden(gameId) {
+      const id = this.normalizeGameId(gameId);
+      const list = window.CLUB_HIDDEN_GAMES;
+      if (!Array.isArray(list) || !id) return false;
+      return list.map((g) => this.normalizeGameId(g)).includes(id);
     },
 
     getMaintenanceGames(settings) {
@@ -319,19 +327,77 @@
       return data;
     },
 
+    async listGameRtp() {
+      const { data, error } = await client.rpc('list_game_rtp');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminUpsertGameRtp({ gameId, enabled, rtpPercent }) {
+      const rtp = Math.floor(Number(rtpPercent));
+      const { data, error } = await client.rpc('admin_upsert_game_rtp', {
+        p_game_id: gameId,
+        p_enabled: !!enabled,
+        p_rtp_percent: Math.max(0, Math.min(100, Number.isFinite(rtp) ? rtp : 20)),
+      });
+      if (error) throw error;
+      return data;
+    },
+
     async adminResetBetCounter() {
       const { data, error } = await client.rpc('admin_reset_bet_counter');
       if (error) throw error;
       return data;
     },
 
-    async requestWithdrawal(amount, pixKey) {
+    async requestWithdrawal(amount, pixKey, document) {
       const { data, error } = await client.rpc('request_withdrawal', {
         p_amount: Number(amount),
         p_pix_key: String(pixKey || '').trim(),
+        p_document: String(document || '').replace(/\D/g, '') || null,
       });
       if (error) throw error;
       return data;
+    },
+
+    async invokeCajupay(payload) {
+      const { data, error } = await client.functions.invoke('cajupay', { body: payload });
+      if (data?.error) throw new Error(data.error);
+      if (error) {
+        let msg = error.message || 'Falha na CajuPay';
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            const body = await error.context.json();
+            if (body?.error) msg = body.error;
+          }
+        } catch (_) {}
+        throw new Error(msg);
+      }
+      return data;
+    },
+
+    async createPixDeposit({ amount, document, phone, checkoutUrl }) {
+      return this.invokeCajupay({
+        action: 'create-pix',
+        amount,
+        document,
+        phone,
+        checkout_url: checkoutUrl || (typeof location !== 'undefined' ? location.origin + location.pathname : ''),
+      });
+    },
+
+    async checkPixDeposit(paymentId) {
+      return this.invokeCajupay({ action: 'check-pix', payment_id: paymentId });
+    },
+
+    async sendAutomaticPayout(withdrawalId) {
+      return this.invokeCajupay({ action: 'payout', withdrawal_id: withdrawalId });
+    },
+
+    async listMyDeposits() {
+      const { data, error } = await client.rpc('list_my_deposits');
+      if (error) throw error;
+      return data || [];
     },
 
     async listMyWithdrawals() {

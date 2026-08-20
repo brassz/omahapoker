@@ -10,3 +10,6 @@ window.CLUB_DEPOSIT = {
   company: 'Af Capel Serviços de Cobrança Ltda',
   whatsapp: '5516992954354',
 };
+
+/* Jogos ocultos no lobby (remova o id para reativar) */
+window.CLUB_HIDDEN_GAMES = ['bacbo'];

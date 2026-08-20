@@ -146,8 +146,8 @@ canvas{display:block;width:100%;height:100%}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
-<script src="../js/auth.js?v=17"></script>
-<script src="../js/house.js?v=2"></script>
+<script src="../js/auth.js?v=18"></script>
+<script src="../js/house.js?v=3"></script>
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
@@ -447,7 +447,7 @@ async function finish(b){
 }
 
 function collidePegs(b){
- var i,p,dx,dy,d2,d,nx,ny,vn,e,min,min2,best=-1,bestD,side;
+ var i,p,dx,dy,d2,d,nx,ny,vn,e,min,min2,best=-1,bestD,side,spd2,onCrown,samePeg;
  min=b.r+pegR;
  min2=min*min;
  if(b.hit>0){ b.hit--; if(b.hit<=0) b.hitPeg=-1; }
@@ -467,25 +467,32 @@ function collidePegs(b){
  dy=b.y-p.y;
  d=Math.sqrt(bestD);
  nx=dx/d; ny=dy/d;
- /* No pico do pino, senta na encosta (~35°) para a gravidade rolar, sem teleportar. */
- if(ny<-0.78){
+ onCrown=ny<-0.55;
+ if(onCrown){
   side=Math.abs(b.vx)>0.05?(b.vx>0?1:-1):(Math.abs(dx)>0.2?(dx>0?1:-1):(Math.random()<0.5?1:-1));
   nx=side*0.46;
   ny=-Math.sqrt(Math.max(0,1-nx*nx));
  }
- b.x=p.x+nx*(min+0.04);
- b.y=p.y+ny*(min+0.04);
- if(best===b.hitPeg) return;
+ b.x=p.x+nx*(min+0.05);
+ b.y=p.y+ny*(min+0.05);
  vn=b.vx*nx+b.vy*ny;
- if(vn<0){
-  e=0.46+Math.random()*0.08;
-  b.vx-=(1+e)*vn*nx;
-  b.vy-=(1+e)*vn*ny;
+ spd2=b.vx*b.vx+b.vy*b.vy;
+ samePeg=best===b.hitPeg;
+ if(samePeg && vn>=0 && spd2>0.06 && !onCrown) return;
+ if(vn<0 || onCrown || spd2<0.12){
+  if(vn<0){
+   e=0.42+Math.random()*0.08;
+   b.vx-=(1+e)*vn*nx;
+   b.vy-=(1+e)*vn*ny;
+  }
  }
- if(ny<0) b.vx+=(nx>=0?1:-1)*0.045;
- if(b.vy<-0.52) b.vy=-0.52;
+ if(onCrown || ny<0.2 || spd2<0.1){
+  b.vx+=(nx>=0?1:-1)*(onCrown?0.11:0.07);
+  b.vy=Math.max(b.vy, onCrown?0.26:0.18);
+ }
+ if(b.vy<-0.45) b.vy=-0.45;
  b.hitPeg=best;
- b.hit=5;
+ b.hit=3;
 }
 function stepBall(b){
  var s,dt,fun,pad,spd;
@@ -523,12 +530,13 @@ function stepBall(b){
  }
 
  spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);
- if(spd<0.14 && b.y<(b.lastY||0)+0.12) b.stall=(b.stall||0)+1;
+ if(spd<0.18 && b.y<(b.lastY||0)+0.18) b.stall=(b.stall||0)+1;
+ else if(spd<0.22 && b.hitPeg>=0) b.stall=(b.stall||0)+1;
  else b.stall=0;
  b.lastY=b.y;
- if(b.stall>18){
-  b.vx+=(Math.random()<0.5?-1:1)*0.38;
-  b.vy=Math.max(b.vy, 0.28);
+ if(b.stall>10){
+  b.vx+=(Math.random()<0.5?-1:1)*(0.34+Math.random()*0.18);
+  b.vy=Math.max(b.vy, 0.32);
   b.hitPeg=-1;
   b.hit=0;
   b.stall=0;

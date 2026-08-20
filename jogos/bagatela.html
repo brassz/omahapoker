@@ -91,47 +91,12 @@ body{
   margin-bottom:8px;
   text-align:left;
 }
-.numbers{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin-bottom:18px;
+.mode-note{
+  color:var(--muted);font-size:12px;font-weight:800;margin:-6px 0 14px;letter-spacing:1px;
 }
-.number{
-  min-height:72px;
-  background:#12081f!important;
-  background-size:auto!important;
-  color:#9a8bc8!important;
-  border:2px solid #445!important;
-  border-radius:14px!important;
-  font-size:32px!important;
-  font-weight:1000!important;
-  cursor:pointer;
-  transition:.2s;
-  animation:none!important;
-  box-shadow:none!important;
-  position:relative;
-}
-.number:hover{
-  border-color:var(--blue)!important;
-  color:#fff!important;
-  transform:translateY(-2px);
-}
-.number.selected{
-  background:linear-gradient(180deg,#0a3a55,#061828)!important;
-  background-size:auto!important;
-  color:#fff!important;
-  border:3px solid #17c8ff!important;
-  box-shadow:0 0 0 2px #17c8ff55,0 0 22px #17c8ffaa!important;
-  font-size:36px!important;
-  animation:bagatelaPickPulse 1.2s ease-in-out infinite!important;
-  transform:scale(1.04);
-}
-.number.selected::after,
 .parity.selected::after,
 .mode.selected::after,
-.bet-chip.selected::after,
-.layout-btn.selected::after{
+.bet-chip.selected::after{
   content:'✓';
   position:absolute;
   top:4px;
@@ -149,7 +114,7 @@ body{
   margin-bottom:16px;
 }
 .bet-row{grid-template-columns:repeat(4,1fr)}
-.parity,.mode,.bet-chip,.layout-btn{
+.parity,.mode,.bet-chip{
   padding:14px 8px;
   background:#12081f!important;
   background-size:auto!important;
@@ -165,11 +130,11 @@ body{
   box-shadow:none!important;
   position:relative;
 }
-.parity:hover,.mode:hover,.bet-chip:hover,.layout-btn:hover{
+.parity:hover,.mode:hover,.bet-chip:hover{
   border-color:#ff4fd8!important;
   color:#fff!important;
 }
-.parity.selected,.mode.selected,.bet-chip.selected,.layout-btn.selected{
+.parity.selected,.mode.selected,.bet-chip.selected{
   background:linear-gradient(180deg,#3a1455,#1a0830)!important;
   background-size:auto!important;
   color:#fff!important;
@@ -412,9 +377,6 @@ body{
   .game:not(.is-playing) .credits-bar strong{font-size:16px}
   .game:not(.is-playing) .menu{padding:10px;max-width:min(92vw,720px)}
   .game:not(.is-playing) .menu h2{font-size:12px;margin-bottom:8px}
-  .game:not(.is-playing) .numbers{gap:6px;margin-bottom:8px}
-  .game:not(.is-playing) .number{min-height:48px;font-size:24px}
-  .game:not(.is-playing) .number.selected{font-size:28px}
   .game:not(.is-playing) .parity,.game:not(.is-playing) .mode,.game:not(.is-playing) .bet-chip{padding:8px 4px;font-size:11px}
   .game:not(.is-playing) .bet-custom input{padding:8px;font-size:16px}
   .game:not(.is-playing) .play{padding:10px;font-size:14px}
@@ -464,8 +426,6 @@ body{
   }
 }
 @media (max-width:700px){
-  .numbers{gap:8px}
-  .number{min-height:64px;font-size:28px}
   .bet-row{gap:6px}
   .bet-chip{font-size:12px;padding:10px 4px}
 }
@@ -495,19 +455,8 @@ body{
       <button type="button" class="parity" data-parity="odd">ÍMPARES</button>
     </div>
 
-    <h2>QUANTIDADE DE NÚMEROS</h2>
-    <div class="numbers">
-      <button type="button" class="number selected" data-value="15">15</button>
-      <button type="button" class="number" data-value="25">25</button>
-      <button type="button" class="number" data-value="35">35</button>
-      <button type="button" class="number" data-value="50">50</button>
-    </div>
-
-    <span class="section-label">DISPOSIÇÃO DOS BURACOS</span>
-    <div class="parity-row">
-      <button type="button" class="layout-btn selected" data-layout="grid">FILEIRA</button>
-      <button type="button" class="layout-btn" data-layout="random">ALEATÓRIO</button>
-    </div>
+    <h2>25 NÚMEROS</h2>
+    <p class="mode-note">Disposição aleatória · sua aposta nunca fica na frente do tabuleiro</p>
 
     <div class="bet-section">
       <span class="section-label">APOSTA (2 A 10)</span>
@@ -532,7 +481,7 @@ body{
     <div class="hud-item"><div class="hud-label">PRÊMIO</div><div class="hud-value" id="multiplier">-</div></div>
     <div class="hud-item"><div class="hud-label">TACADAS</div><div class="hud-value" id="shots">0</div></div>
     <div class="hud-item"><div class="hud-label">TIPO</div><div class="hud-value" id="parityHud">PARES</div></div>
-    <div class="hud-item"><div class="hud-label">NÚMEROS</div><div class="hud-value" id="target">15</div></div>
+    <div class="hud-item"><div class="hud-label">NÚMEROS</div><div class="hud-value" id="target">25</div></div>
   </div>
 
   <div class="table-wrapper" id="tableWrapper">
@@ -567,8 +516,7 @@ body{
     </ul>
     <h3>Como jogar</h3>
     <ul>
-      <li>Escolha pares ou ímpares, quantidade de números (15/25/35/50) e disposição (fileira ou aleatório).</li>
-      <li>Defina a aposta (2 a 10), confirme e mire arrastando a bola.</li>
+      <li>25 números em disposição aleatória. Defina a aposta (2 a 10), confirme e mire arrastando a bola.</li>
       <li>No celular, jogue com a tela na horizontal.</li>
     </ul>
     <button type="button" class="help-close" id="closeHelp">FECHAR REGRAS</button>
@@ -606,8 +554,8 @@ const TABLE_HEIGHT = 760;
 const RAIL = 36;
 const POCKET_R = 38;
 
-let layoutMode = 'grid'; /* grid | random */
-let selectedValue = 15;
+const HOLE_COUNT = 25;
+let selectedValue = HOLE_COUNT;
 let selectedParity = 'even';
 const BET_MIN = 2;
 const BET_MAX = 10;
@@ -741,115 +689,103 @@ function shuffleNumbers(count) {
 function createHoles() {
   holes = [];
   const numbers = shuffleNumbers(selectedValue);
-
-  if (layoutMode === 'grid') {
-    createHolesGrid(numbers);
-  } else {
-    createHolesRandom(numbers);
-  }
+  createHolesRandom(numbers);
 }
 
-function createHolesGrid(numbers) {
-  const columns = selectedValue >= 50 ? 10 : 5;
-  const rows = Math.ceil(selectedValue / columns);
-  const padding = selectedValue >= 50 ? 14 : selectedValue <= 15 ? 18 : 16;
-  const gap = selectedValue >= 50 ? 7 : selectedValue <= 15 ? 11 : 9;
+function boardInnerBounds() {
+  const boardInset = 12;
+  return {
+    innerLeft: board.x + boardInset,
+    innerTop: board.y + boardInset,
+    innerBottom: board.y + board.height - boardInset,
+    innerRight: board.x + board.width - boardInset,
+    ringExtra: 7,
+  };
+}
 
-  const cellWidth =
-    (board.width - padding * 2 - gap * (columns - 1)) / columns;
-  const cellHeight =
-    (board.height - padding * 2 - gap * (rows - 1)) / rows;
-  const radiusFactor = selectedValue >= 50 ? 0.34 : 0.38;
+function isFrontZone(x, y, bounds) {
+  const w = bounds.innerRight - bounds.innerLeft;
+  const h = bounds.innerBottom - bounds.innerTop;
+  const frontX = bounds.innerLeft + w * 0.4;
+  const frontY = bounds.innerTop + h * 0.52;
+  return x < frontX && y > frontY;
+}
 
-  for (let i = 0; i < selectedValue; i++) {
-    const row = Math.floor(i / columns);
-    const column = i % columns;
-    const x =
-      board.x +
-      padding +
-      column * (cellWidth + gap) +
-      cellWidth / 2;
-    const y =
-      board.y +
-      padding +
-      row * (cellHeight + gap) +
-      cellHeight / 2;
-    const radius = Math.min(cellWidth, cellHeight) * radiusFactor;
+function holePlacementZone() {
+  const bounds = boardInnerBounds();
+  const { innerLeft, innerTop, innerBottom, innerRight, ringExtra } = bounds;
+  const areaW = innerRight - innerLeft;
+  const areaH = innerBottom - innerTop;
+  const radius = Math.max(11, Math.min(22, Math.sqrt(Math.max(1, areaW * areaH / selectedValue / Math.PI) * 0.68)));
+  const edge = radius + ringExtra;
 
-    holes.push({
-      number: numbers[i],
-      x, y, radius,
-      hit: false,
-      column, row
-    });
-  }
+  return {
+    bounds,
+    left: innerLeft + edge,
+    top: innerTop + edge,
+    right: innerRight - edge,
+    bottom: innerBottom - edge,
+    radius,
+    minDist: radius * 2.2,
+  };
 }
 
 function createHolesRandom(numbers) {
-  const boardInset = 12;
-  const ringExtra = 7;
-
-  const innerLeft = board.x + boardInset;
-  const innerTop = board.y + boardInset;
-  const innerRight = board.x + board.width - boardInset;
-  const innerBottom = board.y + board.height - boardInset;
-  const innerW = Math.max(40, innerRight - innerLeft);
-  const innerH = Math.max(40, innerBottom - innerTop);
-
-  const area = innerW * innerH;
-  const baseR = Math.sqrt(area / (selectedValue * Math.PI)) * 0.68;
-  const radius = Math.max(11, Math.min(24, baseR));
-  const edge = radius + ringExtra;
-  const minDist = radius * 2.2;
-
-  const areaLeft = innerLeft + edge;
-  const areaTop = innerTop + edge;
-  const areaRight = innerRight - edge;
-  const areaBottom = innerBottom - edge;
-  const areaW = Math.max(8, areaRight - areaLeft);
-  const areaH = Math.max(8, areaBottom - areaTop);
+  const placed = [];
+  const zone = holePlacementZone();
+  const areaW = Math.max(8, zone.right - zone.left);
+  const areaH = Math.max(8, zone.bottom - zone.top);
 
   function clampInside(x, y) {
     return {
-      x: Math.max(areaLeft, Math.min(areaRight, x)),
-      y: Math.max(areaTop, Math.min(areaBottom, y))
+      x: Math.max(zone.left, Math.min(zone.right, x)),
+      y: Math.max(zone.top, Math.min(zone.bottom, y)),
     };
   }
 
-  const placed = [];
+  function spotIsValid(x, y, winning) {
+    if (winning && isFrontZone(x, y, zone.bounds)) return false;
+    return placed.every((p) => {
+      const dx = p.x - x;
+      const dy = p.y - y;
+      return Math.sqrt(dx * dx + dy * dy) >= zone.minDist;
+    });
+  }
 
   for (let i = 0; i < selectedValue; i++) {
+    const winning = isWinningNumber(numbers[i]);
     let x = 0;
     let y = 0;
     let ok = false;
 
-    for (let tries = 0; tries < 100; tries++) {
-      x = areaLeft + Math.random() * areaW;
-      y = areaTop + Math.random() * areaH;
+    for (let tries = 0; tries < 160; tries++) {
+      x = zone.left + Math.random() * areaW;
+      y = zone.top + Math.random() * areaH;
       ({ x, y } = clampInside(x, y));
-      ok = placed.every((p) => {
-        const dx = p.x - x;
-        const dy = p.y - y;
-        return Math.sqrt(dx * dx + dy * dy) >= minDist;
-      });
+      ok = spotIsValid(x, y, winning);
       if (ok) break;
     }
 
     if (!ok) {
-      x = areaLeft + Math.random() * areaW;
-      y = areaTop + Math.random() * areaH;
-      for (let n = 0; n < 16; n++) {
+      x = zone.left + Math.random() * areaW;
+      y = zone.top + Math.random() * areaH;
+      for (let n = 0; n < 24; n++) {
         placed.forEach((p) => {
           const dx = x - p.x;
           const dy = y - p.y;
           const d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-          if (d < minDist) {
-            const push = (minDist - d) / 2;
+          if (d < zone.minDist) {
+            const push = (zone.minDist - d) / 2;
             x += (dx / d) * push;
             y += (dy / d) * push;
           }
         });
         ({ x, y } = clampInside(x, y));
+        if (winning && isFrontZone(x, y, zone.bounds)) {
+          x = zone.left + areaW * (0.42 + Math.random() * 0.58);
+          y = zone.top + areaH * Math.random() * 0.5;
+          ({ x, y } = clampInside(x, y));
+        }
       }
     }
 
@@ -859,10 +795,10 @@ function createHolesRandom(numbers) {
       number: numbers[i],
       x,
       y,
-      radius,
+      radius: zone.radius,
       hit: false,
       column: i % 5,
-      row: Math.floor(i / 5)
+      row: Math.floor(i / 5),
     });
   }
 }
@@ -1348,25 +1284,39 @@ function holeWins(h) {
 
 function rollGuardPins() {
   holes.forEach((h) => { h.guardPin = false; });
+  const winning = holes.filter((h) => holeWins(h));
+  winning.forEach((h) => {
+    h.guardPin = Math.random() < 0.7;
+  });
 }
 
-function bounceOffGuard(hole, dx, dy, distance) {
-  const pinR = hole.radius * 0.7;
+function nudgeOffGuardPin(hole, dx, dy, distance) {
   const nx = dx / (distance || 1);
   const ny = dy / (distance || 1);
-  const overlap = pinR + ball.radius * 0.55 - distance;
-  if (overlap > 0) {
-    ball.x += nx * (overlap + 0.6);
-    ball.y += ny * (overlap + 0.6);
+  const tx = -ny;
+  const ty = nx;
+  const speed = getSpeed();
+  const depth = Math.max(0, Math.min(1, 1 - distance / (hole.radius * 0.55)));
+
+  const ease = Math.min(Math.max(0, hole.radius * 0.28 - distance), 0.5) * 0.22;
+  if (ease > 0) {
+    ball.x += nx * ease;
+    ball.y += ny * ease;
   }
+
+  ball.vx *= 0.994 - depth * 0.006;
+  ball.vy *= 0.994 - depth * 0.006;
+
   const dot = ball.vx * nx + ball.vy * ny;
   if (dot < 0) {
-    ball.vx = (ball.vx - 1.75 * dot * nx) * 0.78;
-    ball.vy = (ball.vy - 1.75 * dot * ny) * 0.78;
-  } else {
-    ball.vx += nx * 1.4;
-    ball.vy += ny * 1.4;
+    ball.vx -= dot * nx * 0.1;
+    ball.vy -= dot * ny * 0.1;
   }
+
+  const tangentSign = ball.vx * tx + ball.vy * ty >= 0 ? 1 : -1;
+  const skim = Math.min(speed * 0.012, 0.28) * depth;
+  ball.vx += tx * skim * tangentSign;
+  ball.vy += ty * skim * tangentSign;
 }
 
 function pickHole(wantWin) {
@@ -1476,44 +1426,74 @@ function checkPockets() {
   return false;
 }
 
+function deflectOffHoleRim(hole, dx, dy, distance) {
+  const nx = dx / (distance || 1);
+  const ny = dy / (distance || 1);
+  const tx = -ny;
+  const ty = nx;
+  const speed = getSpeed();
+  const lip = hole.radius + ball.radius * 0.12;
+  const depth = Math.max(0, Math.min(1, 1 - distance / lip));
+
+  const overlap = lip - distance;
+  if (overlap > 0) {
+    const ease = Math.min(overlap, 1.4) * 0.42;
+    ball.x += nx * ease;
+    ball.y += ny * ease;
+  }
+
+  const drag = 0.988 - depth * 0.012;
+  ball.vx *= drag;
+  ball.vy *= drag;
+
+  const tangentSign = ball.vx * tx + ball.vy * ty >= 0 ? 1 : -1;
+  const skim = Math.min(speed * 0.028, 0.7) * (0.55 + depth * 0.45);
+  ball.vx += tx * skim * tangentSign;
+  ball.vy += ty * skim * tangentSign;
+
+  const dot = ball.vx * nx + ball.vy * ny;
+  if (dot < 0) {
+    ball.vx -= dot * nx * 0.28;
+    ball.vy -= dot * ny * 0.28;
+  }
+
+  const pull = Math.min(0.04, 0.018 * (1 - distance / lip));
+  ball.vx += (-nx) * pull * speed;
+  ball.vy += (-ny) * pull * speed;
+}
+
+const HOLE_SINK_SPEED = 3.1;
+
 function checkHole() {
   if (falling || roundLocked) return;
   const speed = getSpeed();
+
   for (const hole of holes) {
     const dx = ball.x - hole.x;
     const dy = ball.y - hole.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance > hole.radius * 0.95) continue;
+    const touchDist = hole.radius + ball.radius * 0.35;
+    if (distance > touchDist) continue;
 
-    if (hole.guardPin && distance < hole.radius * 0.82) {
-      bounceOffGuard(hole, dx, dy, distance);
+    if (hole.guardPin && distance < hole.radius * 0.55) {
+      nudgeOffGuardPin(hole, dx, dy, distance);
+    }
+
+    const overCenter = distance <= hole.radius * 0.78;
+    const pinBlocks = hole.guardPin && speed > HOLE_SINK_SPEED * 0.45 && Math.random() < 0.38;
+
+    if (overCenter && speed <= HOLE_SINK_SPEED && !pinBlocks) {
+      startFallHole(hole, false, speed);
       return;
     }
 
-    if (speed > 3.2) {
-      const pull = Math.min(0.08, 0.035 * (1 - distance / hole.radius));
-      ball.vx += (-dx / (distance || 1)) * pull;
-      ball.vy += (-dy / (distance || 1)) * pull;
-      continue;
-    }
-
-    if (speed > 1.8) {
-      if (distance > hole.radius * 0.45) {
-        const nx = dx / (distance || 1);
-        const ny = dy / (distance || 1);
-        const bounce = speed * 0.35;
-        ball.vx = ball.vx * 0.7 + nx * bounce;
-        ball.vy = ball.vy * 0.7 + ny * bounce;
-        ball.x = hole.x + nx * (hole.radius + 1);
-        ball.y = hole.y + ny * (hole.radius + 1);
-        return;
-      }
+    if (overCenter && speed <= HOLE_SINK_SPEED * 1.35 && !pinBlocks) {
       startFallHole(hole, true, speed);
       return;
     }
 
-    if (distance <= hole.radius * 0.75) {
-      startFallHole(hole, false, speed);
+    if (!hole.guardPin || speed > HOLE_SINK_SPEED * 0.55) {
+      deflectOffHoleRim(hole, dx, dy, Math.max(distance, 0.01));
       return;
     }
   }
@@ -1539,7 +1519,7 @@ function updateBall() {
   }
 
   ball.stopped = false;
-  currentPower = Math.max(0, currentPower - 0.015);
+  currentPower = Math.max(0, currentPower - 0.028);
   ball.x += ball.vx;
   ball.y += ball.vy;
 
@@ -1548,11 +1528,16 @@ function updateBall() {
     ball.x < board.x + board.width &&
     ball.y > board.y &&
     ball.y < board.y + board.height;
-  const friction = onBoard ? 0.981 : 0.991;
+  const speed = getSpeed();
+  let friction = onBoard ? 0.968 : 0.986;
+  if (onBoard) {
+    if (speed > 10) friction -= 0.01;
+    else if (speed > 5) friction -= 0.005;
+  }
   ball.vx *= friction;
   ball.vy *= friction;
 
-  if (Math.abs(ball.vx) < 0.035 && Math.abs(ball.vy) < 0.035) {
+  if (Math.abs(ball.vx) < 0.09 && Math.abs(ball.vy) < 0.09) {
     ball.vx = 0;
     ball.vy = 0;
     if (shotActive) {
@@ -1602,6 +1587,10 @@ function canAim() {
   return ball.stopped && !falling && !roundLocked && !shotActive && ball.scale > 0.9 && stakeTaken;
 }
 
+const AIM_FULL = 200;
+const SHOT_POWER_MIN = 10;
+const SHOT_POWER_MAX = 50;
+
 function shootFromAim() {
   if (!aiming) return;
   aiming = false;
@@ -1612,8 +1601,8 @@ function shootFromAim() {
     currentPower = 0;
     return;
   }
-  const powerRatio = Math.min(distance / 240, 1);
-  const power = Math.min(distance / 14, 28);
+  const powerRatio = Math.min(distance / AIM_FULL, 1);
+  const power = SHOT_POWER_MIN + powerRatio * (SHOT_POWER_MAX - SHOT_POWER_MIN);
   currentPower = powerRatio;
   ball.vx = (dx / distance) * power;
   ball.vy = (dy / distance) * power;
@@ -1625,7 +1614,6 @@ function shootFromAim() {
   multiplierElement.textContent = '-';
   resultPayout.textContent = '';
   holes.forEach((hole) => { hole.hit = false; });
-  getRoundForce().then(() => rollGuardPins());
 }
 
 function updateAimFromEvent(clientX, clientY) {
@@ -1674,22 +1662,6 @@ window.addEventListener('touchend', () => shootFromAim(), { passive: false });
 window.addEventListener('touchcancel', () => {
   aiming = false;
   currentPower = 0;
-});
-
-document.querySelectorAll('.layout-btn').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.layout-btn').forEach((b) => b.classList.remove('selected'));
-    button.classList.add('selected');
-    layoutMode = button.dataset.layout;
-  });
-});
-
-document.querySelectorAll('.number').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.number').forEach((b) => b.classList.remove('selected'));
-    button.classList.add('selected');
-    selectedValue = Number(button.dataset.value);
-  });
 });
 
 document.querySelectorAll('.parity').forEach((button) => {
@@ -1816,8 +1788,8 @@ syncModeUI();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
-<script src="../js/auth.js?v=17"></script>
-<script src="../js/house.js?v=1"></script>
+<script src="../js/auth.js?v=18"></script>
+<script src="../js/house.js?v=3"></script>
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>

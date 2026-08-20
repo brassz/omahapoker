@@ -193,16 +193,24 @@ body{margin:0;min-height:100vh}
       </div>
 
       <div id="depositForm" style="display:none">
-        <p class="deposit-hint">Faça o PIX e envie o comprovante no WhatsApp para liberar o saldo.</p>
-        <div class="pix-box">
-          <div class="pix-label">CHAVE PIX · CNPJ</div>
-          <div class="pix-key" id="depositPixKey">60.495.244/0001-14</div>
-          <div class="pix-company" id="depositCompany">Af Capel Serviços de Cobrança Ltda</div>
-          <button type="button" class="pix-copy" id="depositCopyPix">COPIAR CHAVE PIX</button>
+        <p class="deposit-hint">Gere um PIX. Assim que o pagamento confirmar, o saldo entra sozinho.</p>
+        <label for="depAmount">Valor do depósito (2 a 200)</label>
+        <input id="depAmount" type="number" min="2" max="200" step="1" value="10" placeholder="Ex: 20">
+        <label for="depDoc">CPF ou CNPJ do pagador</label>
+        <input id="depDoc" type="text" maxlength="18" placeholder="Somente números">
+        <label for="depPhone">Celular com DDD</label>
+        <input id="depPhone" type="tel" maxlength="16" placeholder="Ex: 16992954354">
+        <div class="modal-actions" id="depGenerateRow">
+          <button type="button" class="ghost" id="depositCancel">VOLTAR</button>
+          <button type="button" class="primary" id="depGenerate">GERAR PIX</button>
         </div>
-        <button type="button" class="wa-btn" id="depositWhatsApp">ENVIAR COMPROVANTE NO WHATSAPP</button>
-        <div class="modal-actions">
-          <button type="button" class="ghost" id="depositCancel" style="grid-column:1/-1">VOLTAR</button>
+        <div id="depPixBox" style="display:none">
+          <div class="pix-box">
+            <div class="pix-label">PIX COPIA E COLA</div>
+            <div class="pix-key" id="depositPixKey" style="font-size:12px;word-break:break-all">—</div>
+            <button type="button" class="pix-copy" id="depositCopyPix">COPIAR PIX</button>
+          </div>
+          <p class="deposit-hint" id="depStatus">Aguardando pagamento...</p>
         </div>
       </div>
 
@@ -211,9 +219,11 @@ body{margin:0;min-height:100vh}
         <input id="wdAmount" type="number" min="2" step="1" placeholder="Ex: 100">
         <label for="wdPix">Chave PIX</label>
         <input id="wdPix" type="text" maxlength="120" placeholder="CPF, e-mail, telefone ou chave aleatória">
+        <label for="wdDoc">CPF/CNPJ do titular da chave</label>
+        <input id="wdDoc" type="text" maxlength="18" placeholder="Obrigatório para e-mail, celular ou chave aleatória">
         <div class="modal-actions">
           <button type="button" class="ghost" id="wdCancel">CANCELAR</button>
-          <button type="button" class="primary" id="wdSubmit">SOLICITAR</button>
+          <button type="button" class="primary" id="wdSubmit">SACAR AGORA</button>
         </div>
       </div>
 
@@ -225,9 +235,9 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=17"></script>
+  <script src="js/auth.js?v=19"></script>
   <script>
-  const GAMES = [
+  const GAMES_ALL = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
     { id: 'crep', name: 'CREP', href: 'jogos/crep.html' },
     { id: 'bacatela', name: 'BACATELA', href: 'jogos/bagatela.html', launch: true },
@@ -237,12 +247,17 @@ body{margin:0;min-height:100vh}
     { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
     { id: 'caipira', name: 'CAIPIRA', href: 'jogos/caipira.html' },
     { id: '21', name: '21', href: 'jogos/21.html' },
+    { id: 'bacbo', name: 'BAC BO', href: 'jogos/bacbo.html', launch: true },
   ];
+  const HIDDEN_GAMES = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) => String(id).toLowerCase()));
+  const GAMES = GAMES_ALL.filter((g) => !HIDDEN_GAMES.has(g.id));
 
   let currentCredits = 0;
   let currentUser = null;
   let currentProfile = null;
   let siteMaintenance = new Set();
+  let pendingPix = null;
+  let pixPoll = 0;
 
   const DEPOSIT = window.CLUB_DEPOSIT || {
     pixKey: '60.495.244/0001-14',
@@ -273,9 +288,27 @@ body{margin:0;min-height:100vh}
     document.querySelector('.wallet-btns').style.display = '';
   }
 
-  function fillDepositInfo() {
-    document.getElementById('depositPixKey').textContent = DEPOSIT.pixKey;
-    document.getElementById('depositCompany').textContent = DEPOSIT.company;
+  function stopPixPoll() {
+    if (pixPoll) { clearInterval(pixPoll); pixPoll = 0; }
+  }
+
+  async function pollPendingPix() {
+    if (!pendingPix?.payment_id) return;
+    try {
+      const res = await omahaAuth.checkPixDeposit(pendingPix.payment_id);
+      if (res?.status === 'paid') {
+        stopPixPoll();
+        pendingPix = null;
+        document.getElementById('depStatus').textContent = 'Pagamento confirmado! Saldo liberado.';
+        setWalletMsg('Depósito creditado automaticamente.', 'ok');
+        await refreshWallet();
+      } else if (res?.status === 'failed') {
+        stopPixPoll();
+        pendingPix = null;
+        document.getElementById('depStatus').textContent = 'PIX expirado ou recusado. Gere outro.';
+        setWalletMsg('Este PIX não foi concluído.', 'err');
+      }
+    } catch (_) {}
   }
 
   async function refreshWallet() {
@@ -289,14 +322,16 @@ body{margin:0;min-height:100vh}
 
     try {
       const list = await omahaAuth.listMyWithdrawals();
+      const deps = typeof omahaAuth.listMyDeposits === 'function' ? await omahaAuth.listMyDeposits() : [];
       const box = document.getElementById('wdHistory');
-      if (!list.length) {
-        box.innerHTML = '<div class="wd-item">Nenhum saque ainda.</div>';
-      } else {
-        box.innerHTML = list.slice(0, 8).map((w) =>
-          `<div class="wd-item"><b>${fmt(w.amount)}</b> · ${statusLabel(w.status)} · PIX: ${w.pix_key}</div>`
-        ).join('');
-      }
+      const depLines = (deps || []).slice(0, 6).map((d) =>
+        `<div class="wd-item"><b>+${fmt(d.amount)}</b> · depósito ${statusLabel(d.status)}</div>`
+      );
+      const wdLines = (list || []).slice(0, 6).map((w) =>
+        `<div class="wd-item"><b>${fmt(w.amount)}</b> · saque ${statusLabel(w.status)} · PIX: ${w.pix_key}</div>`
+      );
+      const lines = depLines.concat(wdLines);
+      box.innerHTML = lines.length ? lines.join('') : '<div class="wd-item">Nenhum movimento ainda.</div>';
     } catch (_) {
       document.getElementById('wdHistory').innerHTML = '';
     }
@@ -305,12 +340,13 @@ body{margin:0;min-height:100vh}
   function openWallet() {
     resetWalletPanels();
     setWalletMsg('');
-    fillDepositInfo();
+    document.getElementById('depPixBox').style.display = 'none';
     document.getElementById('walletModal').classList.add('open');
     document.getElementById('walletModal').setAttribute('aria-hidden', 'false');
     refreshWallet().catch(() => {});
   }
   function closeWallet() {
+    stopPixPoll();
     document.getElementById('walletModal').classList.remove('open');
     document.getElementById('walletModal').setAttribute('aria-hidden', 'true');
   }
@@ -430,45 +466,65 @@ body{margin:0;min-height:100vh}
     document.querySelector('.wallet-btns').style.display = 'none';
     document.getElementById('withdrawForm').style.display = 'none';
     document.getElementById('depositForm').style.display = '';
-    fillDepositInfo();
-    setWalletMsg('Copie a chave PIX, pague e envie o comprovante no WhatsApp.');
+    document.getElementById('depPixBox').style.display = 'none';
+    const ph = document.getElementById('depPhone');
+    if (ph && !ph.value && currentProfile?.phone) ph.value = currentProfile.phone;
+    setWalletMsg('Informe valor, CPF/CNPJ e celular para gerar o PIX automático.');
   };
   document.getElementById('depositCancel').onclick = () => {
     resetWalletPanels();
     setWalletMsg('');
   };
   document.getElementById('depositCopyPix').onclick = async () => {
-    const key = DEPOSIT.pixKey;
+    const key = pendingPix?.pix_copy_paste || document.getElementById('depositPixKey').textContent;
     try {
-      await navigator.clipboard.writeText(key.replace(/\D/g, '') || key);
-      setWalletMsg('Chave PIX copiada! Cole no app do banco.', 'ok');
+      await navigator.clipboard.writeText(key);
+      setWalletMsg('PIX copiado! Cole no app do banco.', 'ok');
     } catch (_) {
-      setWalletMsg('Não foi possível copiar. Selecione a chave manualmente.', 'err');
+      setWalletMsg('Não foi possível copiar. Selecione o código manualmente.', 'err');
     }
   };
-  document.getElementById('depositWhatsApp').onclick = () => {
-    const phone = String(DEPOSIT.whatsapp || '').replace(/\D/g, '');
-    if (phone.length < 12) {
-      setWalletMsg('Número do WhatsApp não configurado. Ajuste em js/config.js (CLUB_DEPOSIT.whatsapp).', 'err');
+  document.getElementById('depGenerate').onclick = async () => {
+    const amount = Math.floor(Number(document.getElementById('depAmount').value));
+    const documentCpf = (document.getElementById('depDoc').value || '').replace(/\D/g, '');
+    const phone = (document.getElementById('depPhone').value || currentProfile?.phone || '').replace(/\D/g, '');
+    const btn = document.getElementById('depGenerate');
+    if (!(amount >= 2 && amount <= 200)) {
+      setWalletMsg('Depósito de 2 a 200.', 'err');
       return;
     }
-    const nome = currentProfile?.display_name || currentUser?.email || 'Jogador';
-    const msg = [
-      'Olá! Quero adicionar saldo no CLUBEDEJOGOSCAIPIRA.',
-      `Jogador: ${nome}`,
-      `PIX pago para CNPJ ${DEPOSIT.pixKey}`,
-      `Beneficiário: ${DEPOSIT.company}`,
-      'Vou anexar o comprovante nesta conversa.',
-    ].join('\n');
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (documentCpf.length !== 11 && documentCpf.length !== 14) {
+      setWalletMsg('Informe um CPF ou CNPJ válido.', 'err');
+      return;
+    }
+    if (phone.length < 10) {
+      setWalletMsg('Informe um celular com DDD.', 'err');
+      return;
+    }
+    btn.disabled = true;
+    setWalletMsg('Gerando PIX...');
+    try {
+      const pix = await omahaAuth.createPixDeposit({ amount, document: documentCpf, phone });
+      pendingPix = pix;
+      document.getElementById('depositPixKey').textContent = pix.pix_copy_paste || '—';
+      document.getElementById('depPixBox').style.display = '';
+      document.getElementById('depStatus').textContent = 'Aguardando pagamento... o saldo entra sozinho.';
+      setWalletMsg('PIX gerado. Pague no banco; a confirmação é automática.', 'ok');
+      stopPixPoll();
+      pixPoll = setInterval(pollPendingPix, 4000);
+      pollPendingPix();
+    } catch (err) {
+      setWalletMsg(err?.message || 'Falha ao gerar PIX. Publique as Edge Functions cajupay no Supabase.', 'err');
+    } finally {
+      btn.disabled = false;
+    }
   };
 
   document.getElementById('btnShowWithdraw').onclick = () => {
     document.querySelector('.wallet-btns').style.display = 'none';
     document.getElementById('depositForm').style.display = 'none';
     document.getElementById('withdrawForm').style.display = '';
-    setWalletMsg('Informe o valor e a chave PIX para solicitar o saque.');
+    setWalletMsg('Informe valor, chave PIX e o documento do titular para pagamento automático.');
   };
   document.getElementById('wdCancel').onclick = () => {
     resetWalletPanels();
@@ -477,6 +533,7 @@ body{margin:0;min-height:100vh}
   document.getElementById('wdSubmit').onclick = async () => {
     const amount = Math.floor(Number(document.getElementById('wdAmount').value));
     const pix = (document.getElementById('wdPix').value || '').trim();
+    const doc = (document.getElementById('wdDoc').value || '').replace(/\D/g, '');
     const btn = document.getElementById('wdSubmit');
     if (!(amount >= 2)) {
       setWalletMsg('Valor mínimo de saque: 2.', 'err');
@@ -490,13 +547,30 @@ body{margin:0;min-height:100vh}
       setWalletMsg('Informe uma chave PIX válida.', 'err');
       return;
     }
+    const needsDoc = pix.includes('@') || !/^\d{11}$/.test(pix.replace(/\D/g, '')) && !/^\d{14}$/.test(pix.replace(/\D/g, ''));
+    if (needsDoc && doc.length !== 11 && doc.length !== 14) {
+      setWalletMsg('Informe o CPF/CNPJ do dono da chave PIX.', 'err');
+      return;
+    }
     btn.disabled = true;
     try {
-      await omahaAuth.requestWithdrawal(amount, pix);
+      const wd = await omahaAuth.requestWithdrawal(amount, pix, doc);
       document.getElementById('wdAmount').value = '';
       document.getElementById('wdPix').value = '';
-      resetWalletPanels();
-      setWalletMsg('Solicitação enviada! O prazo de pagamento é de até 2 horas.', 'ok');
+      document.getElementById('wdDoc').value = '';
+      setWalletMsg('Enviando PIX automático...', 'ok');
+      try {
+        const pay = await omahaAuth.sendAutomaticPayout(wd.id);
+        resetWalletPanels();
+        if (pay?.status === 'paid') {
+          setWalletMsg('Saque pago automaticamente via PIX.', 'ok');
+        } else {
+          setWalletMsg('Saque enviado. O PIX cai na chave em instantes.', 'ok');
+        }
+      } catch (payErr) {
+        resetWalletPanels();
+        setWalletMsg(payErr?.message || 'Saque registrado, mas o PIX automático falhou. O admin pode concluir no painel.', 'err');
+      }
       await refreshWallet();
     } catch (err) {
       setWalletMsg(err?.message || 'Falha ao solicitar saque. Rode o SQL withdrawals.sql no Supabase.', 'err');

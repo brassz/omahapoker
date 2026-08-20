@@ -1,0 +1,5 @@
+[functions.cajupay]
+verify_jwt = true
+
+[functions.cajupay-webhook]
+verify_jwt = false

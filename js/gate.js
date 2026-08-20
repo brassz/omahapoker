@@ -171,6 +171,19 @@
         const gameId = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
           : file === '21_index' ? '21'
           : file;
+        const hidden = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) => String(id).toLowerCase()));
+        if (hidden.has(gameId)) {
+          document.body.innerHTML = `
+            <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
+              <div>
+                <div style="font-size:22px;font-weight:1000;color:#ffd91a;letter-spacing:1px">SALA INDISPONÍVEL</div>
+                <p style="font-weight:800;color:#d8e7ff;line-height:1.45">Este jogo não está no lobby no momento.<br>Voltando ao menu...</p>
+              </div>
+            </div>`;
+          resolveReady(null);
+          location.replace('../lobby.html');
+          return null;
+        }
         if (omahaAuth.isGameInMaintenance(settings, gameId)) {
           document.body.innerHTML = `
             <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
