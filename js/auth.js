@@ -336,11 +336,15 @@
     async adminUpsertGameRtp({ gameId, enabled, rtpPercent }) {
       const rtp = Math.floor(Number(rtpPercent));
       const { data, error } = await client.rpc('admin_upsert_game_rtp', {
-        p_game_id: gameId,
+        p_game_id: String(gameId || ''),
         p_enabled: !!enabled,
         p_rtp_percent: Math.max(0, Math.min(100, Number.isFinite(rtp) ? rtp : 20)),
       });
       if (error) throw error;
+      // PostgREST pode devolver objeto ou string JSON.
+      if (typeof data === 'string') {
+        try { return JSON.parse(data); } catch (_) { return null; }
+      }
       return data;
     },
 

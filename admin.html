@@ -320,7 +320,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=19"></script>
+  <script src="js/auth.js?v=20"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -579,15 +579,27 @@ body{margin:0;min-height:100vh}
   }
 
   async function saveGameRtpRows(rows) {
+    const saved = [];
     for (const tr of rows) {
       const rtpPercent = Math.floor(Number(tr.querySelector('.rtpPct').value));
       const on = tr.querySelector('.rtpOn').value === '1';
-      await omahaAuth.adminUpsertGameRtp({
+      const data = await omahaAuth.adminUpsertGameRtp({
         gameId: tr.dataset.gid,
         enabled: on,
         rtpPercent,
       });
+      if (data) saved.push(data);
+      else {
+        saved.push({
+          game_id: tr.dataset.gid,
+          enabled: on,
+          rtp_percent: rtpPercent,
+          bet_counter: 0,
+          player_win_counter: 0,
+        });
+      }
     }
+    return saved;
   }
 
   function renderRtpTable() {
@@ -684,9 +696,11 @@ body{margin:0;min-height:100vh}
   async function reloadSettings() {
     settings = await omahaAuth.getGameSettings();
     try {
-      gameRtp = await omahaAuth.listGameRtp();
-    } catch (_) {
-      gameRtp = [];
+      const list = await omahaAuth.listGameRtp();
+      if (Array.isArray(list) && list.length) gameRtp = list;
+    } catch (err) {
+      console.warn('list_game_rtp', err);
+      // Não zera a tabela na tela se o list falhar (evita parecer que não salvou).
     }
     renderSettings(settings);
   }
@@ -836,15 +850,28 @@ body{margin:0;min-height:100vh}
       return;
     }
     if (!validateRtpRows(rows)) return;
+    const btn = $('cfgSaveGames');
+    btn.disabled = true;
     try {
-      await saveGameRtpRows(rows);
+      const saved = await saveGameRtpRows(rows);
+      // Atualiza memória local com o que acabou de gravar.
+      const byId = new Map((gameRtp || []).map((r) => [r.game_id, r]));
+      for (const row of saved) {
+        const prev = byId.get(row.game_id) || {};
+        byId.set(row.game_id, { ...prev, ...row });
+      }
+      gameRtp = [...byId.values()];
       await reloadSettings();
+      renderRtpTable();
       setMsg('RTP por jogo salvo. Salas com "próprio = SIM" ignoram a configuração geral.', 'ok');
     } catch (err) {
-      const tip = /list_game_rtp|admin_upsert_game_rtp|schema cache/i.test(err?.message || '')
-        ? ' Rode o SQL supabase/game-rtp.sql no Supabase.'
+      console.error(err);
+      const tip = /list_game_rtp|admin_upsert_game_rtp|schema cache|could not find/i.test(err?.message || '')
+        ? ' Rode de novo o SQL supabase/game-rtp.sql no Supabase (SQL Editor).'
         : '';
       setMsg((err?.message || 'Falha ao salvar por jogo.') + tip, 'err');
+    } finally {
+      btn.disabled = false;
     }
   };
 

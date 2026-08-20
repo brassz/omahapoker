@@ -90,12 +90,15 @@ $$;
 revoke all on function public.list_game_rtp() from public;
 grant execute on function public.list_game_rtp() to authenticated;
 
+-- Troca o retorno (composite → json) exige DROP antes do CREATE.
+drop function if exists public.admin_upsert_game_rtp(text, boolean, integer);
+
 create or replace function public.admin_upsert_game_rtp(
   p_game_id text,
   p_enabled boolean,
   p_rtp_percent integer
 )
-returns public.game_rtp
+returns json
 language plpgsql
 security definer
 set search_path = public
@@ -103,7 +106,7 @@ as $$
 declare
   gid text;
   rtp integer;
-  row public.game_rtp;
+  rec public.game_rtp;
 begin
   if not public.is_admin() then
     raise exception 'Apenas admin';
@@ -123,12 +126,18 @@ begin
   values (gid, coalesce(p_enabled, true), rtp, now())
   on conflict (game_id) do update
   set
-    enabled = coalesce(p_enabled, public.game_rtp.enabled),
-    rtp_percent = rtp,
+    enabled = excluded.enabled,
+    rtp_percent = excluded.rtp_percent,
     updated_at = now()
-  returning * into row;
+  returning * into rec;
 
-  return row;
+  return json_build_object(
+    'game_id', rec.game_id,
+    'enabled', rec.enabled,
+    'rtp_percent', rec.rtp_percent,
+    'bet_counter', rec.bet_counter,
+    'player_win_counter', rec.player_win_counter
+  );
 end;
 $$;
 

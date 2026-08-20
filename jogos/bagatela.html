@@ -311,10 +311,12 @@ body{
 }
 .alert-box.win{border-color:var(--green);box-shadow:0 0 28px #5cff1a66}
 .alert-box.lose{border-color:var(--red);box-shadow:0 0 28px #ff343466}
+.alert-box.tie{border-color:#ffd91a;box-shadow:0 0 28px #ffd91a66}
 .alert-title{font-size:12px;letter-spacing:3px;color:var(--muted);margin-bottom:8px;font-weight:800}
 .alert-message{font-size:26px;font-weight:1000}
 .alert-box.win .alert-message{color:var(--green)}
 .alert-box.lose .alert-message{color:#ff7d7d}
+.alert-box.tie .alert-message{color:#ffd91a}
 @keyframes alertPop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
 
 .rotate-hint{
@@ -441,7 +443,7 @@ body{
 <div class="game">
   <div class="logo">BACATELA</div>
   <div class="launch-badge">LANÇAMENTO</div>
-  <div class="subtitle" id="subtitle">★★★ PARES OU ÍMPARES ★★★</div>
+  <div class="subtitle" id="subtitle">★★★ JOGADOR × BANCA ★★★</div>
 
   <div class="credits-bar">
     <small>CRÉDITOS</small>
@@ -449,14 +451,8 @@ body{
   </div>
 
   <div class="menu" id="menu">
-    <span class="section-label">APOSTE EM</span>
-    <div class="parity-row">
-      <button type="button" class="parity selected" data-parity="even">PARES</button>
-      <button type="button" class="parity" data-parity="odd">ÍMPARES</button>
-    </div>
-
     <h2>25 NÚMEROS</h2>
-    <p class="mode-note">Disposição aleatória · sua aposta nunca fica na frente do tabuleiro</p>
+    <p class="mode-note">Você e a banca tacam · quem tirar o número maior vence</p>
 
     <div class="bet-section">
       <span class="section-label">APOSTA (2 A 10)</span>
@@ -479,8 +475,8 @@ body{
   <div class="hud" id="hud">
     <div class="hud-item"><div class="hud-label">APOSTA</div><div class="hud-value" id="betHud">2</div></div>
     <div class="hud-item"><div class="hud-label">PRÊMIO</div><div class="hud-value" id="multiplier">-</div></div>
+    <div class="hud-item"><div class="hud-label">VEZ</div><div class="hud-value" id="turnHud">VOCÊ</div></div>
     <div class="hud-item"><div class="hud-label">TACADAS</div><div class="hud-value" id="shots">0</div></div>
-    <div class="hud-item"><div class="hud-label">TIPO</div><div class="hud-value" id="parityHud">PARES</div></div>
     <div class="hud-item"><div class="hud-label">NÚMEROS</div><div class="hud-value" id="target">25</div></div>
   </div>
 
@@ -494,8 +490,8 @@ body{
   </div>
 
   <div class="instructions" id="instructions">
-    Clique na bola e arraste para mirar. Mesa com 6 caçapas (sinuca):
-    cair na caçapa perde. Só ganha se cair em <strong id="parityHint">PARES</strong> (aposta × 2).
+    Clique na bola e arraste para mirar. Você taca; depois a <b>banca taca</b>.
+    Quem cair no <strong>maior número</strong> vence (aposta × 2). Empate devolve a aposta.
   </div>
   <button type="button" class="back" id="back">VOLTAR AO MENU</button>
 </div>
@@ -512,7 +508,8 @@ body{
     <h2>❓ COMO JOGAR — BACATELA</h2>
     <h3>Como ganhar</h3>
     <ul>
-      <li>Escolha <b>PARES</b> ou <b>ÍMPARES</b>. Se a bola cair num buraco do tipo certo, você ganha (aposta × 2). Cair na caçapa (sinuca) ou no tipo errado perde a aposta.</li>
+      <li>Você taca primeiro; em seguida a <b>banca taca</b> na mesma mesa.</li>
+      <li>Quem cair no buraco com o <b>maior número</b> ganha (aposta × 2). Empate devolve a aposta e abre nova jogada. Caçapa ou erro vale 0.</li>
     </ul>
     <h3>Como jogar</h3>
     <ul>
@@ -544,8 +541,7 @@ const alertOverlay = document.getElementById('alertOverlay');
 const alertBox = document.getElementById('alertBox');
 const alertTitle = document.getElementById('alertTitle');
 const alertMessage = document.getElementById('alertMessage');
-const parityHud = document.getElementById('parityHud');
-const parityHint = document.getElementById('parityHint');
+const turnHud = document.getElementById('turnHud');
 const subtitle = document.getElementById('subtitle');
 const playerCreditEl = document.getElementById('playerCredit');
 
@@ -556,7 +552,6 @@ const POCKET_R = 38;
 
 const HOLE_COUNT = 25;
 let selectedValue = HOLE_COUNT;
-let selectedParity = 'even';
 const BET_MIN = 2;
 const BET_MAX = 10;
 let betAmount = 2;
@@ -574,7 +569,14 @@ let looping = false;
 let shotActive = false;
 let roundLocked = false;
 let roundForce = undefined;
+let bankScript = null;
+let bankBallVisual = false;
 let alertTimer = null;
+let bankTimer = null;
+let stuckFrames = 0;
+let turn = 'player';
+let playerResult = null;
+let bankResult = null;
 let pockets = [];
 let holes = [];
 
@@ -670,7 +672,6 @@ function setupGame() {
   ball.visible = true;
   buildPockets();
   createHoles();
-  rollGuardPins();
 }
 
 function shuffleArray(arr) {
@@ -701,14 +702,6 @@ function boardInnerBounds() {
     innerRight: board.x + board.width - boardInset,
     ringExtra: 7,
   };
-}
-
-function isFrontZone(x, y, bounds) {
-  const w = bounds.innerRight - bounds.innerLeft;
-  const h = bounds.innerBottom - bounds.innerTop;
-  const frontX = bounds.innerLeft + w * 0.4;
-  const frontY = bounds.innerTop + h * 0.52;
-  return x < frontX && y > frontY;
 }
 
 function holePlacementZone() {
@@ -743,8 +736,7 @@ function createHolesRandom(numbers) {
     };
   }
 
-  function spotIsValid(x, y, winning) {
-    if (winning && isFrontZone(x, y, zone.bounds)) return false;
+  function spotIsValid(x, y) {
     return placed.every((p) => {
       const dx = p.x - x;
       const dy = p.y - y;
@@ -753,7 +745,6 @@ function createHolesRandom(numbers) {
   }
 
   for (let i = 0; i < selectedValue; i++) {
-    const winning = isWinningNumber(numbers[i]);
     let x = 0;
     let y = 0;
     let ok = false;
@@ -762,7 +753,7 @@ function createHolesRandom(numbers) {
       x = zone.left + Math.random() * areaW;
       y = zone.top + Math.random() * areaH;
       ({ x, y } = clampInside(x, y));
-      ok = spotIsValid(x, y, winning);
+      ok = spotIsValid(x, y);
       if (ok) break;
     }
 
@@ -781,11 +772,6 @@ function createHolesRandom(numbers) {
           }
         });
         ({ x, y } = clampInside(x, y));
-        if (winning && isFrontZone(x, y, zone.bounds)) {
-          x = zone.left + areaW * (0.42 + Math.random() * 0.58);
-          y = zone.top + areaH * Math.random() * 0.5;
-          ({ x, y } = clampInside(x, y));
-        }
       }
     }
 
@@ -803,23 +789,24 @@ function createHolesRandom(numbers) {
   }
 }
 
-function isWinningNumber(number) {
-  if (selectedParity === 'even') return number % 2 === 0;
-  return number % 2 !== 0;
-}
-
-function parityLabel() {
-  return selectedParity === 'even' ? 'PARES' : 'ÍMPARES';
-}
-
 function holeLabel(number) {
   return String(number);
 }
 
 function syncModeUI() {
-  subtitle.textContent = '★★★ PARES OU ÍMPARES ★★★';
-  parityHud.textContent = parityLabel();
-  if (parityHint) parityHint.textContent = parityLabel();
+  subtitle.textContent = '★★★ JOGADOR × BANCA ★★★';
+}
+
+function syncTurnUI() {
+  if (turnHud) {
+    turnHud.textContent = turn === 'bank' ? 'BANCA' : 'VOCÊ';
+    turnHud.style.color = turn === 'bank' ? '#ff7d7d' : '#7dffb0';
+  }
+  if (instructions && stakeTaken && !roundLocked) {
+    instructions.innerHTML = turn === 'bank'
+      ? 'Vez da <strong>banca</strong> — ela taca sozinha. Quem tirar o maior número vence.'
+      : 'Clique na bola e arraste para mirar. Depois a banca taca. <strong>Maior número vence</strong>.';
+  }
 }
 
 function restartRound() {
@@ -829,28 +816,35 @@ function restartRound() {
   shotActive = false;
   roundLocked = false;
   roundForce = undefined;
+  bankScript = null;
+  bankBallVisual = false;
+  stuckFrames = 0;
   stakeTaken = false;
+  turn = 'player';
+  playerResult = null;
+  bankResult = null;
+  if (bankTimer) { clearTimeout(bankTimer); bankTimer = null; }
   ball.vx = 0;
   ball.vy = 0;
   ball.scale = 1;
   ball.stopped = true;
   ball.visible = true;
   setupGame();
+  syncTurnUI();
 }
 
 function showAlert(type, message) {
   clearTimeout(alertTimer);
-  alertBox.classList.remove('win', 'lose');
+  alertBox.classList.remove('win', 'lose', 'tie');
   alertBox.classList.add(type);
-  alertTitle.textContent = type === 'win' ? 'VOCÊ GANHOU' : 'VOCÊ PERDEU';
+  alertTitle.textContent = type === 'win' ? 'VOCÊ GANHOU' : type === 'tie' ? 'EMPATE' : 'VOCÊ PERDEU';
   alertMessage.textContent = message;
   alertOverlay.classList.add('show');
   alertTimer = setTimeout(() => {
     alertOverlay.classList.remove('show');
     restartRound();
-    /* volta ao menu após resultado para nova aposta */
     backToMenu(false);
-  }, 2000);
+  }, 2600);
 }
 
 function hideAlert() {
@@ -1002,7 +996,6 @@ function drawBoard() {
 }
 
 function drawHole(hole) {
-  const match = isWinningNumber(hole.number);
   const idx = (hole.column || 0) + (hole.row || 0) * 5;
   const ring = neonColor(idx * 0.45);
 
@@ -1018,8 +1011,8 @@ function drawHole(hole) {
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 4, 0, Math.PI * 2);
   ctx.fillStyle = hole.hit
-    ? (match ? '#0a5c2e' : '#7d0000')
-    : (match ? '#1a2840' : '#1a1a22');
+    ? (hole.bankMark ? '#7d0000' : '#0a5c2e')
+    : '#1a1a22';
   ctx.fill();
 
   ctx.beginPath();
@@ -1031,14 +1024,14 @@ function drawHole(hole) {
   );
 
   if (hole.hit) {
-    if (match) {
-      holeGradient.addColorStop(0, '#4aff8a');
-      holeGradient.addColorStop(0.35, '#0a8f3c');
-      holeGradient.addColorStop(1, '#00210c');
-    } else {
+    if (hole.bankMark) {
       holeGradient.addColorStop(0, '#ff4a4a');
       holeGradient.addColorStop(0.35, '#b30000');
       holeGradient.addColorStop(1, '#210000');
+    } else {
+      holeGradient.addColorStop(0, '#4aff8a');
+      holeGradient.addColorStop(0.35, '#0a8f3c');
+      holeGradient.addColorStop(1, '#00210c');
     }
   } else {
     holeGradient.addColorStop(0, '#000');
@@ -1058,7 +1051,9 @@ function drawHole(hole) {
   const label = holeLabel(hole.number);
   const fontScale = label.length > 3 ? 0.78 : 0.95;
   const fontSize = Math.max(12, hole.radius * fontScale);
-  ctx.fillStyle = match ? '#e8f8ff' : '#ccc';
+  ctx.fillStyle = '#e8f8ff';
+  if (hole.playerMark) ctx.fillStyle = '#7dffb0';
+  if (hole.bankMark) ctx.fillStyle = '#ffb0b0';
   ctx.font = `bold ${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1077,13 +1072,20 @@ function drawBall() {
   ctx.fillStyle = `rgba(0,0,0,${0.35 * ball.scale})`;
   ctx.fill();
 
+  const bankTurn = bankBallVisual;
   const gradient = ctx.createRadialGradient(
     ball.x - 6 * ball.scale, ball.y - 6 * ball.scale, 2,
     ball.x, ball.y, r
   );
-  gradient.addColorStop(0, '#ffffff');
-  gradient.addColorStop(0.55, '#ececec');
-  gradient.addColorStop(1, '#9a9a9a');
+  if (bankTurn) {
+    gradient.addColorStop(0, '#ffe8e8');
+    gradient.addColorStop(0.45, '#ff5c5c');
+    gradient.addColorStop(1, '#7a0000');
+  } else {
+    gradient.addColorStop(0, '#ffffff');
+    gradient.addColorStop(0.55, '#ececec');
+    gradient.addColorStop(1, '#9a9a9a');
+  }
 
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2);
@@ -1188,61 +1190,38 @@ function updateFall() {
     return;
   }
 
-  if (falling.canEscape && progress > 0.35 && progress < 0.72) {
-    const escapeChance = falling.entrySpeed / 14;
-    if (escapeChance > 0.55 && progress > 0.45) {
-      escapeHole(falling.hole, falling.entrySpeed);
-      falling = null;
-      return;
-    }
-  }
-
-  const spiral = Math.sin(progress * Math.PI * 3) * (1 - progress) * 5;
+  // Queda definitiva — não sai mais do buraco.
+  const spiral = Math.sin(progress * Math.PI * 2) * (1 - progress) * 2;
   ball.x = falling.startX + (falling.hole.x - falling.startX) * ease + spiral;
   ball.y = falling.startY + (falling.hole.y - falling.startY) * ease;
-  ball.scale = 1 - ease * (falling.canEscape ? 0.45 : 0.85);
+  ball.scale = 1 - ease * 0.85;
   ball.vx = 0;
   ball.vy = 0;
   ball.stopped = false;
 
   if (progress >= 1) {
-    if (falling.canEscape && falling.entrySpeed > 5.5) {
-      escapeHole(falling.hole, falling.entrySpeed * 0.7);
-    } else {
-      finishHole(falling.hole);
-    }
+    finishHole(falling.hole);
     falling = null;
   }
 }
 
-function escapeHole(hole, speed) {
-  const angle = Math.atan2(ball.y - hole.y, ball.x - hole.x) + (Math.random() - 0.5) * 1.2;
-  const push = Math.max(2.2, Math.min(speed * 0.55, 7));
-  ball.x = hole.x + Math.cos(angle) * (hole.radius + ball.radius * 0.4);
-  ball.y = hole.y + Math.sin(angle) * (hole.radius + ball.radius * 0.4);
-  ball.vx = Math.cos(angle) * push;
-  ball.vy = Math.sin(angle) * push;
-  ball.scale = 1;
-  ball.stopped = false;
-  shotActive = true;
-  currentPower = Math.min(push / 22, 1);
-  holes.forEach((h) => { h.hit = false; });
-}
-
-function startFallHole(hole, canEscape, entrySpeed) {
+function startFallHole(hole, _canEscape, entrySpeed) {
   falling = {
     kind: 'hole',
     hole,
     startX: ball.x,
     startY: ball.y,
     t: 0,
-    duration: canEscape ? 0.55 : 0.42,
-    canEscape: !!canEscape,
+    duration: 0.55,
+    canEscape: false,
     entrySpeed: entrySpeed || getSpeed()
   };
+  ball.vx = 0;
+  ball.vy = 0;
   ball.stopped = false;
   currentPower = 0;
   aiming = false;
+  shotActive = true;
 }
 
 function startFallPocket(pocket) {
@@ -1252,7 +1231,7 @@ function startFallPocket(pocket) {
     startX: ball.x,
     startY: ball.y,
     t: 0,
-    duration: 0.38
+    duration: 0.52
   };
   ball.stopped = false;
   currentPower = 0;
@@ -1262,75 +1241,277 @@ function startFallPocket(pocket) {
 
 function finishPocket() {
   if (roundLocked) return;
-  settlePocketLose();
+  recordShot('pocket', null);
 }
 
 function settlePocketLose() {
+  recordShot('pocket', null);
+}
+
+function shotScore(hole) {
+  if (!hole) return 0;
+  return Number(hole.number) || 0;
+}
+
+function shotLabel(kind, hole) {
+  if (kind === 'pocket') return 'caçapa';
+  if (kind === 'miss') return 'errou';
+  return `buraco ${hole?.number}`;
+}
+
+function resetCueBall() {
+  falling = null;
+  aiming = false;
+  currentPower = 0;
+  shotActive = false;
+  ball.x = BALL_START.x;
+  ball.y = BALL_START.y;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.scale = 1;
+  ball.stopped = true;
+  ball.visible = true;
+}
+
+function recordShot(kind, hole) {
+  if (roundLocked) return;
+  shotActive = false;
+  falling = null;
+  bankScript = null;
+  stuckFrames = 0;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.stopped = true;
+
+  const rec = {
+    kind,
+    number: hole ? Number(hole.number) : null,
+    score: kind === 'hole' ? shotScore(hole) : 0,
+    label: shotLabel(kind, hole),
+  };
+
+  if (turn === 'player') {
+    playerResult = rec;
+    if (hole) {
+      hole.hit = true;
+      hole.playerMark = true;
+    }
+    resultValue.textContent = rec.score ? String(rec.score) : '0';
+    resultPayout.textContent = `Você: ${rec.label}${rec.score ? ` (${rec.score} pts)` : ''} · agora a banca taca`;
+    resultPayout.style.color = rec.score ? '#7dffb0' : '#ffd91a';
+    result.classList.add('show');
+    startBankTurn();
+    return;
+  }
+
+  bankResult = rec;
+  if (hole) {
+    hole.hit = true;
+    hole.bankMark = true;
+  }
+  resultValue.textContent = rec.score ? String(rec.score) : '0';
+  resultPayout.textContent = `Banca: ${rec.label}${rec.score ? ` (${rec.score} pts)` : ''} · conferindo...`;
+  resultPayout.style.color = rec.score ? '#ff7d7d' : '#ffd91a';
+  result.classList.add('show');
+  setTimeout(() => { resolveDuel(); }, 1200);
+}
+
+function startBankTurn() {
+  turn = 'bank';
+  bankBallVisual = false;
+  roundLocked = false;
+  syncTurnUI();
+  if (bankTimer) clearTimeout(bankTimer);
+  bankTimer = setTimeout(() => {
+    bankTimer = null;
+    resetCueBall();
+    bankBallVisual = true;
+    // Pequena pausa “mirando”, como um jogador.
+    bankTimer = setTimeout(() => {
+      bankTimer = null;
+      shootBank();
+    }, 900 + Math.random() * 500);
+  }, 1600 + Math.random() * 500);
+}
+
+function planBankOutcome(force) {
+  const ps = playerResult?.score || 0;
+  const sorted = holes
+    .slice()
+    .sort((a, b) => Number(b.number) - Number(a.number));
+  if (!sorted.length) return { kind: 'miss' };
+
+  if (force === 'bank') {
+    const better = sorted.filter((h) => Number(h.number) > ps);
+    const pool = (better.length ? better : [sorted[0]]).slice(0, 10);
+    const hole = pool[Math.floor(Math.random() * Math.min(5, pool.length))];
+    return { kind: 'hole', hole };
+  }
+
+  if (force === 'player') {
+    const low = sorted.filter((h) => Number(h.number) < ps);
+    if (ps > 0 && low.length && Math.random() < 0.35) {
+      return { kind: 'hole', hole: low[Math.floor(Math.random() * low.length)] };
+    }
+    return { kind: 'miss' };
+  }
+
+  return null;
+}
+
+function pickBoardMissPoint() {
+  const zone = holePlacementZone();
+  if (holes.length) {
+    const h = holes[Math.floor(Math.random() * holes.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist = h.radius * (2.1 + Math.random() * 1.4);
+    return {
+      x: Math.max(zone.left, Math.min(zone.right, h.x + Math.cos(angle) * dist)),
+      y: Math.max(zone.top, Math.min(zone.bottom, h.y + Math.sin(angle) * dist))
+    };
+  }
+  return {
+    x: board.x + board.width * (0.3 + Math.random() * 0.4),
+    y: board.y + board.height * (0.3 + Math.random() * 0.4)
+  };
+}
+
+function pickNaturalBankTarget() {
+  const sorted = holes.slice().sort((a, b) => Number(b.number) - Number(a.number));
+  if (!sorted.length) return null;
+  const midStart = Math.floor(sorted.length * 0.15);
+  const mid = sorted.slice(midStart, midStart + 10);
+  const pool = mid.length ? mid : sorted;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function launchBankToward(tx, ty, power, jitter) {
+  const j = jitter || 0;
+  const x = tx + (Math.random() - 0.5) * j;
+  const y = ty + (Math.random() - 0.5) * j * 0.85;
+  const dx = x - ball.x;
+  const dy = y - ball.y;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const p = Math.max(SHOT_POWER_MIN, Math.min(power, SHOT_POWER_MAX * 0.92));
+  ball.vx = (dx / dist) * p;
+  ball.vy = (dy / dist) * p;
+  ball.stopped = false;
+  shotActive = true;
+  stuckFrames = 0;
+  shots++;
+  shotsElement.textContent = shots;
+  currentPower = Math.min(1, p / SHOT_POWER_MAX);
+}
+
+function naturalShotPower(dist) {
+  const ratio = Math.min(1, Math.max(0.28, dist / 780));
+  return SHOT_POWER_MIN + ratio * (SHOT_POWER_MAX - SHOT_POWER_MIN) * 0.9;
+}
+
+async function shootBank() {
+  if (turn !== 'bank' || roundLocked || shotActive || !stakeTaken) return;
+  // RTP só agora — depois da jogada do jogador (que nunca é influenciada).
+  const force = await getRoundForce();
+  bankScript = null;
+
+  let tx = board.x + board.width * 0.5;
+  let ty = board.y + board.height * 0.5;
+  let jitter = 16;
+
+  if (force === 'player' || force === 'bank') {
+    const plan = planBankOutcome(force);
+    if (plan.kind === 'hole' && plan.hole) {
+      bankScript = { kind: 'aim', hole: plan.hole, force };
+      tx = plan.hole.x;
+      ty = plan.hole.y;
+      jitter = force === 'bank' ? 6 : 20;
+    } else {
+      const pt = pickBoardMissPoint();
+      bankScript = { kind: 'aim', miss: true, force };
+      tx = pt.x;
+      ty = pt.y;
+      jitter = 24;
+    }
+  } else {
+    const target = pickNaturalBankTarget();
+    if (target) {
+      bankScript = { kind: 'aim', hole: target };
+      tx = target.x;
+      ty = target.y;
+      jitter = 14;
+    } else {
+      const pt = pickBoardMissPoint();
+      tx = pt.x;
+      ty = pt.y;
+      jitter = 20;
+    }
+  }
+
+  const dist = Math.sqrt((tx - ball.x) ** 2 + (ty - ball.y) ** 2);
+  const power = naturalShotPower(dist) * (0.94 + Math.random() * 0.1);
+  launchBankToward(tx, ty, power, jitter);
+}
+
+async function resolveDuel() {
   if (roundLocked) return;
   roundLocked = true;
   shotActive = false;
-  ball.visible = false;
-  multiplierElement.textContent = '-';
+
+  const rawPs = playerResult?.score || 0;
+  const rawBs = bankResult?.score || 0;
+  const you = playerResult?.label || '—';
+  const bank = bankResult?.label || '—';
+  const line = `Você ${you} (${rawPs}) × Banca ${bank} (${rawBs})`;
+
+  if (rawPs > rawBs) {
+    const payout = betAmount * 2;
+    credits += payout;
+    renderCredits();
+    await persistCredits();
+    multiplierElement.textContent = '2x';
+    resultValue.textContent = '2x';
+    resultPayout.textContent = `${line} · você ganhou +${fmt(payout)}`;
+    resultPayout.style.color = '#7dffb0';
+    result.classList.add('show');
+    showAlert('win', '+' + fmt(payout));
+    return;
+  }
+
+  if (rawPs === rawBs) {
+    // Empate: devolve a aposta e abre nova rodada.
+    credits += betAmount;
+    renderCredits();
+    await persistCredits();
+    multiplierElement.textContent = '1x';
+    resultValue.textContent = 'EMPATE';
+    resultPayout.textContent = `${line} · empate — aposta devolvida · nova jogada`;
+    resultPayout.style.color = '#ffd91a';
+    result.classList.add('show');
+    showAlert('tie', `Aposta ${fmt(betAmount)} devolvida`);
+    return;
+  }
+
+  multiplierElement.textContent = '0x';
   resultValue.textContent = '0x';
-  resultPayout.textContent = `Caçapa da sinuca — perdeu ${fmt(betAmount)}`;
+  resultPayout.textContent = `${line} · a banca venceu — perdeu ${fmt(betAmount)}`;
   resultPayout.style.color = '#ff7d7d';
   result.classList.add('show');
   showAlert('lose', fmt(betAmount));
 }
 
-function holeWins(h) {
-  return isWinningNumber(h.number);
-}
-
-function rollGuardPins() {
-  holes.forEach((h) => { h.guardPin = false; });
-  const winning = holes.filter((h) => holeWins(h));
-  winning.forEach((h) => {
-    h.guardPin = Math.random() < 0.7;
-  });
-}
-
-function nudgeOffGuardPin(hole, dx, dy, distance) {
-  const nx = dx / (distance || 1);
-  const ny = dy / (distance || 1);
-  const tx = -ny;
-  const ty = nx;
-  const speed = getSpeed();
-  const depth = Math.max(0, Math.min(1, 1 - distance / (hole.radius * 0.55)));
-
-  const ease = Math.min(Math.max(0, hole.radius * 0.28 - distance), 0.5) * 0.22;
-  if (ease > 0) {
-    ball.x += nx * ease;
-    ball.y += ny * ease;
-  }
-
-  ball.vx *= 0.994 - depth * 0.006;
-  ball.vy *= 0.994 - depth * 0.006;
-
-  const dot = ball.vx * nx + ball.vy * ny;
-  if (dot < 0) {
-    ball.vx -= dot * nx * 0.1;
-    ball.vy -= dot * ny * 0.1;
-  }
-
-  const tangentSign = ball.vx * tx + ball.vy * ty >= 0 ? 1 : -1;
-  const skim = Math.min(speed * 0.012, 0.28) * depth;
-  ball.vx += tx * skim * tangentSign;
-  ball.vy += ty * skim * tangentSign;
-}
-
-function pickHole(wantWin) {
+function pickHole(wantHigh) {
   let best = null;
   let bestD = Infinity;
   for (const h of holes) {
-    if (holeWins(h) !== wantWin) continue;
+    const high = Number(h.number) >= 13;
+    if (wantHigh !== high) continue;
     const d = (h.x - ball.x) ** 2 + (h.y - ball.y) ** 2;
     if (d < bestD) {
       bestD = d;
       best = h;
     }
   }
-  return best;
+  return best || holes[0] || null;
 }
 
 async function getRoundForce() {
@@ -1348,76 +1529,38 @@ async function finishHole(hole) {
   if (roundLocked) return;
   shotActive = false;
 
-  const force = await getRoundForce();
-  if (roundLocked) return;
-
-  let target = hole;
-  if (force === 'player' || force === 'bank') {
-    const near = holes.filter((h) => {
-      const d = (h.x - ball.x) ** 2 + (h.y - ball.y) ** 2;
-      return d <= (h.radius * 2.1) ** 2;
-    });
-    const match = near.find((h) => force === 'player' ? holeWins(h) : !holeWins(h));
-    if (match) target = match;
-  }
-
-  roundLocked = true;
-  ball.x = target.x;
-  ball.y = target.y;
+  // Conta o buraco em que a bola caiu de verdade (sem trocar por manipulação).
+  ball.x = hole.x;
+  ball.y = hole.y;
   ball.scale = 0.15;
   ball.vx = 0;
   ball.vy = 0;
   ball.stopped = true;
 
-  holes.forEach((h) => { h.hit = false; });
-  target.hit = true;
-
-  const hitNumber = Number(target.number);
-  const won = holeWins(target);
-
-  multiplierElement.textContent = won ? '2x' : '0x';
-  resultValue.textContent = won ? '2x' : '0x';
-  if (won) {
-    const payout = betAmount * 2;
-    credits += payout;
-    renderCredits();
-    await persistCredits();
-    resultPayout.textContent = `Buraco ${hitNumber} · ganho 2x: +${fmt(payout)} créditos`;
-    resultPayout.style.color = '#7dffb0';
-    result.classList.add('show');
-    showAlert('win', '+' + fmt(payout));
-  } else {
-    resultPayout.textContent = `Buraco ${hitNumber} · a banca venceu — perdeu ${fmt(betAmount)}`;
-    resultPayout.style.color = '#ff7d7d';
-    result.classList.add('show');
-    showAlert('lose', fmt(betAmount));
-  }
+  hole.hit = true;
+  recordShot('hole', hole);
 }
 
 function handleMiss() {
   if (!shotActive || roundLocked) return;
-  shotActive = false;
-  roundLocked = true;
-  multiplierElement.textContent = '-';
-  resultValue.textContent = '0x';
-  resultPayout.textContent = `Perdeu: ${fmt(betAmount)}`;
-  resultPayout.style.color = '#ff7d7d';
-  result.classList.add('show');
-  showAlert('lose', fmt(betAmount));
+  recordShot('miss', null);
 }
 
 function checkPockets() {
   if (falling || roundLocked) return;
+  if (turn === 'bank') return false;
+
   const speed = getSpeed();
   for (const p of pockets) {
     const dx = ball.x - p.x;
     const dy = ball.y - p.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     if (distance > POCKET_R * 0.92) continue;
-    if (speed > 4.5) {
-      const pull = 0.06;
-      ball.vx += (-dx / (distance || 1)) * pull;
-      ball.vy += (-dy / (distance || 1)) * pull;
+    if (speed > 5) {
+      const nx = dx / (distance || 1);
+      const ny = dy / (distance || 1);
+      ball.vx -= nx * 0.08;
+      ball.vy -= ny * 0.08;
       continue;
     }
     startFallPocket(p);
@@ -1426,44 +1569,9 @@ function checkPockets() {
   return false;
 }
 
-function deflectOffHoleRim(hole, dx, dy, distance) {
-  const nx = dx / (distance || 1);
-  const ny = dy / (distance || 1);
-  const tx = -ny;
-  const ty = nx;
-  const speed = getSpeed();
-  const lip = hole.radius + ball.radius * 0.12;
-  const depth = Math.max(0, Math.min(1, 1 - distance / lip));
+const HOLE_SINK_SPEED = 3.4;
 
-  const overlap = lip - distance;
-  if (overlap > 0) {
-    const ease = Math.min(overlap, 1.4) * 0.42;
-    ball.x += nx * ease;
-    ball.y += ny * ease;
-  }
-
-  const drag = 0.988 - depth * 0.012;
-  ball.vx *= drag;
-  ball.vy *= drag;
-
-  const tangentSign = ball.vx * tx + ball.vy * ty >= 0 ? 1 : -1;
-  const skim = Math.min(speed * 0.028, 0.7) * (0.55 + depth * 0.45);
-  ball.vx += tx * skim * tangentSign;
-  ball.vy += ty * skim * tangentSign;
-
-  const dot = ball.vx * nx + ball.vy * ny;
-  if (dot < 0) {
-    ball.vx -= dot * nx * 0.28;
-    ball.vy -= dot * ny * 0.28;
-  }
-
-  const pull = Math.min(0.04, 0.018 * (1 - distance / lip));
-  ball.vx += (-nx) * pull * speed;
-  ball.vy += (-ny) * pull * speed;
-}
-
-const HOLE_SINK_SPEED = 3.1;
-
+/** Entra no buraco e fica — sem ricochete e sem sair. */
 function checkHole() {
   if (falling || roundLocked) return;
   const speed = getSpeed();
@@ -1471,31 +1579,19 @@ function checkHole() {
   for (const hole of holes) {
     const dx = ball.x - hole.x;
     const dy = ball.y - hole.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const touchDist = hole.radius + ball.radius * 0.35;
-    if (distance > touchDist) continue;
+    const distance = Math.sqrt(dx * dx + dy * dy) || 0.01;
+    const catchR = hole.radius * 0.88;
+    if (distance > catchR) continue;
 
-    if (hole.guardPin && distance < hole.radius * 0.55) {
-      nudgeOffGuardPin(hole, dx, dy, distance);
+    // Velocidade muito alta: só freia um pouco e segue (não “morde” ainda).
+    if (speed > HOLE_SINK_SPEED * 1.8) {
+      ball.vx *= 0.97;
+      ball.vy *= 0.97;
+      continue;
     }
 
-    const overCenter = distance <= hole.radius * 0.78;
-    const pinBlocks = hole.guardPin && speed > HOLE_SINK_SPEED * 0.45 && Math.random() < 0.38;
-
-    if (overCenter && speed <= HOLE_SINK_SPEED && !pinBlocks) {
-      startFallHole(hole, false, speed);
-      return;
-    }
-
-    if (overCenter && speed <= HOLE_SINK_SPEED * 1.35 && !pinBlocks) {
-      startFallHole(hole, true, speed);
-      return;
-    }
-
-    if (!hole.guardPin || speed > HOLE_SINK_SPEED * 0.55) {
-      deflectOffHoleRim(hole, dx, dy, Math.max(distance, 0.01));
-      return;
-    }
+    startFallHole(hole, false, speed);
+    return;
   }
 }
 
@@ -1510,16 +1606,17 @@ function updateBall() {
     if (shotActive && !falling) {
       ball.stopped = true;
       currentPower = 0;
+      stuckFrames = 0;
       handleMiss();
       return;
     }
     ball.stopped = true;
-    currentPower = Math.max(0, currentPower - 0.04);
+    currentPower = Math.max(0, currentPower - 0.03);
     return;
   }
 
   ball.stopped = false;
-  currentPower = Math.max(0, currentPower - 0.028);
+  currentPower = Math.max(0, currentPower - 0.02);
   ball.x += ball.vx;
   ball.y += ball.vy;
 
@@ -1529,20 +1626,32 @@ function updateBall() {
     ball.y > board.y &&
     ball.y < board.y + board.height;
   const speed = getSpeed();
-  let friction = onBoard ? 0.968 : 0.986;
-  if (onBoard) {
-    if (speed > 10) friction -= 0.01;
-    else if (speed > 5) friction -= 0.005;
-  }
+  let friction = onBoard ? 0.981 : 0.991;
+  if (speed > 10) friction -= 0.006;
+  else if (speed < 1.5) friction -= 0.008;
   ball.vx *= friction;
   ball.vy *= friction;
 
-  if (Math.abs(ball.vx) < 0.09 && Math.abs(ball.vy) < 0.09) {
+  // Anti-travamento: se ficar rastejando sem cair, encerra como erro.
+  if (shotActive) {
+    if (speed < 0.45) stuckFrames += 1;
+    else stuckFrames = 0;
+    if (stuckFrames > 50) {
+      ball.vx = 0;
+      ball.vy = 0;
+      stuckFrames = 0;
+      handleMiss();
+      return;
+    }
+  }
+
+  if (Math.abs(ball.vx) < 0.05 && Math.abs(ball.vy) < 0.05) {
     ball.vx = 0;
     ball.vy = 0;
     if (shotActive) {
       ball.stopped = true;
       currentPower = 0;
+      stuckFrames = 0;
       handleMiss();
       return;
     }
@@ -1556,19 +1665,23 @@ function updateBall() {
 
   if (ball.x - ball.radius < min) {
     ball.x = min + ball.radius;
-    ball.vx = Math.abs(ball.vx) * 0.9;
+    ball.vx = Math.abs(ball.vx) * 0.84;
+    ball.vy *= 0.97;
   }
   if (ball.x + ball.radius > maxX) {
     ball.x = maxX - ball.radius;
-    ball.vx = -Math.abs(ball.vx) * 0.85;
+    ball.vx = -Math.abs(ball.vx) * 0.84;
+    ball.vy *= 0.97;
   }
   if (ball.y - ball.radius < min) {
     ball.y = min + ball.radius;
-    ball.vy = Math.abs(ball.vy) * 0.85;
+    ball.vy = Math.abs(ball.vy) * 0.84;
+    ball.vx *= 0.97;
   }
   if (ball.y + ball.radius > maxY) {
     ball.y = maxY - ball.radius;
-    ball.vy = -Math.abs(ball.vy) * 0.85;
+    ball.vy = -Math.abs(ball.vy) * 0.84;
+    ball.vx *= 0.97;
   }
 
   if (checkPockets()) return;
@@ -1584,12 +1697,12 @@ function getCanvasPos(clientX, clientY) {
 }
 
 function canAim() {
-  return ball.stopped && !falling && !roundLocked && !shotActive && ball.scale > 0.9 && stakeTaken;
+  return turn === 'player' && ball.stopped && !falling && !roundLocked && !shotActive && ball.scale > 0.9 && stakeTaken && !playerResult;
 }
 
-const AIM_FULL = 200;
-const SHOT_POWER_MIN = 10;
-const SHOT_POWER_MAX = 50;
+const AIM_FULL = 220;
+const SHOT_POWER_MIN = 9;
+const SHOT_POWER_MAX = 32;
 
 function shootFromAim() {
   if (!aiming) return;
@@ -1602,12 +1715,15 @@ function shootFromAim() {
     return;
   }
   const powerRatio = Math.min(distance / AIM_FULL, 1);
-  const power = SHOT_POWER_MIN + powerRatio * (SHOT_POWER_MAX - SHOT_POWER_MIN);
+  const eased = Math.pow(powerRatio, 0.92);
+  const power = SHOT_POWER_MIN + eased * (SHOT_POWER_MAX - SHOT_POWER_MIN);
+  // Jogador: mira exata, sem influência do RTP.
   currentPower = powerRatio;
   ball.vx = (dx / distance) * power;
   ball.vy = (dy / distance) * power;
   ball.stopped = false;
   shotActive = true;
+  stuckFrames = 0;
   shots++;
   shotsElement.textContent = shots;
   result.classList.remove('show');
@@ -1664,15 +1780,6 @@ window.addEventListener('touchcancel', () => {
   currentPower = 0;
 });
 
-document.querySelectorAll('.parity').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.parity').forEach((b) => b.classList.remove('selected'));
-    button.classList.add('selected');
-    selectedParity = button.dataset.parity;
-    syncModeUI();
-  });
-});
-
 document.querySelectorAll('.bet-chip').forEach((chip) => {
   chip.addEventListener('click', () => setBetAmount(chip.dataset.bet));
 });
@@ -1701,6 +1808,10 @@ function backToMenu(resetCreditsFlow) {
   currentPower = 0;
   shotActive = false;
   roundLocked = false;
+  turn = 'player';
+  playerResult = null;
+  bankResult = null;
+  if (bankTimer) { clearTimeout(bankTimer); bankTimer = null; }
   stakeTaken = false;
   setPlayingUI(false);
   if (resetCreditsFlow !== false) hideAlert();
@@ -1748,7 +1859,12 @@ document.getElementById('play').addEventListener('click', async () => {
   shots = 0;
   shotsElement.textContent = '0';
   targetElement.textContent = selectedValue;
+  turn = 'player';
+  playerResult = null;
+  bankResult = null;
+  if (bankTimer) { clearTimeout(bankTimer); bankTimer = null; }
   syncModeUI();
+  syncTurnUI();
   multiplierElement.textContent = '-';
   resultPayout.textContent = '';
   resultPayout.style.color = '#7dffb0';
@@ -1756,6 +1872,9 @@ document.getElementById('play').addEventListener('click', async () => {
   hideAlert();
   shotActive = false;
   roundLocked = false;
+  roundForce = undefined;
+  bankScript = null;
+  bankBallVisual = false;
   updateBetPreview();
   setupCanvas();
 
@@ -1766,7 +1885,7 @@ document.getElementById('play').addEventListener('click', async () => {
 });
 
 back.addEventListener('click', () => {
-  if (stakeTaken && !roundLocked) {
+  if (stakeTaken && !roundLocked && !playerResult) {
     /* devolve aposta se sair sem terminar a jogada */
     credits += betAmount;
     stakeTaken = false;
@@ -1789,7 +1908,7 @@ syncModeUI();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=5"></script>
 <script src="../js/auth.js?v=18"></script>
-<script src="../js/house.js?v=3"></script>
+<script src="../js/house.js?v=4"></script>
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
