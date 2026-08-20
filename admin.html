@@ -30,7 +30,7 @@ body{margin:0;min-height:100vh}
 .bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
 .bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
 .tabs{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;
 }
 .tabs button{
   border:2px solid #17c8ff;border-radius:10px;padding:10px 6px;font-weight:900;cursor:pointer;
@@ -90,7 +90,8 @@ body{margin:0;min-height:100vh}
 .actions .rej{background:linear-gradient(180deg,#b95b00,#6b2f00);border:2px solid #ff9f32}
 .badge.pending{border-color:#ffd91a;background:#ffd91a22;color:#ffd91a}
 .badge.paid{border-color:#5cff1a;background:#5cff1a22;color:#5cff1a}
-.badge.rejected{border-color:#ff6262;background:#ff626222;color:#ff6262}
+.badge.rejected,.badge.failed{border-color:#ff6262;background:#ff626222;color:#ff6262}
+.badge.expired{border-color:#889;background:#8892;color:#a9b7c6}
 .pixKey{word-break:break-all;color:#7af0ff;font-size:12px}
 .msg{min-height:22px;text-align:center;font-weight:900;margin:8px 0;color:var(--muted)}
 .msg.ok{color:var(--green)}.msg.err{color:var(--red)}
@@ -181,6 +182,7 @@ body{margin:0;min-height:100vh}
     <nav class="tabs" id="adminTabs">
       <button type="button" class="on" data-tab="live">EM JOGO</button>
       <button type="button" data-tab="players">JOGADORES</button>
+      <button type="button" data-tab="deposit">DEPÓSITOS</button>
       <button type="button" data-tab="withdraw">SAQUES</button>
       <button type="button" data-tab="config">CONFIG</button>
     </nav>
@@ -260,6 +262,22 @@ body{margin:0;min-height:100vh}
     </section>
     </div>
 
+    <div class="tabPane" data-pane="deposit">
+    <section class="panel">
+      <h2>★ DEPÓSITOS PIX</h2>
+      <p class="cfgHelp">
+        PIX gerados na carteira. Pendentes aguardam pagamento; pagos já creditam o saldo automaticamente.
+        Use <b>VERIFICAR</b> para consultar a CajuPay se o jogador pagou e o webhook atrasou.
+      </p>
+      <div class="cfgStats">
+        <div class="cfgStat"><span>PENDENTES</span><b id="depPending">0</b></div>
+        <div class="cfgStat"><span>CREDITADOS</span><b id="depPaidCount">0</b></div>
+        <div class="cfgStat"><span>TOTAL PAGO</span><b id="depPaidSum">0</b></div>
+      </div>
+      <div id="depositList"><div class="empty">Carregando depósitos...</div></div>
+    </section>
+    </div>
+
     <div class="tabPane" data-pane="withdraw">
     <section class="panel">
       <h2>★ SAQUES PIX</h2>
@@ -302,12 +320,13 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=18"></script>
+  <script src="js/auth.js?v=19"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   let players = [];
   let withdrawals = [];
+  let deposits = [];
   let me = null;
   let settings = null;
   let gameRtp = [];
@@ -332,7 +351,12 @@ body{margin:0;min-height:100vh}
   function fmt(n){ return Number(n || 0).toLocaleString('pt-BR'); }
   function setMsg(text, type=''){ msg.textContent=text; msg.className='msg ' + type; }
   function statusBadge(s){
-    const label = s==='pending'?'PENDENTE':s==='paid'?'PAGO':s==='rejected'?'RECUSADO':s;
+    const label = s==='pending'?'PENDENTE'
+      : s==='paid'?'PAGO'
+      : s==='rejected'?'RECUSADO'
+      : s==='failed'?'FALHOU'
+      : s==='expired'?'EXPIRADO'
+      : s;
     return `<span class="badge ${s||''}">${label}</span>`;
   }
   function fmtDate(v){
@@ -365,6 +389,8 @@ body{margin:0;min-height:100vh}
     });
     if (id === 'live') renderLive();
     if (id === 'players') render();
+    if (id === 'deposit') reloadDeposits();
+    if (id === 'withdraw') reloadWithdrawals();
   }
   function renderLive(){
     const box = $('liveList');
@@ -398,6 +424,69 @@ body{margin:0;min-height:100vh}
         </tbody>
       </table>
     `;
+  }
+
+  function renderDeposits() {
+    const box = $('depositList');
+    if (!box) return;
+    const pending = deposits.filter((d) => d.status === 'pending');
+    const paid = deposits.filter((d) => d.status === 'paid');
+    const paidSum = paid.reduce((acc, d) => acc + Number(d.amount || 0), 0);
+    if ($('depPending')) $('depPending').textContent = String(pending.length);
+    if ($('depPaidCount')) $('depPaidCount').textContent = fmt(paid.length);
+    if ($('depPaidSum')) $('depPaidSum').textContent = fmt(paidSum);
+    if (!deposits.length) {
+      box.innerHTML = '<div class="empty">Nenhum depósito ainda.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGADOR</th>
+            <th>VALOR</th>
+            <th>CPF/CNPJ</th>
+            <th>STATUS</th>
+            <th>DATA</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${deposits.map((d) => `
+            <tr data-did="${d.id}" data-pid="${d.payment_id || ''}">
+              <td data-label="JOGADOR">${d.display_name || '—'}<br><small style="color:#889">${d.email || ''}</small></td>
+              <td data-label="VALOR"><span class="credits">${fmt(d.amount)}</span></td>
+              <td data-label="CPF/CNPJ"><span class="pixKey">${d.document || '—'}</span></td>
+              <td data-label="STATUS">${statusBadge(d.status)}</td>
+              <td data-label="DATA">${fmtDate(d.paid_at || d.created_at)}${d.paid_at ? '<br><small style="color:#889">pago</small>' : ''}</td>
+              <td data-label="AÇÕES">
+                ${d.status === 'pending' && d.payment_id ? `
+                  <div class="actions">
+                    <button type="button" class="set" data-dact="check">VERIFICAR</button>
+                  </div>
+                ` : (d.payment_id ? `<small style="color:#889">${d.payment_id.slice(0, 8)}…</small>` : '—')}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function reloadDeposits() {
+    try {
+      deposits = await omahaAuth.adminListDeposits();
+      renderDeposits();
+      const pending = deposits.filter((d) => d.status === 'pending').length;
+      if (pending) setMsg(`${pending} depósito(s) aguardando PIX.`, 'ok');
+    } catch (err) {
+      deposits = [];
+      renderDeposits();
+      const tip = /admin_list_deposits|function|schema cache/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/cajupay.sql no Supabase.'
+        : '';
+      setMsg((err?.message || 'Falha ao listar depósitos.') + tip, 'err');
+    }
   }
 
   function renderWithdrawals() {
@@ -710,7 +799,7 @@ body{margin:0;min-height:100vh}
       return;
     }
     $('adminName').textContent = me.display_name || me.email || 'Admin';
-    await Promise.all([reload(), reloadSettings(), reloadWithdrawals()]);
+    await Promise.all([reload(), reloadSettings(), reloadWithdrawals(), reloadDeposits()]);
     setInterval(() => { reload({ keepPage: true, silent: true }); }, 8000);
   }
 
@@ -869,6 +958,29 @@ body{margin:0;min-height:100vh}
       setMsg(act === 'set' ? `Saldo definido para ${fmt(value)}.` : `Saldo atualizado (${act === 'add' ? '+' : '-'}${fmt(value)}).`, 'ok');
     } catch (err) {
       setMsg(err?.message || 'Falha ao ajustar saldo.', 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('depositList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-dact]');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    const paymentId = tr?.dataset.pid;
+    if (!paymentId) {
+      setMsg('Este depósito ainda não tem payment_id na CajuPay.', 'err');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const res = await omahaAuth.checkPixDeposit(paymentId);
+      if (res?.status === 'paid') setMsg('PIX confirmado. Saldo creditado.', 'ok');
+      else if (res?.status === 'failed') setMsg('PIX expirado ou recusado.', 'err');
+      else setMsg('Ainda pendente na CajuPay.', 'ok');
+      await Promise.all([reloadDeposits(), reload()]);
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao verificar depósito.', 'err');
     } finally {
       btn.disabled = false;
     }

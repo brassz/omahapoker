@@ -388,3 +388,51 @@ $$;
 
 revoke all on function public.fail_payout(text, text) from public, anon, authenticated;
 grant execute on function public.fail_payout(text, text) to service_role;
+
+create or replace function public.admin_list_deposits()
+returns table (
+  id uuid,
+  user_id uuid,
+  amount numeric,
+  amount_cents integer,
+  payment_id text,
+  document text,
+  status text,
+  created_at timestamptz,
+  paid_at timestamptz,
+  display_name text,
+  email text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Apenas administradores';
+  end if;
+
+  return query
+  select
+    d.id,
+    d.user_id,
+    d.amount,
+    d.amount_cents,
+    d.payment_id,
+    d.document,
+    d.status,
+    d.created_at,
+    d.paid_at,
+    p.display_name,
+    p.email
+  from public.deposits d
+  join public.profiles p on p.id = d.user_id
+  order by
+    case when d.status = 'pending' then 0 else 1 end,
+    d.created_at desc
+  limit 300;
+end;
+$$;
+
+revoke all on function public.admin_list_deposits() from public;
+grant execute on function public.admin_list_deposits() to authenticated;

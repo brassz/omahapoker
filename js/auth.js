@@ -412,6 +412,12 @@
       return data || [];
     },
 
+    async adminListDeposits() {
+      const { data, error } = await client.rpc('admin_list_deposits');
+      if (error) throw error;
+      return data || [];
+    },
+
     async adminMarkWithdrawalPaid(id) {
       const { data, error } = await client.rpc('admin_mark_withdrawal_paid', {
         p_id: id,
