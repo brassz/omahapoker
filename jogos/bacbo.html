@@ -163,21 +163,19 @@ body{display:flex;flex-direction:column}
   cursor:pointer;font-weight:800;font-size:10px;
   background-image:none!important;animation:none!important;box-shadow:none!important;
 }
-.bets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:6px;flex:0 0 auto}
+.bets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:6px;flex:0 0 auto}
 .bet-card{
   border:2px solid #334;border-radius:10px;overflow:hidden;background:#060912;
   display:flex;flex-direction:column;
 }
 .bet-card.tone-player{border-color:#1565c0}
 .bet-card.tone-banker{border-color:#c62828}
-.bet-card.tone-tie{border-color:#2e7d32}
 .bet-head{
   padding:5px 6px;display:flex;justify-content:space-between;align-items:center;gap:4px;
   border-bottom:1px solid #334;
 }
 .bet-card.tone-player .bet-head{background:#1565c0;color:#fff}
 .bet-card.tone-banker .bet-head{background:#c62828;color:#fff}
-.bet-card.tone-tie .bet-head{background:#2e7d32;color:#fff}
 .bet-name{font-size:11px;font-weight:1000}
 .multiplier{color:#041;font-size:10px;font-weight:900;padding:2px 5px;border-radius:4px;background:#ffd91a}
 .bet-content{padding:5px;display:flex;flex-direction:column;gap:4px}
@@ -188,7 +186,6 @@ body{display:flex;flex-direction:column}
 }
 .place.player{background:#1565c0!important}
 .place.banker{background:#c62828!important}
-.place.tie{background:#2e7d32!important}
 .place:disabled{opacity:.4;cursor:not-allowed}
 .bet-status{font-size:9px;color:#a4adb7;font-weight:700;text-align:center}
 .bet-status strong{color:#ffd91a}
@@ -268,7 +265,7 @@ body{display:flex;flex-direction:column}
       </div>
       <div class="vs-col">
         <div class="vs-badge">VS</div>
-        <div class="tie-badge">EMPATE 8:1</div>
+        <div class="tie-badge">EMPATE DEVOLVE</div>
       </div>
       <div class="side banker" id="sideBanker">
         <div class="side-label">🔴 Banca</div>
@@ -309,13 +306,6 @@ body{display:flex;flex-direction:column}
           <div class="bet-status" id="statusPlayer">Nenhuma aposta</div>
         </div>
       </div>
-      <div class="bet-card tone-tie">
-        <div class="bet-head"><span class="bet-name">EMPATE</span><span class="multiplier">8:1</span></div>
-        <div class="bet-content">
-          <button class="place tie" data-bet="tie">APOSTAR EMPATE</button>
-          <div class="bet-status" id="statusTie">Nenhuma aposta</div>
-        </div>
-      </div>
       <div class="bet-card tone-banker">
         <div class="bet-head"><span class="bet-name">BANCA</span><span class="multiplier">1:1</span></div>
         <div class="bet-content">
@@ -330,7 +320,7 @@ body{display:flex;flex-direction:column}
       <button class="play" id="playBtn">🎲 JOGAR</button>
     </div>
 
-    <div class="message" id="message">Aposte no Jogador (azul), Banca (vermelho) ou Empate.</div>
+    <div class="message" id="message">Aposte no Jogador (azul) ou na Banca (vermelho). Empate devolve a aposta.</div>
   </div>
 </div>
 
@@ -347,9 +337,8 @@ body{display:flex;flex-direction:column}
     <ul>
       <li><b>Jogador (azul):</b> paga 1 para 1 se o Jogador vencer.</li>
       <li><b>Banca (vermelho):</b> paga 1 para 1 se a Banca vencer.</li>
-      <li><b>Empate:</b> paga 8 para 1 se as pontuações forem iguais.</li>
+      <li><b>Empate:</b> não há aposta de empate. Se as pontuações forem iguais, a aposta é <b>devolvida</b>.</li>
       <li>Aposta mínima 2 e máxima 200 créditos por aposta. Total máximo por rodada: 200.</li>
-      <li>Você pode apostar em mais de uma opção na mesma rodada.</li>
     </ul>
     <button class="closeHelp" id="closeHelp" type="button">FECHAR REGRAS</button>
   </div>
@@ -363,7 +352,7 @@ body{display:flex;flex-direction:column}
 <script src="../js/gate.js?v=17"></script>
 <script>
 const BET_MAX = 200;
-const PAYOUT = { player: 2, banker: 2, tie: 9 };
+const PAYOUT = { player: 2, banker: 2 };
 const NAMES = { player: 'Jogador', banker: 'Banca', tie: 'Empate' };
 
 let credits = 0;
@@ -431,7 +420,9 @@ const ALL_OUTCOMES = (() => {
   return list;
 })();
 
-function betPayout(bet, winner){
+/** Créditos devolvidos/pagos (inclui stake). Empate = devolve a aposta. */
+function betReturn(bet, winner){
+  if (winner === 'tie') return bet.amount;
   if (bet.type === winner) return bet.amount * PAYOUT[bet.type];
   return 0;
 }
@@ -451,9 +442,9 @@ function renderCredits(){
 }
 
 function renderBetStatus(){
-  const totals = { player: 0, banker: 0, tie: 0 };
-  pendingBets.forEach(b => { totals[b.type] += b.amount; });
-  ['player', 'banker', 'tie'].forEach(type => {
+  const totals = { player: 0, banker: 0 };
+  pendingBets.forEach(b => { totals[b.type] = (totals[b.type] || 0) + b.amount; });
+  ['player', 'banker'].forEach(type => {
     const el = document.getElementById('status' + type.charAt(0).toUpperCase() + type.slice(1));
     if (!el) return;
     el.innerHTML = totals[type]
@@ -479,6 +470,7 @@ function renderLast(){
 
 function addBet(type){
   if (playing) return;
+  if (type !== 'player' && type !== 'banker') return;
   const check = clubBets.validate(amountEl.value);
   if (!check.ok){ messageEl.textContent = check.message; return; }
   const value = check.value;
@@ -498,10 +490,10 @@ async function pickOutcome(){
   try { if (window.clubHouse) force = await clubHouse.nextOutcome(); } catch (_) {}
 
   if (force === 'bank' && pendingBets.length){
-    const losers = pool.filter(o => pendingBets.every(b => betPayout(b, o.winner) === 0));
+    const losers = pool.filter(o => pendingBets.every(b => betReturn(b, o.winner) === 0));
     if (losers.length) pool = losers;
   } else if (force === 'player' && pendingBets.length){
-    const winners = pool.filter(o => pendingBets.some(b => betPayout(b, o.winner) > 0));
+    const winners = pool.filter(o => pendingBets.some(b => betReturn(b, o.winner) > b.amount));
     if (winners.length) pool = winners;
   }
 
@@ -590,24 +582,32 @@ async function playRound(){
     history = history.slice(0, 12);
     renderLast();
 
-    let payout = 0;
-    const wins = [];
+    let returned = 0;
+    const notes = [];
     pendingBets.forEach(b => {
-      const win = betPayout(b, outcome.winner);
-      if (win > 0){
-        payout += win;
-        wins.push(`${NAMES[b.type]} +${money(win - b.amount)}`);
+      const back = betReturn(b, outcome.winner);
+      if (back > 0){
+        returned += back;
+        if (outcome.winner === 'tie') notes.push(`${NAMES[b.type]} devolvido ${money(back)}`);
+        else notes.push(`${NAMES[b.type]} +${money(back - b.amount)}`);
       }
     });
 
-    if (payout > 0){
-      credits += payout;
+    if (outcome.winner === 'tie'){
+      credits += returned;
       renderCredits();
       await persist();
-      const profit = payout - total;
+      resultBanner.textContent = 'EMPATE — APOSTA DEVOLVIDA';
+      resultBanner.className = 'result-banner';
+      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Devolvido: <strong>${money(returned)}</strong>`;
+    } else if (returned > 0){
+      credits += returned;
+      renderCredits();
+      await persist();
+      const profit = returned - total;
       resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU! +${money(profit)}`;
       resultBanner.className = 'result-banner win';
-      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Prêmio: <strong>${money(payout)}</strong> (${wins.join(', ')})`;
+      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Prêmio: <strong>${money(returned)}</strong> (${notes.join(', ')})`;
     } else {
       resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU`;
       resultBanner.className = 'result-banner lose';
