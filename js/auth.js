@@ -26,11 +26,30 @@
       return session.user;
     },
 
-    async signUp({ email, password, displayName, phone }) {
+    getStoredReferralCode() {
+      try {
+        const q = new URLSearchParams(location.search).get('ref');
+        if (q) {
+          const code = String(q).trim().toUpperCase();
+          sessionStorage.setItem('club_ref', code);
+          return code;
+        }
+        return String(sessionStorage.getItem('club_ref') || '').trim().toUpperCase() || '';
+      } catch (_) {
+        return '';
+      }
+    },
+
+    clearStoredReferralCode() {
+      try { sessionStorage.removeItem('club_ref'); } catch (_) {}
+    },
+
+    async signUp({ email, password, displayName, phone, referralCode }) {
       const phoneDigits = String(phone || '').replace(/\D/g, '');
       if (phoneDigits.length < 10 || phoneDigits.length > 13) {
         throw new Error('Informe um celular válido com DDD (10 ou 11 dígitos).');
       }
+      const ref = String(referralCode || this.getStoredReferralCode() || '').trim().toUpperCase();
       const { data, error } = await client.auth.signUp({
         email,
         password,
@@ -40,6 +59,7 @@
             phone: phoneDigits,
             terms_accepted: true,
             terms_accepted_at: new Date().toISOString(),
+            ...(ref ? { ref } : {}),
           },
         },
       });
@@ -71,6 +91,9 @@
     async ensureProfile(user) {
       let profile = await this.getProfile(user.id);
       const phoneMeta = String(user.user_metadata?.phone || '').replace(/\D/g, '');
+      const refMeta = String(user.user_metadata?.ref || this.getStoredReferralCode() || '')
+        .trim()
+        .toUpperCase();
 
       if (profile) {
         // Completa telefone se veio no cadastro e ainda não está no perfil
@@ -81,7 +104,14 @@
             .eq('id', user.id)
             .select('*')
             .maybeSingle();
-          if (!error && data) return data;
+          if (!error && data) profile = data;
+        }
+        if (refMeta && !profile.referred_by && !profile.is_admin && !profile.is_manager) {
+          try {
+            await client.rpc('claim_referral', { p_code: refMeta });
+            this.clearStoredReferralCode();
+            profile = (await this.getProfile(user.id)) || profile;
+          } catch (_) {}
         }
         return profile;
       }
@@ -101,6 +131,7 @@
             player_credits: 0,
             bank_credits: 0,
             is_admin: false,
+            is_manager: false,
           },
           { onConflict: 'id' }
         )
@@ -112,17 +143,98 @@
         if (profile) return profile;
         throw error;
       }
-      return data;
+      profile = data;
+      if (refMeta && !profile.referred_by) {
+        try {
+          await client.rpc('claim_referral', { p_code: refMeta });
+          this.clearStoredReferralCode();
+          profile = (await this.getProfile(user.id)) || profile;
+        } catch (_) {}
+      }
+      return profile;
     },
 
     isAdmin(profile) {
       return !!(profile && profile.is_admin);
     },
 
+    isManager(profile) {
+      return !!(profile && profile.is_manager && !profile.is_admin);
+    },
+
     async routeAfterLogin(profile) {
       if (this.isAdmin(profile)) location.replace('admin.html');
+      else if (this.isManager(profile)) location.replace('gerente.html');
       else location.replace('lobby.html');
     },
+
+    async adminListManagers() {
+      const { data, error } = await client.rpc('admin_list_managers');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminListManagerPlayers(managerId) {
+      const { data, error } = await client.rpc('admin_list_manager_players', {
+        p_manager_id: managerId,
+      });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminSetManager(userId, on) {
+      const { data, error } = await client.rpc('admin_set_manager', {
+        p_user_id: userId,
+        p_on: !!on,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async adminCreateManager({ email, password, displayName, phone }) {
+      const { data, error } = await client.functions.invoke('admin-managers', {
+        body: { email, password, displayName, phone },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+
+    async managerMyCode() {
+      const { data, error } = await client.rpc('manager_my_code');
+      if (error) throw error;
+      return data;
+    },
+
+    async managerSummary() {
+      const { data, error } = await client.rpc('manager_summary');
+      if (error) throw error;
+      return data;
+    },
+
+    async managerListPlayers() {
+      const { data, error } = await client.rpc('manager_list_players');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async managerListDeposits() {
+      const { data, error } = await client.rpc('manager_list_deposits');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async managerListWithdrawals() {
+      const { data, error } = await client.rpc('manager_list_withdrawals');
+      if (error) throw error;
+      return data || [];
+    },
+
+    referralSignupUrl(code) {
+      const base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}login.html`;
+      return `${base}?ref=${encodeURIComponent(code)}`;
+    },
+
 
     async listPlayers() {
       // SECURITY DEFINER: lê todos os profiles (RLS do select normal só vê a própria conta)

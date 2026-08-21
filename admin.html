@@ -30,7 +30,25 @@ body{margin:0;min-height:100vh}
 .bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
 .bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
 .tabs{
-  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;
+}
+.actions .mgr{background:linear-gradient(180deg,#0f766e,#14b8a6);border:2px solid #5eead4;color:#042f2e}
+.profitPos{color:#5cff1a;font-weight:1000}
+.profitNeg{color:#ff6b6b;font-weight:1000}
+.mgrForm{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;
+}
+.mgrForm input{
+  width:100%;padding:11px;border-radius:10px;border:1px solid #445;
+  background:#090b14;color:#fff;font-weight:700;
+}
+.mgrForm .full{grid-column:1/-1}
+.mgrForm .save{
+  grid-column:1/-1;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;
+  color:#00131b;background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+}
+@media (max-width:720px){
+  .mgrForm{grid-template-columns:1fr}
 }
 .tabs button{
   border:2px solid #17c8ff;border-radius:10px;padding:10px 6px;font-weight:900;cursor:pointer;
@@ -182,6 +200,7 @@ body{margin:0;min-height:100vh}
     <nav class="tabs" id="adminTabs">
       <button type="button" class="on" data-tab="live">EM JOGO</button>
       <button type="button" data-tab="players">JOGADORES</button>
+      <button type="button" data-tab="managers">GERENTES</button>
       <button type="button" data-tab="deposit">DEPÓSITOS</button>
       <button type="button" data-tab="withdraw">SAQUES</button>
       <button type="button" data-tab="config">CONFIG</button>
@@ -304,6 +323,32 @@ body{margin:0;min-height:100vh}
       </div>
     </section>
     </div>
+
+    <div class="tabPane" data-pane="managers">
+    <section class="panel">
+      <h2>★ CRIAR GERENTE</h2>
+      <p class="cfgHelp">
+        O gerente recebe um link de indicação. Só vê clientes que cadastrou pelo link
+        (depósitos, saques e lucro). Não acessa config nem a lista geral de jogadores.
+      </p>
+      <form class="mgrForm" id="mgrCreateForm">
+        <input id="mgrNameIn" type="text" placeholder="Nome" maxlength="40" required>
+        <input id="mgrPhoneIn" type="tel" placeholder="Celular (opcional)" maxlength="16">
+        <input class="full" id="mgrEmailIn" type="email" placeholder="E-mail" required>
+        <input class="full" id="mgrPassIn" type="password" placeholder="Senha (mín. 6)" minlength="6" required>
+        <button class="save" type="submit" id="mgrCreateBtn">CRIAR GERENTE</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>★ GERENTES DO CLUBE</h2>
+      <p class="cfgHelp">
+        Lucro da carteira = (saldos + saques pagos) − depósitos pagos dos indicados.
+        Positivo = jogadores no lucro; negativo = casa no lucro.
+      </p>
+      <div id="managersList"><div class="empty">Carregando gerentes...</div></div>
+      <div id="managerDetail" style="margin-top:14px"></div>
+    </section>
+    </div>
   </div>
 
   <div class="modal" id="maintModal" aria-hidden="true">
@@ -320,14 +365,15 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=5"></script>
-  <script src="js/auth.js?v=20"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/auth.js?v=21"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
   let players = [];
   let withdrawals = [];
   let deposits = [];
+  let managers = [];
   let me = null;
   let settings = null;
   let gameRtp = [];
@@ -390,6 +436,7 @@ body{margin:0;min-height:100vh}
     });
     if (id === 'live') renderLive();
     if (id === 'players') render();
+    if (id === 'managers') reloadManagers();
     if (id === 'deposit') reloadDeposits();
     if (id === 'withdraw') reloadWithdrawals();
   }
@@ -755,8 +802,8 @@ body{margin:0;min-height:100vh}
         </thead>
         <tbody>
           ${rows.map((p) => `
-            <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}" data-admin="${p.is_admin ? '1' : '0'}">
-              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}</td>
+            <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}" data-admin="${p.is_admin ? '1' : '0'}" data-manager="${p.is_manager ? '1' : '0'}">
+              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}${p.is_manager && !p.is_admin ? ' <span class="badge">GERENTE</span>' : ''}</td>
               <td data-label="E-MAIL">${p.email || '—'}</td>
               <td data-label="CELULAR">${p.phone || '—'}</td>
               <td data-label="JOGO">${isPlaying(p) ? `<span class="liveGame">${gameName(p.current_game)}</span>` : '<span class="liveOff">lobby / fora</span>'}</td>
@@ -773,7 +820,10 @@ body{margin:0;min-height:100vh}
                 <div class="actions">
                   ${p.is_admin
                     ? '<span class="badge">protegido</span>'
-                    : '<button type="button" class="del" data-act="del">EXCLUIR</button>'}
+                    : `
+                      <button type="button" class="mgr" data-act="mgr">${p.is_manager ? 'TIRAR GERENTE' : 'VIRAR GERENTE'}</button>
+                      <button type="button" class="del" data-act="del">EXCLUIR</button>
+                    `}
                 </div>
               </td>
             </tr>
@@ -810,13 +860,174 @@ body{margin:0;min-height:100vh}
     if (!user) return;
     me = await omahaAuth.ensureProfile(user);
     if (!omahaAuth.isAdmin(me)) {
-      location.replace('lobby.html');
+      location.replace(omahaAuth.isManager(me) ? 'gerente.html' : 'lobby.html');
       return;
     }
     $('adminName').textContent = me.display_name || me.email || 'Admin';
     await Promise.all([reload(), reloadSettings(), reloadWithdrawals(), reloadDeposits()]);
     setInterval(() => { reload({ keepPage: true, silent: true }); }, 8000);
   }
+
+  function profitCls(v) {
+    const n = Number(v) || 0;
+    if (n > 0) return 'profitPos';
+    if (n < 0) return 'profitNeg';
+    return '';
+  }
+
+  function renderManagers() {
+    const box = $('managersList');
+    const detail = $('managerDetail');
+    if (detail) detail.innerHTML = '';
+    if (!managers.length) {
+      box.innerHTML = '<div class="empty">Nenhum gerente ainda. Crie um acima ou promova um jogador.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>GERENTE</th>
+            <th>CÓDIGO</th>
+            <th>INDICADOS</th>
+            <th>DEPÓSITOS</th>
+            <th>SAQUES</th>
+            <th>CARTEIRA</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${managers.map((m) => `
+            <tr data-mid="${m.user_id}">
+              <td data-label="GERENTE">${m.display_name || '—'}<br><small style="color:#889">${m.email || ''}</small></td>
+              <td data-label="CÓDIGO"><code>${m.referral_code || '—'}</code></td>
+              <td data-label="INDICADOS">${fmt(m.referred_count)}</td>
+              <td data-label="DEPÓSITOS"><span class="credits">${fmt(m.total_deposits)}</span></td>
+              <td data-label="SAQUES">${fmt(m.total_withdrawals)}</td>
+              <td data-label="CARTEIRA"><span class="${profitCls(m.portfolio_profit)}">${fmt(m.portfolio_profit)}</span></td>
+              <td data-label="AÇÕES">
+                <div class="actions">
+                  <button type="button" class="set" data-mact="view">VER INDICADOS</button>
+                  <button type="button" class="mgr" data-mact="link">COPIAR LINK</button>
+                  <button type="button" class="rej" data-mact="off">REMOVER</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  async function reloadManagers() {
+    try {
+      managers = await omahaAuth.adminListManagers();
+      renderManagers();
+    } catch (err) {
+      managers = [];
+      renderManagers();
+      const tip = /admin_list_managers|is_manager|schema cache/i.test(err?.message || '')
+        ? ' Rode o SQL supabase/managers.sql no Supabase.'
+        : '';
+      setMsg((err?.message || 'Falha ao listar gerentes.') + tip, 'err');
+    }
+  }
+
+  async function showManagerPlayers(managerId, name) {
+    const detail = $('managerDetail');
+    detail.innerHTML = '<div class="empty">Carregando indicados...</div>';
+    try {
+      const rows = await omahaAuth.adminListManagerPlayers(managerId);
+      if (!rows.length) {
+        detail.innerHTML = `<div class="empty">${name || 'Gerente'} ainda não indicou ninguém.</div>`;
+        return;
+      }
+      detail.innerHTML = `
+        <h2 style="margin:0 0 10px;color:var(--gold);font-size:15px">Indicados de ${name || 'gerente'}</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>JOGADOR</th>
+              <th>SALDO</th>
+              <th>DEPÓSITOS</th>
+              <th>SAQUES</th>
+              <th>LUCRO</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((p) => `
+              <tr>
+                <td data-label="JOGADOR">${p.display_name || '—'}<br><small style="color:#889">${p.email || ''}</small></td>
+                <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
+                <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
+                <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
+                <td data-label="LUCRO"><span class="${profitCls(p.profit)}">${fmt(p.profit)}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    } catch (err) {
+      detail.innerHTML = `<div class="empty">${err?.message || 'Falha ao carregar indicados.'}</div>`;
+    }
+  }
+
+  $('managersList')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-mact]');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    const id = tr?.dataset.mid;
+    const row = managers.find((m) => m.user_id === id);
+    if (!id || !row) return;
+    const act = btn.dataset.mact;
+    if (act === 'view') {
+      await showManagerPlayers(id, row.display_name || row.email);
+      return;
+    }
+    if (act === 'link') {
+      const url = omahaAuth.referralSignupUrl(row.referral_code);
+      try {
+        await navigator.clipboard.writeText(url);
+        setMsg('Link de indicação copiado.', 'ok');
+      } catch (_) {
+        setMsg(url, 'ok');
+      }
+      return;
+    }
+    if (act === 'off') {
+      if (!confirm(`Remover cargo de gerente de ${row.display_name || row.email}?`)) return;
+      try {
+        await omahaAuth.adminSetManager(id, false);
+        await reloadManagers();
+        setMsg('Gerente removido.', 'ok');
+      } catch (err) {
+        setMsg(err?.message || 'Falha ao remover gerente.', 'err');
+      }
+    }
+  });
+
+  $('mgrCreateForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('mgrCreateBtn');
+    const email = $('mgrEmailIn').value.trim();
+    const password = $('mgrPassIn').value;
+    const displayName = $('mgrNameIn').value.trim();
+    const phone = String($('mgrPhoneIn').value || '').replace(/\D/g, '');
+    btn.disabled = true;
+    try {
+      await omahaAuth.adminCreateManager({ email, password, displayName, phone });
+      $('mgrCreateForm').reset();
+      await reloadManagers();
+      setMsg(`Gerente ${displayName || email} criado.`, 'ok');
+    } catch (err) {
+      const tip = /admin-managers|Failed to send|FunctionsRelay/i.test(err?.message || '')
+        ? ' Faça o deploy: npx supabase functions deploy admin-managers'
+        : /admin_finish_manager|managers\.sql|schema cache/i.test(err?.message || '')
+          ? ' Rode o SQL supabase/managers.sql no Supabase.'
+          : '';
+      setMsg((err?.message || 'Falha ao criar gerente.') + tip, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   $('adminTabs').addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-tab]');
@@ -964,6 +1175,29 @@ body{margin:0;min-height:100vh}
         setMsg(`Usuário ${nome} excluído.`, 'ok');
       } catch (err) {
         setMsg(err?.message || 'Falha ao excluir usuário.', 'err');
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    if (act === 'mgr') {
+      const on = tr.dataset.manager !== '1';
+      const nome = tr.dataset.name || 'jogador';
+      if (!confirm(on
+        ? `Tornar ${nome} gerente? Ele ganha link de indicação e painel restrito.`
+        : `Remover cargo de gerente de ${nome}?`)) return;
+      btn.disabled = true;
+      try {
+        await omahaAuth.adminSetManager(id, on);
+        await reload();
+        if (currentTab === 'managers') await reloadManagers();
+        setMsg(on ? `${nome} agora é gerente.` : `${nome} deixou de ser gerente.`, 'ok');
+      } catch (err) {
+        const tip = /admin_set_manager|is_manager|schema cache/i.test(err?.message || '')
+          ? ' Rode o SQL supabase/managers.sql no Supabase.'
+          : '';
+        setMsg((err?.message || 'Falha ao alterar gerente.') + tip, 'err');
       } finally {
         btn.disabled = false;
       }
