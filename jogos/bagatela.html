@@ -455,15 +455,9 @@ body{
     <p class="mode-note">Você e a banca tacam · quem tirar o número maior vence</p>
 
     <div class="bet-section">
-      <span class="section-label">APOSTA (2 A 10)</span>
-      <div class="bet-row">
-        <button type="button" class="bet-chip selected" data-bet="2">2</button>
-        <button type="button" class="bet-chip" data-bet="5">5</button>
-        <button type="button" class="bet-chip" data-bet="8">8</button>
-        <button type="button" class="bet-chip" data-bet="10">10</button>
-      </div>
+      <span class="section-label">APOSTA (2 A 200)</span>
       <div class="bet-custom">
-        <input type="number" id="betInput" min="2" max="10" step="1" value="2" placeholder="Aposta">
+        <input type="number" id="betInput" min="2" max="200" step="1" value="2" placeholder="Digite a aposta">
       </div>
       <div class="bet-preview" id="betPreview">Aposta: <strong>2</strong> créditos</div>
     </div>
@@ -513,7 +507,7 @@ body{
     </ul>
     <h3>Como jogar</h3>
     <ul>
-      <li>25 números em disposição aleatória. Defina a aposta (2 a 10), confirme e mire arrastando a bola.</li>
+      <li>25 números em disposição aleatória. Digite a aposta (2 a 200), confirme e mire arrastando a bola.</li>
       <li>No celular, jogue com a tela na horizontal.</li>
     </ul>
     <button type="button" class="help-close" id="closeHelp">FECHAR REGRAS</button>
@@ -553,7 +547,7 @@ const POCKET_R = 38;
 const HOLE_COUNT = 25;
 let selectedValue = HOLE_COUNT;
 const BET_MIN = 2;
-const BET_MAX = 10;
+const BET_MAX = 200;
 let betAmount = 2;
 let credits = 0;
 let stakeTaken = false;
@@ -635,9 +629,6 @@ function setBetAmount(amount) {
   betAmount = value;
   betInput.value = value;
   updateBetPreview();
-  document.querySelectorAll('.bet-chip').forEach((c) => {
-    c.classList.toggle('selected', Number(c.dataset.bet) === betAmount);
-  });
 }
 
 function setupCanvas() {
@@ -1757,10 +1748,6 @@ window.addEventListener('touchend', () => shootFromAim(), { passive: false });
 window.addEventListener('touchcancel', () => {
   aiming = false;
   currentPower = 0;
-});
-
-document.querySelectorAll('.bet-chip').forEach((chip) => {
-  chip.addEventListener('click', () => setBetAmount(chip.dataset.bet));
 });
 
 betInput.addEventListener('input', () => {
