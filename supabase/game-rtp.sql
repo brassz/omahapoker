@@ -31,11 +31,10 @@ from (
     ('bacatela'),
     ('chuvadepremios'),
     ('roleta'),
-    ('flyx'),
+    ('bacbo'),
     ('ronda'),
     ('caipira'),
-    ('21'),
-    ('bacbo')
+    ('21')
 ) as g(id)
 on conflict (game_id) do nothing;
 
@@ -54,6 +53,9 @@ begin
   end if;
   if key in ('21_index', '21') then
     return '21';
+  end if;
+  if key in ('flyx', 'ponto-maior', 'pontomaior', 'bacbo') then
+    return 'bacbo';
   end if;
   return key;
 end;
@@ -76,7 +78,7 @@ begin
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
     'omaha','crep','bacatela','chuvadepremios','roleta',
-    'flyx','ronda','caipira','21','bacbo'
+    'bacbo','ronda','caipira','21'
   ]) as g(id)
   on conflict (game_id) do nothing;
 

@@ -237,8 +237,8 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=19"></script>
+  <script src="js/config.js?v=8"></script>
+  <script src="js/auth.js?v=22"></script>
   <script>
   const GAMES_ALL = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -246,11 +246,10 @@ body{margin:0;min-height:100vh}
     { id: 'bacatela', name: 'BACATELA', href: 'jogos/bagatela.html', launch: true },
     { id: 'chuvadepremios', name: 'CHUVA DE PRÊMIOS', href: 'jogos/chuvadepremios.html', launch: true },
     { id: 'roleta', name: 'ROLETA', href: 'jogos/roleta.html', launch: true },
-    { id: 'flyx', name: 'FLYX', href: 'jogos/flyx.html', launch: true },
+    { id: 'bacbo', name: 'PONTO MAIOR', href: 'jogos/bacbo.html', launch: true },
     { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
     { id: 'caipira', name: 'CAIPIRA', href: 'jogos/caipira.html' },
     { id: '21', name: '21', href: 'jogos/21.html' },
-    { id: 'bacbo', name: 'BAC BO', href: 'jogos/bacbo.html', launch: true },
   ];
   const HIDDEN_GAMES = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) => String(id).toLowerCase()));
   const GAMES = GAMES_ALL.filter((g) => !HIDDEN_GAMES.has(g.id));

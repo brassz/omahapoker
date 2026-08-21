@@ -18,6 +18,7 @@ function normalizeGameId(id: string | null | undefined) {
     .replace(/\.html$/, '');
   if (key === 'bagatela' || key === 'bacatela') return 'bacatela';
   if (key === '21_index') return '21';
+  if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
   return key;
 }
 
@@ -29,11 +30,11 @@ export function gameLabel(id: string | null | undefined) {
     bagatela: 'BACATELA',
     chuvadepremios: 'CHUVA DE PRÊMIOS',
     roleta: 'ROLETA',
-    flyx: 'FLYX',
+    flyx: 'PONTO MAIOR',
+    bacbo: 'PONTO MAIOR',
     ronda: 'RONDA',
     caipira: 'CAIPIRA',
     '21': '21',
-    bacbo: 'BAC BO',
   };
   const key = normalizeGameId(id);
   return map[key] || (key ? key.toUpperCase() : '—');

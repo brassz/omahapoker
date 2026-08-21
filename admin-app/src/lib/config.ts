@@ -8,11 +8,10 @@ export const GAME_IDS = [
   'bacatela',
   'chuvadepremios',
   'roleta',
-  'flyx',
+  'bacbo',
   'ronda',
   'caipira',
   '21',
-  'bacbo',
 ] as const;
 
 export const PROFIT_ALERT_THRESHOLD = 600;

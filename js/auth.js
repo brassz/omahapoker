@@ -251,11 +251,11 @@
         bagatela: 'BACATELA',
         chuvadepremios: 'CHUVA DE PRÊMIOS',
         roleta: 'ROLETA',
-        flyx: 'FLYX',
+        flyx: 'PONTO MAIOR',
+        bacbo: 'PONTO MAIOR',
         ronda: 'RONDA',
         caipira: 'CAIPIRA',
         '21': '21',
-        bacbo: 'BAC BO',
       };
       const key = String(id || '').toLowerCase();
       return map[key] || (key ? key.toUpperCase() : '—');
@@ -353,13 +353,14 @@
 
     GAME_IDS: [
       'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
-      'flyx', 'ronda', 'caipira', '21', 'bacbo',
+      'bacbo', 'ronda', 'caipira', '21',
     ],
 
     normalizeGameId(id) {
       const key = String(id || '').toLowerCase().replace(/\.html$/, '');
       if (key === 'bagatela' || key === 'bacatela') return 'bacatela';
       if (key === '21_index') return '21';
+      if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
       return key;
     },
 

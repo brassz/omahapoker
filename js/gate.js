@@ -168,10 +168,14 @@
       try {
         const settings = await omahaAuth.getGameSettings();
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
-        const gameId = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
-          : file === '21_index' ? '21'
-          : file;
-        const hidden = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) => String(id).toLowerCase()));
+        const gameId = typeof omahaAuth.normalizeGameId === 'function'
+          ? omahaAuth.normalizeGameId(file)
+          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+            : file === '21_index' ? '21'
+            : file);
+        const hidden = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) =>
+          typeof omahaAuth.normalizeGameId === 'function' ? omahaAuth.normalizeGameId(id) : String(id).toLowerCase()
+        ));
         if (hidden.has(gameId)) {
           document.body.innerHTML = `
             <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
@@ -201,16 +205,20 @@
       const wallet = makeWallet(user, profile);
       if (typeof omahaAuth.startMaintenanceWatch === 'function') {
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
-        const gameId = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
-          : file === '21_index' ? '21'
-          : file;
+        const gameId = typeof omahaAuth.normalizeGameId === 'function'
+          ? omahaAuth.normalizeGameId(file)
+          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+            : file === '21_index' ? '21'
+            : file);
         omahaAuth.startMaintenanceWatch({ gameId, lobbyUrl: '../lobby.html', intervalMs: 8000 });
       }
       if (typeof omahaAuth.startPresence === 'function') {
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
-        const game = file === 'bacatela' || file === 'bagatela' ? 'bacatela'
-          : file === '21_index' ? '21'
-          : file;
+        const game = typeof omahaAuth.normalizeGameId === 'function'
+          ? omahaAuth.normalizeGameId(file)
+          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+            : file === '21_index' ? '21'
+            : file);
         omahaAuth.startPresence(game);
       }
       resolveReady(wallet);
