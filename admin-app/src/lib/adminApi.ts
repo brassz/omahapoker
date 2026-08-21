@@ -28,7 +28,6 @@ export function gameLabel(id: string | null | undefined) {
     crep: 'CREP',
     bacatela: 'BACATELA',
     bagatela: 'BACATELA',
-    chuvadepremios: 'CHUVA DE PRÊMIOS',
     roleta: 'ROLETA',
     flyx: 'PONTO MAIOR',
     bacbo: 'PONTO MAIOR',

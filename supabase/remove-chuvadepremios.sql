@@ -1,11 +1,18 @@
--- Remove o jogo Maquininha do banco (RTP / manutenção).
+-- Remove Chuva de Prêmios do banco (RTP / manutenção).
 -- Rode no SQL Editor do Supabase.
 
-delete from public.game_rtp where game_id = 'maquininha';
+delete from public.game_rtp where game_id = 'chuvadepremios';
 
 update public.game_settings
-set maintenance_games = array_remove(maintenance_games, 'maquininha')
-where maintenance_games @> array['maquininha']::text[];
+set maintenance_games = array_remove(maintenance_games, 'chuvadepremios')
+where maintenance_games @> array['chuvadepremios']::text[];
+
+drop function if exists public.next_chuva_multiplier();
+drop function if exists public.admin_reset_chuva_counter();
+drop function if exists public.admin_save_chuva_rtp(numeric[], json, integer);
+drop function if exists public.get_chuva_rtp();
+drop table if exists public.chuva_rtp_rules;
+drop table if exists public.chuva_rtp_config;
 
 create or replace function public.normalize_game_id(p_id text)
 returns text

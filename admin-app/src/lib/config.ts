@@ -6,7 +6,6 @@ export const GAME_IDS = [
   'omaha',
   'crep',
   'bacatela',
-  'chuvadepremios',
   'roleta',
   'bacbo',
   'ronda',

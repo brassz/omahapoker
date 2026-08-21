@@ -75,7 +75,7 @@ begin
   insert into public.game_rtp (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
-    'omaha','crep','bacatela','chuvadepremios','roleta',
+    'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ]) as g(id)
   on conflict (game_id) do nothing;
@@ -84,7 +84,7 @@ begin
   select r.game_id, r.enabled, r.rtp_percent, r.bet_counter, r.player_win_counter
   from public.game_rtp r
   where r.game_id = any(array[
-    'omaha','crep','bacatela','chuvadepremios','roleta',
+    'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ])
   order by r.game_id;

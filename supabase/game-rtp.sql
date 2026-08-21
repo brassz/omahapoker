@@ -29,7 +29,6 @@ from (
     ('omaha'),
     ('crep'),
     ('bacatela'),
-    ('chuvadepremios'),
     ('roleta'),
     ('bacbo'),
     ('ronda'),
@@ -77,7 +76,7 @@ begin
   insert into public.game_rtp (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
-    'omaha','crep','bacatela','chuvadepremios','roleta',
+    'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ]) as g(id)
   on conflict (game_id) do nothing;

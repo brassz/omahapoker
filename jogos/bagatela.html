@@ -249,7 +249,7 @@ body{
   width:100%;
   height:auto;
   border-radius:10px;
-  cursor:crosshair;
+  cursor:pointer;
   touch-action:none;
   box-shadow:inset 0 0 40px #0008;
 }
@@ -1104,26 +1104,6 @@ function getAimPower() {
   return Math.min(distance / 200, 1);
 }
 
-function drawAim() {
-  if (!aiming || falling) return;
-  const dx = ball.x - aimX;
-  const dy = ball.y - aimY;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  if (distance < 5) return;
-  const nx = dx / distance;
-  const ny = dy / distance;
-  const lineLength = Math.min(distance * 3, 650);
-  const power = getAimPower();
-  ctx.beginPath();
-  ctx.moveTo(ball.x, ball.y);
-  ctx.lineTo(ball.x + nx * lineLength, ball.y + ny * lineLength);
-  ctx.strokeStyle = `rgba(23,200,255,${0.45 + power * 0.45})`;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([10, 8]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-}
-
 function drawPowerMeter() {
   if ((!aiming && currentPower <= 0) || falling) return;
   const power = aiming ? getAimPower() : currentPower;
@@ -1164,7 +1144,6 @@ function drawTable() {
   drawPockets();
   drawBoard();
   drawBall();
-  drawAim();
   drawPowerMeter();
 }
 

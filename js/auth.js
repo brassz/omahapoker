@@ -327,7 +327,6 @@
         crep: 'CREP',
         bacatela: 'BACATELA',
         bagatela: 'BACATELA',
-        chuvadepremios: 'CHUVA DE PRÊMIOS',
         roleta: 'ROLETA',
         flyx: 'PONTO MAIOR',
         bacbo: 'PONTO MAIOR',
@@ -430,7 +429,7 @@
     },
 
     GAME_IDS: [
-      'omaha', 'crep', 'bacatela', 'chuvadepremios', 'roleta',
+      'omaha', 'crep', 'bacatela', 'roleta',
       'bacbo', 'ronda', 'caipira', '21',
     ],
 
