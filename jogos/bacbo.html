@@ -256,7 +256,7 @@ body{display:flex;flex-direction:column}
 
     <div class="table">
       <div class="side player" id="sidePlayer">
-        <div class="side-label">🔵 Jogador</div>
+        <div class="side-label">🔵 Jogador 1</div>
         <div class="dice-row">
           <div class="die" id="pDie1" data-face="1"></div>
           <div class="die" id="pDie2" data-face="1"></div>
@@ -268,7 +268,7 @@ body{display:flex;flex-direction:column}
         <div class="tie-badge">EMPATE DEVOLVE</div>
       </div>
       <div class="side banker" id="sideBanker">
-        <div class="side-label">🔴 Banca</div>
+        <div class="side-label">🔴 Jogador 2</div>
         <div class="dice-row">
           <div class="die" id="bDie1" data-face="1"></div>
           <div class="die" id="bDie2" data-face="1"></div>
@@ -300,14 +300,14 @@ body{display:flex;flex-direction:column}
 
     <div class="bets">
       <div class="bet-card tone-player">
-        <div class="bet-head"><span class="bet-name">JOGADOR</span><span class="multiplier">1:1</span></div>
+        <div class="bet-head"><span class="bet-name">JOGADOR 1</span><span class="multiplier">1:1</span></div>
         <div class="bet-content">
           <button class="place player" data-bet="player">APOSTAR AZUL</button>
           <div class="bet-status" id="statusPlayer">Nenhuma aposta</div>
         </div>
       </div>
       <div class="bet-card tone-banker">
-        <div class="bet-head"><span class="bet-name">BANCA</span><span class="multiplier">1:1</span></div>
+        <div class="bet-head"><span class="bet-name">JOGADOR 2</span><span class="multiplier">1:1</span></div>
         <div class="bet-content">
           <button class="place banker" data-bet="banker">APOSTAR VERMELHO</button>
           <div class="bet-status" id="statusBanker">Nenhuma aposta</div>
@@ -320,7 +320,7 @@ body{display:flex;flex-direction:column}
       <button class="play" id="playBtn">🎲 JOGAR</button>
     </div>
 
-    <div class="message" id="message">Aposte no Jogador (azul) ou na Banca (vermelho). Empate devolve a aposta.</div>
+    <div class="message" id="message">Aposte no Jogador 1 (azul) ou no Jogador 2 (vermelho). Empate devolve a aposta.</div>
   </div>
 </div>
 
@@ -328,15 +328,15 @@ body{display:flex;flex-direction:column}
   <div class="helpCard">
     <h2>❓ COMO JOGAR — PONTO MAIOR</h2>
     <h3>Objetivo</h3>
-    <p>Dois dados para o Jogador (azul) e dois para a Banca (vermelho). Quem tiver a pontuação mais alta vence.</p>
+    <p>Dois dados para o Jogador 1 (azul) e dois para o Jogador 2 (vermelho). Quem tiver a pontuação mais alta vence.</p>
     <h3>Pontuação</h3>
     <ul>
       <li>A pontuação é o último dígito da soma dos dois dados (ex.: 4+6=10 → pontuação 0; 5+6=11 → pontuação 1).</li>
     </ul>
     <h3>Apostas</h3>
     <ul>
-      <li><b>Jogador (azul):</b> paga 1 para 1 se o Jogador vencer.</li>
-      <li><b>Banca (vermelho):</b> paga 1 para 1 se a Banca vencer.</li>
+      <li><b>Jogador 1 (azul):</b> paga 1 para 1 se o Jogador 1 vencer.</li>
+      <li><b>Jogador 2 (vermelho):</b> paga 1 para 1 se o Jogador 2 vencer.</li>
       <li><b>Empate:</b> não há aposta de empate. Se as pontuações forem iguais, a aposta é <b>devolvida</b>.</li>
       <li>Aposta mínima 2 e máxima 200 créditos por aposta. Total máximo por rodada: 200.</li>
     </ul>
@@ -353,7 +353,7 @@ body{display:flex;flex-direction:column}
 <script>
 const BET_MAX = 200;
 const PAYOUT = { player: 2, banker: 2 };
-const NAMES = { player: 'Jogador', banker: 'Banca', tie: 'Empate' };
+const NAMES = { player: 'Jogador 1', banker: 'Jogador 2', tie: 'Empate' };
 
 let credits = 0;
 let pendingBets = [];
@@ -464,7 +464,7 @@ function updatePending(){
 
 function renderLast(){
   lastResults.innerHTML = history.slice(0, 12).map(h =>
-    `<div class="last-chip ${h}">${h === 'player' ? 'J' : h === 'banker' ? 'B' : 'E'}</div>`
+    `<div class="last-chip ${h}">${h === 'player' ? '1' : h === 'banker' ? '2' : 'E'}</div>`
   ).join('');
 }
 
@@ -599,7 +599,7 @@ async function playRound(){
       await persist();
       resultBanner.textContent = 'EMPATE — APOSTA DEVOLVIDA';
       resultBanner.className = 'result-banner';
-      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Devolvido: <strong>${money(returned)}</strong>`;
+      messageEl.innerHTML = `Jogador 1 ${outcome.ps} × Jogador 2 ${outcome.bs} • Devolvido: <strong>${money(returned)}</strong>`;
     } else if (returned > 0){
       credits += returned;
       renderCredits();
@@ -607,11 +607,11 @@ async function playRound(){
       const profit = returned - total;
       resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU! +${money(profit)}`;
       resultBanner.className = 'result-banner win';
-      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Prêmio: <strong>${money(returned)}</strong> (${notes.join(', ')})`;
+      messageEl.innerHTML = `Jogador 1 ${outcome.ps} × Jogador 2 ${outcome.bs} • Prêmio: <strong>${money(returned)}</strong> (${notes.join(', ')})`;
     } else {
       resultBanner.textContent = `${NAMES[outcome.winner].toUpperCase()} VENCEU`;
       resultBanner.className = 'result-banner lose';
-      messageEl.innerHTML = `Jogador ${outcome.ps} × Banca ${outcome.bs} • Nenhuma aposta vencedora. Perdeu ${money(total)}.`;
+      messageEl.innerHTML = `Jogador 1 ${outcome.ps} × Jogador 2 ${outcome.bs} • Nenhuma aposta vencedora. Perdeu ${money(total)}.`;
     }
 
     pendingBets = [];
