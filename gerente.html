@@ -24,7 +24,7 @@ body{margin:0;min-height:100vh}
 }
 .bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
 .bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
 .tabs button{
   border:2px solid #17c8ff;border-radius:10px;padding:10px 6px;font-weight:900;cursor:pointer;
   color:#7af0ff;background:#060912;font-size:12px;
@@ -40,22 +40,20 @@ body{margin:0;min-height:100vh}
 }
 .panel h2{margin:0 0 10px;color:var(--gold);text-shadow:0 0 10px var(--gold);font-size:16px}
 .cfgHelp{margin:0 0 12px;font-size:13px;font-weight:700;color:#9ab;line-height:1.45}
-.cfgStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.cfgStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px}
 .cfgStat{
   background:#060912;border:1px solid #334;border-radius:12px;padding:10px;
   display:flex;flex-direction:column;gap:4px;
 }
 .cfgStat span{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.4px}
 .cfgStat b{font-size:18px;color:#ffd91a}
-.cfgStat b.neg{color:#ff6b6b}
-.cfgStat b.pos{color:#5cff1a}
+.pos{color:#5cff1a;font-weight:1000}
+.neg{color:#ff6b6b;font-weight:1000}
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{padding:10px 6px;border-bottom:1px solid #263042;text-align:left;vertical-align:middle}
 .table th{color:var(--muted);font-size:12px;letter-spacing:1px}
 .table td{font-size:13px;font-weight:700}
 .credits{color:var(--gold);font-size:16px;text-shadow:0 0 10px var(--gold)}
-.pos{color:#5cff1a;font-weight:1000}
-.neg{color:#ff6b6b;font-weight:1000}
 .empty{padding:18px;text-align:center;color:var(--muted);font-weight:800}
 .msg{min-height:22px;margin-bottom:10px;font-weight:900;font-size:13px;text-align:center}
 .msg.ok{color:#5cff1a}.msg.err{color:#ff6b6b}
@@ -67,7 +65,7 @@ body{margin:0;min-height:100vh}
   background:#0a0e18;border:1px solid #445;color:#7af0ff;font-size:13px;font-weight:800;
 }
 .linkBox .acts{display:flex;flex-wrap:wrap;gap:8px}
-.linkBox button{
+.linkBox button,.mgrForm .save,.actions button{
   border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#00131b;
   background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
 }
@@ -75,9 +73,20 @@ body{margin:0;min-height:100vh}
   display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:900;
   border:1px solid #17c8ff;color:#fff;background:#17c8ff22;
 }
+.mgrForm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mgrForm input{
+  width:100%;padding:11px;border-radius:10px;border:1px solid #445;
+  background:#090b14;color:#fff;font-weight:700;
+}
+.mgrForm .full{grid-column:1/-1}
+.mgrForm .save{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:5px}
+.actions button{padding:8px 10px;font-size:11px}
+.actions .rej{background:linear-gradient(180deg,#b95b00,#6b2f00);border-color:#ff9f32;color:#fff}
 @media (max-width:720px){
   .bar{grid-template-columns:1fr}
   .tabs{grid-template-columns:1fr 1fr}
+  .mgrForm{grid-template-columns:1fr}
   .table,.table thead,.table tbody,.table th,.table td,.table tr{display:block}
   .table thead{display:none}
   .table tr{margin-bottom:12px;border:1px solid #334;border-radius:12px;padding:8px;background:#060912}
@@ -90,7 +99,7 @@ body{margin:0;min-height:100vh}
   <div class="wrap">
     <header class="hero">
       <h1 class="brand club-rainbow">PAINEL GERENTE</h1>
-      <p class="tag">CLUBEDEJOGOSCAIPIRA · seus indicados</p>
+      <p class="tag">CLUBEDEJOGOSCAIPIRA · indicados e consultores</p>
     </header>
 
     <section class="bar">
@@ -106,6 +115,7 @@ body{margin:0;min-height:100vh}
 
     <nav class="tabs" id="mgrTabs">
       <button type="button" class="on" data-tab="link">MEU LINK</button>
+      <button type="button" data-tab="team">CONSULTORES</button>
       <button type="button" data-tab="players">INDICADOS</button>
       <button type="button" data-tab="deposit">DEPÓSITOS</button>
       <button type="button" data-tab="withdraw">SAQUES</button>
@@ -116,13 +126,14 @@ body{margin:0;min-height:100vh}
       <section class="panel">
         <h2>★ LINK DE INDICAÇÃO</h2>
         <p class="cfgHelp">
-          Envie este link. Quem criar conta por ele fica vinculado a você.
-          Você acompanha depósitos, saques e lucro/prejuízo desses clientes.
+          Sua % é definida pelo admin. Você distribui parte dela entre consultores (a soma não pode passar do seu total).
         </p>
         <div class="cfgStats">
+          <div class="cfgStat"><span>SUA %</span><b id="sumPct">0%</b></div>
+          <div class="cfgStat"><span>USADO CONS.</span><b id="sumUsed">0%</b></div>
+          <div class="cfgStat"><span>RESTANTE</span><b id="sumRem">0%</b></div>
           <div class="cfgStat"><span>INDICADOS</span><b id="sumCount">0</b></div>
           <div class="cfgStat"><span>DEPÓSITOS</span><b id="sumDep">0</b></div>
-          <div class="cfgStat"><span>SAQUES</span><b id="sumWd">0</b></div>
           <div class="cfgStat"><span>CARTEIRA</span><b id="sumProfit">0</b></div>
         </div>
         <div class="linkBox">
@@ -142,23 +153,52 @@ body{margin:0;min-height:100vh}
       </section>
     </div>
 
+    <div class="tabPane" data-pane="team">
+      <section class="panel">
+        <h2>★ CRIAR CONSULTOR</h2>
+        <p class="cfgHelp">
+          Cada consultor recebe link próprio e vê só os jogadores que trouxer.
+          A % dele entra na soma da sua equipe (máx. = sua %).
+        </p>
+        <form class="mgrForm" id="consCreateForm">
+          <input id="consNameIn" type="text" placeholder="Nome" maxlength="40" required>
+          <input id="consPctIn" type="number" min="0.01" max="100" step="0.01" placeholder="% do consultor" required>
+          <input class="full" id="consEmailIn" type="email" placeholder="E-mail" required>
+          <input class="full" id="consPassIn" type="password" placeholder="Senha (mín. 6)" minlength="6" required>
+          <input class="full" id="consPhoneIn" type="tel" placeholder="Celular (opcional)" maxlength="16">
+          <button class="save" type="submit" id="consCreateBtn">CRIAR CONSULTOR</button>
+        </form>
+        <p class="cfgHelp">Ou promova jogador existente (busca por nome/e-mail):</p>
+        <div class="mgrForm" style="margin-bottom:8px">
+          <input class="full" id="consSearchIn" type="search" placeholder="Buscar jogador...">
+          <input id="consPromotePct" type="number" min="0.01" max="100" step="0.01" placeholder="%">
+          <button class="save" type="button" id="consSearchBtn" style="grid-column:auto">BUSCAR</button>
+        </div>
+        <div id="consSearchList"></div>
+      </section>
+      <section class="panel">
+        <h2>★ MINHA EQUIPE</h2>
+        <div id="consultantsList"><div class="empty">Carregando...</div></div>
+      </section>
+    </div>
+
     <div class="tabPane" data-pane="players">
       <section class="panel">
-        <h2>★ CLIENTES INDICADOS</h2>
+        <h2>★ CLIENTES (você + consultores)</h2>
         <div id="playersList"><div class="empty">Carregando...</div></div>
       </section>
     </div>
 
     <div class="tabPane" data-pane="deposit">
       <section class="panel">
-        <h2>★ DEPÓSITOS DOS INDICADOS</h2>
+        <h2>★ DEPÓSITOS</h2>
         <div id="depositList"><div class="empty">Carregando...</div></div>
       </section>
     </div>
 
     <div class="tabPane" data-pane="withdraw">
       <section class="panel">
-        <h2>★ SAQUES DOS INDICADOS</h2>
+        <h2>★ SAQUES</h2>
         <div id="withdrawList"><div class="empty">Carregando...</div></div>
       </section>
     </div>
@@ -166,17 +206,15 @@ body{margin:0;min-height:100vh}
     <div class="tabPane" data-pane="profit">
       <section class="panel">
         <h2>★ LUCRO / PREJUÍZO</h2>
-        <p class="cfgHelp">
-          Lucro = (saldo atual + saques pagos) − depósitos pagos. Positivo = jogador no lucro; negativo = casa no lucro.
-        </p>
+        <p class="cfgHelp">Lucro = (saldo + saques pagos) − depósitos pagos.</p>
         <div id="profitList"><div class="empty">Carregando...</div></div>
       </section>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=21"></script>
+  <script src="js/config.js?v=9"></script>
+  <script src="js/auth.js?v=24"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -184,6 +222,7 @@ body{margin:0;min-height:100vh}
   let players = [];
   let deposits = [];
   let withdrawals = [];
+  let consultants = [];
   let refCode = '';
   let refLink = '';
 
@@ -196,11 +235,13 @@ body{margin:0;min-height:100vh}
     if (!Number.isFinite(v)) return '0';
     return v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
+  function fmtPct(n) {
+    return fmt(n) + '%';
+  }
   function fmtDate(iso) {
     if (!iso) return '—';
-    try {
-      return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-    } catch (_) { return '—'; }
+    try { return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); }
+    catch (_) { return '—'; }
   }
   function profitClass(v) {
     const n = Number(v) || 0;
@@ -214,12 +255,9 @@ body{margin:0;min-height:100vh}
 
   function setTab(id) {
     currentTab = id;
-    document.querySelectorAll('#mgrTabs button').forEach((b) => {
-      b.classList.toggle('on', b.dataset.tab === id);
-    });
-    document.querySelectorAll('.tabPane').forEach((el) => {
-      el.classList.toggle('on', el.dataset.pane === id);
-    });
+    document.querySelectorAll('#mgrTabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === id));
+    document.querySelectorAll('.tabPane').forEach((el) => el.classList.toggle('on', el.dataset.pane === id));
+    if (id === 'team') renderConsultants();
     if (id === 'players') renderPlayers();
     if (id === 'deposit') renderDeposits();
     if (id === 'withdraw') renderWithdrawals();
@@ -227,44 +265,71 @@ body{margin:0;min-height:100vh}
   }
 
   function renderSummary(s) {
-    const profit = Number(s?.portfolio_profit) || 0;
+    $('sumPct').textContent = fmtPct(s?.commission_percent || 0);
+    $('sumUsed').textContent = fmtPct(s?.consultants_percent || 0);
+    $('sumRem').textContent = fmtPct(s?.remaining_percent || 0);
     $('sumCount').textContent = fmt(s?.referred_count || 0);
     $('sumDep').textContent = fmt(s?.total_deposits || 0);
-    $('sumWd').textContent = fmt(s?.total_withdrawals || 0);
     const el = $('sumProfit');
-    el.textContent = fmt(profit);
-    el.className = profitClass(profit);
+    el.textContent = fmt(s?.portfolio_profit || 0);
+    el.className = profitClass(s?.portfolio_profit);
   }
 
-  function renderPlayers() {
-    const box = $('playersList');
-    if (!players.length) {
-      box.innerHTML = '<div class="empty">Nenhum indicado ainda. Compartilhe seu link.</div>';
+  function renderConsultants() {
+    const box = $('consultantsList');
+    if (!consultants.length) {
+      box.innerHTML = '<div class="empty">Nenhum consultor ainda.</div>';
       return;
     }
     box.innerHTML = `
       <table class="table">
         <thead>
           <tr>
-            <th>JOGADOR</th>
-            <th>CELULAR</th>
-            <th>SALDO</th>
-            <th>DEPÓSITOS</th>
-            <th>SAQUES</th>
-            <th>LUCRO</th>
-            <th>ENTROU</th>
+            <th>CONSULTOR</th><th>%</th><th>INDICADOS</th><th>DEPÓSITOS</th><th>CARTEIRA</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${consultants.map((c) => `
+            <tr data-cid="${c.user_id}">
+              <td data-label="CONSULTOR">${c.display_name || '—'}<br><small style="color:#889">${c.email || ''}</small></td>
+              <td data-label="%">${fmtPct(c.commission_percent)}</td>
+              <td data-label="INDICADOS">${fmt(c.referred_count)}</td>
+              <td data-label="DEPÓSITOS"><span class="credits">${fmt(c.total_deposits)}</span></td>
+              <td data-label="CARTEIRA"><span class="${profitClass(c.portfolio_profit)}">${fmt(c.portfolio_profit)}</span></td>
+              <td data-label="AÇÕES">
+                <div class="actions">
+                  <button type="button" data-cact="link">COPIAR LINK</button>
+                  <button type="button" class="rej" data-cact="off">REMOVER</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function renderPlayers() {
+    const box = $('playersList');
+    if (!players.length) {
+      box.innerHTML = '<div class="empty">Nenhum indicado ainda.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>JOGADOR</th><th>VIA</th><th>SALDO</th><th>DEPÓSITOS</th><th>SAQUES</th><th>LUCRO</th>
           </tr>
         </thead>
         <tbody>
           ${players.map((p) => `
             <tr>
               <td data-label="JOGADOR">${p.display_name || '—'}<br><small style="color:#889">${p.email || ''}</small></td>
-              <td data-label="CELULAR">${p.phone || '—'}</td>
+              <td data-label="VIA">${p.referrer_name || '—'}</td>
               <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
               <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
               <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
               <td data-label="LUCRO"><span class="${profitClass(p.profit)}">${fmt(p.profit)}</span></td>
-              <td data-label="ENTROU">${fmtDate(p.created_at)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -274,14 +339,12 @@ body{margin:0;min-height:100vh}
   function renderDeposits() {
     const box = $('depositList');
     if (!deposits.length) {
-      box.innerHTML = '<div class="empty">Nenhum depósito dos seus indicados.</div>';
+      box.innerHTML = '<div class="empty">Nenhum depósito.</div>';
       return;
     }
     box.innerHTML = `
       <table class="table">
-        <thead>
-          <tr><th>JOGADOR</th><th>VALOR</th><th>STATUS</th><th>DATA</th></tr>
-        </thead>
+        <thead><tr><th>JOGADOR</th><th>VALOR</th><th>STATUS</th><th>DATA</th></tr></thead>
         <tbody>
           ${deposits.map((d) => `
             <tr>
@@ -298,14 +361,12 @@ body{margin:0;min-height:100vh}
   function renderWithdrawals() {
     const box = $('withdrawList');
     if (!withdrawals.length) {
-      box.innerHTML = '<div class="empty">Nenhum saque dos seus indicados.</div>';
+      box.innerHTML = '<div class="empty">Nenhum saque.</div>';
       return;
     }
     box.innerHTML = `
       <table class="table">
-        <thead>
-          <tr><th>JOGADOR</th><th>VALOR</th><th>PIX</th><th>STATUS</th><th>DATA</th></tr>
-        </thead>
+        <thead><tr><th>JOGADOR</th><th>VALOR</th><th>PIX</th><th>STATUS</th><th>DATA</th></tr></thead>
         <tbody>
           ${withdrawals.map((w) => `
             <tr>
@@ -323,22 +384,20 @@ body{margin:0;min-height:100vh}
   function renderProfit() {
     const box = $('profitList');
     if (!players.length) {
-      box.innerHTML = '<div class="empty">Sem indicados para calcular lucro.</div>';
+      box.innerHTML = '<div class="empty">Sem dados.</div>';
       return;
     }
     const sorted = [...players].sort((a, b) => Number(b.profit) - Number(a.profit));
     box.innerHTML = `
       <table class="table">
-        <thead>
-          <tr><th>JOGADOR</th><th>DEPÓSITOS</th><th>SAQUES</th><th>SALDO</th><th>RESULTADO</th></tr>
-        </thead>
+        <thead><tr><th>JOGADOR</th><th>VIA</th><th>DEPÓSITOS</th><th>SAQUES</th><th>RESULTADO</th></tr></thead>
         <tbody>
           ${sorted.map((p) => `
             <tr>
               <td data-label="JOGADOR">${p.display_name || '—'}<br><small style="color:#889">${p.email || ''}</small></td>
+              <td data-label="VIA">${p.referrer_name || '—'}</td>
               <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
               <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
-              <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
               <td data-label="RESULTADO"><span class="${profitClass(p.profit)}">${fmt(p.profit)}</span></td>
             </tr>
           `).join('')}
@@ -347,12 +406,13 @@ body{margin:0;min-height:100vh}
   }
 
   async function reload() {
-    const [code, summary, plist, dlist, wlist] = await Promise.all([
+    const [code, summary, plist, dlist, wlist, clist] = await Promise.all([
       omahaAuth.managerMyCode(),
       omahaAuth.managerSummary(),
       omahaAuth.managerListPlayers(),
       omahaAuth.managerListDeposits(),
       omahaAuth.managerListWithdrawals(),
+      omahaAuth.managerListConsultants(),
     ]);
     refCode = code?.referral_code || '';
     refLink = omahaAuth.referralSignupUrl(refCode);
@@ -362,6 +422,8 @@ body{margin:0;min-height:100vh}
     players = plist || [];
     deposits = dlist || [];
     withdrawals = wlist || [];
+    consultants = clist || [];
+    if (currentTab === 'team') renderConsultants();
     if (currentTab === 'players') renderPlayers();
     if (currentTab === 'deposit') renderDeposits();
     if (currentTab === 'withdraw') renderWithdrawals();
@@ -373,7 +435,7 @@ body{margin:0;min-height:100vh}
       await navigator.clipboard.writeText(text);
       setMsg(okMsg, 'ok');
     } catch (_) {
-      setMsg('Não foi possível copiar. Selecione o texto manualmente.', 'err');
+      setMsg('Não foi possível copiar.', 'err');
     }
   }
 
@@ -383,32 +445,133 @@ body{margin:0;min-height:100vh}
   });
   $('copyLink').onclick = () => copyText(refLink, 'Link copiado.');
   $('copyCode').onclick = () => copyText(refCode, 'Código copiado.');
-  $('toLobby').onclick = () => location.href = 'lobby.html';
+  $('toLobby').onclick = () => { location.href = 'lobby.html'; };
   $('logoutBtn').onclick = async () => {
     await omahaAuth.signOut();
     location.replace('login.html');
   };
+
+  $('consCreateForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('consCreateBtn');
+    btn.disabled = true;
+    try {
+      await omahaAuth.managerCreateConsultant({
+        email: $('consEmailIn').value.trim(),
+        password: $('consPassIn').value,
+        displayName: $('consNameIn').value.trim(),
+        phone: $('consPhoneIn').value,
+        percent: Number($('consPctIn').value),
+      });
+      $('consCreateForm').reset();
+      await reload();
+      setMsg('Consultor criado.', 'ok');
+    } catch (err) {
+      const tip = /manager-consultants|FunctionsRelay/i.test(err?.message || '')
+        ? ' Deploy: npx supabase functions deploy manager-consultants'
+        : /consultants\.sql|service_attach|schema cache/i.test(err?.message || '')
+          ? ' Rode supabase/consultants.sql no Supabase.'
+          : '';
+      setMsg((err?.message || 'Falha ao criar consultor.') + tip, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  async function runSearch() {
+    const q = $('consSearchIn').value.trim();
+    const box = $('consSearchList');
+    try {
+      const rows = await omahaAuth.managerSearchPlayers(q);
+      if (!rows.length) {
+        box.innerHTML = '<div class="empty">Nenhum jogador encontrado.</div>';
+        return;
+      }
+      box.innerHTML = `
+        <table class="table">
+          <thead><tr><th>JOGADOR</th><th>STATUS</th><th></th></tr></thead>
+          <tbody>
+            ${rows.map((p) => `
+              <tr data-pid="${p.user_id}">
+                <td data-label="JOGADOR">${p.display_name || '—'}<br><small style="color:#889">${p.email || ''}</small></td>
+                <td data-label="STATUS">${p.is_consultant ? `Consultor ${fmtPct(p.commission_percent)}` : 'Jogador'}</td>
+                <td data-label="AÇÕES">
+                  <div class="actions">
+                    <button type="button" data-pact="${p.is_consultant ? 'off' : 'on'}">${p.is_consultant ? 'REMOVER' : 'PROMOVER'}</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    } catch (err) {
+      box.innerHTML = `<div class="empty">${err?.message || 'Falha na busca.'}</div>`;
+    }
+  }
+
+  $('consSearchBtn').onclick = runSearch;
+  $('consSearchIn').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
+  });
+
+  $('consSearchList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-pact]');
+    if (!btn) return;
+    const id = btn.closest('tr')?.dataset.pid;
+    if (!id) return;
+    const on = btn.dataset.pact === 'on';
+    const pct = Number($('consPromotePct').value);
+    if (on && !(pct > 0)) {
+      setMsg('Informe a % do consultor antes de promover.', 'err');
+      return;
+    }
+    try {
+      await omahaAuth.managerSetConsultant(id, on, pct);
+      await reload();
+      await runSearch();
+      setMsg(on ? 'Consultor promovido.' : 'Consultor removido.', 'ok');
+    } catch (err) {
+      setMsg(err?.message || 'Falha ao alterar consultor.', 'err');
+    }
+  });
+
+  $('consultantsList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-cact]');
+    if (!btn) return;
+    const id = btn.closest('tr')?.dataset.cid;
+    const row = consultants.find((c) => c.user_id === id);
+    if (!id || !row) return;
+    if (btn.dataset.cact === 'link') {
+      copyText(omahaAuth.referralSignupUrl(row.referral_code), 'Link do consultor copiado.');
+      return;
+    }
+    if (btn.dataset.cact === 'off') {
+      if (!confirm(`Remover ${row.display_name || row.email} da equipe?`)) return;
+      try {
+        await omahaAuth.managerSetConsultant(id, false, 0);
+        await reload();
+        setMsg('Consultor removido.', 'ok');
+      } catch (err) {
+        setMsg(err?.message || 'Falha ao remover.', 'err');
+      }
+    }
+  });
 
   (async function boot() {
     try {
       const user = await omahaAuth.requireUser('login.html');
       if (!user) return;
       const me = await omahaAuth.ensureProfile(user);
-      if (omahaAuth.isAdmin(me)) {
-        location.replace('admin.html');
-        return;
-      }
-      if (!omahaAuth.isManager(me)) {
-        location.replace('lobby.html');
-        return;
-      }
+      if (omahaAuth.isAdmin(me)) { location.replace('admin.html'); return; }
+      if (omahaAuth.isConsultant(me)) { location.replace('consultor.html'); return; }
+      if (!omahaAuth.isManager(me)) { location.replace('lobby.html'); return; }
       $('mgrName').textContent = me.display_name || me.email || 'Gerente';
       await reload();
       setMsg('Painel do gerente carregado.', 'ok');
       setInterval(() => { reload().catch(() => {}); }, 20000);
     } catch (err) {
-      const tip = /manager_|is_manager|schema cache|claim_referral/i.test(err?.message || '')
-        ? ' Rode o SQL supabase/managers.sql no Supabase.'
+      const tip = /manager_|consultant|schema cache/i.test(err?.message || '')
+        ? ' Rode supabase/consultants.sql no Supabase.'
         : '';
       setMsg((err?.message || 'Falha ao abrir painel.') + tip, 'err');
     }

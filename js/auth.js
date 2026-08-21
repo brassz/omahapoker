@@ -106,7 +106,7 @@
             .maybeSingle();
           if (!error && data) profile = data;
         }
-        if (refMeta && !profile.referred_by && !profile.is_admin && !profile.is_manager) {
+        if (refMeta && !profile.referred_by && !profile.is_admin && !profile.is_manager && !profile.is_consultant) {
           try {
             await client.rpc('claim_referral', { p_code: refMeta });
             this.clearStoredReferralCode();
@@ -132,6 +132,7 @@
             bank_credits: 0,
             is_admin: false,
             is_manager: false,
+            is_consultant: false,
           },
           { onConflict: 'id' }
         )
@@ -144,7 +145,7 @@
         throw error;
       }
       profile = data;
-      if (refMeta && !profile.referred_by) {
+      if (refMeta && !profile.referred_by && !profile.is_consultant && !profile.is_manager) {
         try {
           await client.rpc('claim_referral', { p_code: refMeta });
           this.clearStoredReferralCode();
@@ -162,9 +163,14 @@
       return !!(profile && profile.is_manager && !profile.is_admin);
     },
 
+    isConsultant(profile) {
+      return !!(profile && profile.is_consultant && !profile.is_admin && !profile.is_manager);
+    },
+
     async routeAfterLogin(profile) {
       if (this.isAdmin(profile)) location.replace('admin.html');
       else if (this.isManager(profile)) location.replace('gerente.html');
+      else if (this.isConsultant(profile)) location.replace('consultor.html');
       else location.replace('lobby.html');
     },
 
@@ -182,18 +188,27 @@
       return data || [];
     },
 
-    async adminSetManager(userId, on) {
+    async adminListManagerConsultants(managerId) {
+      const { data, error } = await client.rpc('admin_list_manager_consultants', {
+        p_manager_id: managerId,
+      });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async adminSetManager(userId, on, percent = 0) {
       const { data, error } = await client.rpc('admin_set_manager', {
         p_user_id: userId,
         p_on: !!on,
+        p_percent: Number(percent) || 0,
       });
       if (error) throw error;
       return data;
     },
 
-    async adminCreateManager({ email, password, displayName, phone }) {
+    async adminCreateManager({ email, password, displayName, phone, percent }) {
       const { data, error } = await client.functions.invoke('admin-managers', {
-        body: { email, password, displayName, phone },
+        body: { email, password, displayName, phone, percent: Number(percent) || 0 },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -226,6 +241,69 @@
 
     async managerListWithdrawals() {
       const { data, error } = await client.rpc('manager_list_withdrawals');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async managerListConsultants() {
+      const { data, error } = await client.rpc('manager_list_consultants');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async managerSearchPlayers(q) {
+      const { data, error } = await client.rpc('manager_search_players', {
+        p_q: String(q || ''),
+      });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async managerSetConsultant(userId, on, percent = 0) {
+      const { data, error } = await client.rpc('manager_set_consultant', {
+        p_user_id: userId,
+        p_on: !!on,
+        p_percent: Number(percent) || 0,
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    async managerCreateConsultant({ email, password, displayName, phone, percent }) {
+      const { data, error } = await client.functions.invoke('manager-consultants', {
+        body: { email, password, displayName, phone, percent: Number(percent) },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+
+    async consultantMyCode() {
+      const { data, error } = await client.rpc('consultant_my_code');
+      if (error) throw error;
+      return data;
+    },
+
+    async consultantSummary() {
+      const { data, error } = await client.rpc('consultant_summary');
+      if (error) throw error;
+      return data;
+    },
+
+    async consultantListPlayers() {
+      const { data, error } = await client.rpc('consultant_list_players');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async consultantListDeposits() {
+      const { data, error } = await client.rpc('consultant_list_deposits');
+      if (error) throw error;
+      return data || [];
+    },
+
+    async consultantListWithdrawals() {
+      const { data, error } = await client.rpc('consultant_list_withdrawals');
       if (error) throw error;
       return data || [];
     },

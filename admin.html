@@ -328,14 +328,15 @@ body{margin:0;min-height:100vh}
     <section class="panel">
       <h2>★ CRIAR GERENTE</h2>
       <p class="cfgHelp">
-        O gerente recebe um link de indicação. Só vê clientes que cadastrou pelo link
-        (depósitos, saques e lucro). Não acessa config nem a lista geral de jogadores.
+        Defina a <b>%</b> do gerente. Ele poderá criar consultores e distribuir essa % entre eles
+        (a soma dos consultores não pode passar do valor do gerente). Cada um tem link próprio.
       </p>
       <form class="mgrForm" id="mgrCreateForm">
         <input id="mgrNameIn" type="text" placeholder="Nome" maxlength="40" required>
-        <input id="mgrPhoneIn" type="tel" placeholder="Celular (opcional)" maxlength="16">
+        <input id="mgrPctIn" type="number" min="0" max="100" step="0.01" placeholder="% do gerente" required>
         <input class="full" id="mgrEmailIn" type="email" placeholder="E-mail" required>
         <input class="full" id="mgrPassIn" type="password" placeholder="Senha (mín. 6)" minlength="6" required>
+        <input class="full" id="mgrPhoneIn" type="tel" placeholder="Celular (opcional)" maxlength="16">
         <button class="save" type="submit" id="mgrCreateBtn">CRIAR GERENTE</button>
       </form>
     </section>
@@ -365,8 +366,8 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7"></script>
-  <script src="js/auth.js?v=22"></script>
+  <script src="js/config.js?v=9"></script>
+  <script src="js/auth.js?v=24"></script>
   <script>
   const $ = (id) => document.getElementById(id);
   const msg = $('msg');
@@ -802,7 +803,7 @@ body{margin:0;min-height:100vh}
         <tbody>
           ${rows.map((p) => `
             <tr data-id="${p.id}" data-name="${(p.display_name || p.email || 'jogador').replace(/"/g, '&quot;')}" data-admin="${p.is_admin ? '1' : '0'}" data-manager="${p.is_manager ? '1' : '0'}">
-              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}${p.is_manager && !p.is_admin ? ' <span class="badge">GERENTE</span>' : ''}</td>
+              <td data-label="JOGADOR">${p.display_name || '—'}${p.is_admin ? ' <span class="badge">ADMIN</span>' : ''}${p.is_manager && !p.is_admin ? ' <span class="badge">GERENTE</span>' : ''}${p.is_consultant && !p.is_admin && !p.is_manager ? ' <span class="badge">CONSULTOR</span>' : ''}</td>
               <td data-label="E-MAIL">${p.email || '—'}</td>
               <td data-label="CELULAR">${p.phone || '—'}</td>
               <td data-label="JOGO">${isPlaying(p) ? `<span class="liveGame">${gameName(p.current_game)}</span>` : '<span class="liveOff">lobby / fora</span>'}</td>
@@ -885,12 +886,13 @@ body{margin:0;min-height:100vh}
     box.innerHTML = `
       <table class="table">
         <thead>
-          <tr>
+            <tr>
             <th>GERENTE</th>
+            <th>%</th>
+            <th>CONS.</th>
             <th>CÓDIGO</th>
             <th>INDICADOS</th>
             <th>DEPÓSITOS</th>
-            <th>SAQUES</th>
             <th>CARTEIRA</th>
             <th></th>
           </tr>
@@ -899,15 +901,17 @@ body{margin:0;min-height:100vh}
           ${managers.map((m) => `
             <tr data-mid="${m.user_id}">
               <td data-label="GERENTE">${m.display_name || '—'}<br><small style="color:#889">${m.email || ''}</small></td>
+              <td data-label="%">${fmt(m.commission_percent)}% <small style="color:#889">(${fmt(m.consultants_percent)}% usados)</small></td>
+              <td data-label="CONS.">${fmt(m.consultants_count)}</td>
               <td data-label="CÓDIGO"><code>${m.referral_code || '—'}</code></td>
               <td data-label="INDICADOS">${fmt(m.referred_count)}</td>
               <td data-label="DEPÓSITOS"><span class="credits">${fmt(m.total_deposits)}</span></td>
-              <td data-label="SAQUES">${fmt(m.total_withdrawals)}</td>
               <td data-label="CARTEIRA"><span class="${profitCls(m.portfolio_profit)}">${fmt(m.portfolio_profit)}</span></td>
               <td data-label="AÇÕES">
                 <div class="actions">
-                  <button type="button" class="set" data-mact="view">VER INDICADOS</button>
-                  <button type="button" class="mgr" data-mact="link">COPIAR LINK</button>
+                  <button type="button" class="set" data-mact="view">INDICADOS</button>
+                  <button type="button" class="mgr" data-mact="cons">CONSULTORES</button>
+                  <button type="button" class="mgr" data-mact="link">LINK</button>
                   <button type="button" class="rej" data-mact="off">REMOVER</button>
                 </div>
               </td>
@@ -937,7 +941,7 @@ body{margin:0;min-height:100vh}
     try {
       const rows = await omahaAuth.adminListManagerPlayers(managerId);
       if (!rows.length) {
-        detail.innerHTML = `<div class="empty">${name || 'Gerente'} ainda não indicou ninguém.</div>`;
+        detail.innerHTML = `<div class="empty">${name || 'Gerente'} ainda não tem indicados.</div>`;
         return;
       }
       detail.innerHTML = `
@@ -946,6 +950,7 @@ body{margin:0;min-height:100vh}
           <thead>
             <tr>
               <th>JOGADOR</th>
+              <th>VIA</th>
               <th>SALDO</th>
               <th>DEPÓSITOS</th>
               <th>SAQUES</th>
@@ -956,6 +961,7 @@ body{margin:0;min-height:100vh}
             ${rows.map((p) => `
               <tr>
                 <td data-label="JOGADOR">${p.display_name || '—'}<br><small style="color:#889">${p.email || ''}</small></td>
+                <td data-label="VIA">${p.referrer_name || '—'}</td>
                 <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
                 <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
                 <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
@@ -969,6 +975,46 @@ body{margin:0;min-height:100vh}
     }
   }
 
+  async function showManagerConsultants(managerId, name) {
+    const detail = $('managerDetail');
+    detail.innerHTML = '<div class="empty">Carregando consultores...</div>';
+    try {
+      const rows = await omahaAuth.adminListManagerConsultants(managerId);
+      if (!rows.length) {
+        detail.innerHTML = `<div class="empty">${name || 'Gerente'} ainda não tem consultores.</div>`;
+        return;
+      }
+      detail.innerHTML = `
+        <h2 style="margin:0 0 10px;color:var(--gold);font-size:15px">Consultores de ${name || 'gerente'}</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>CONSULTOR</th>
+              <th>%</th>
+              <th>CÓDIGO</th>
+              <th>INDICADOS</th>
+              <th>DEPÓSITOS</th>
+              <th>CARTEIRA</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((c) => `
+              <tr>
+                <td data-label="CONSULTOR">${c.display_name || '—'}<br><small style="color:#889">${c.email || ''}</small></td>
+                <td data-label="%">${fmt(c.commission_percent)}%</td>
+                <td data-label="CÓDIGO"><code>${c.referral_code || '—'}</code></td>
+                <td data-label="INDICADOS">${fmt(c.referred_count)}</td>
+                <td data-label="DEPÓSITOS"><span class="credits">${fmt(c.total_deposits)}</span></td>
+                <td data-label="CARTEIRA"><span class="${profitCls(c.portfolio_profit)}">${fmt(c.portfolio_profit)}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    } catch (err) {
+      detail.innerHTML = `<div class="empty">${err?.message || 'Falha ao carregar consultores.'}</div>`;
+    }
+  }
+
   $('managersList')?.addEventListener('click', async (e) => {
     const btn = e.target.closest('button[data-mact]');
     if (!btn) return;
@@ -979,6 +1025,10 @@ body{margin:0;min-height:100vh}
     const act = btn.dataset.mact;
     if (act === 'view') {
       await showManagerPlayers(id, row.display_name || row.email);
+      return;
+    }
+    if (act === 'cons') {
+      await showManagerConsultants(id, row.display_name || row.email);
       return;
     }
     if (act === 'link') {
@@ -1010,17 +1060,22 @@ body{margin:0;min-height:100vh}
     const password = $('mgrPassIn').value;
     const displayName = $('mgrNameIn').value.trim();
     const phone = String($('mgrPhoneIn').value || '').replace(/\D/g, '');
+    const percent = Number($('mgrPctIn').value);
+    if (!(Number.isFinite(percent) && percent >= 0 && percent <= 100)) {
+      setMsg('Informe a porcentagem do gerente (0 a 100).', 'err');
+      return;
+    }
     btn.disabled = true;
     try {
-      await omahaAuth.adminCreateManager({ email, password, displayName, phone });
+      await omahaAuth.adminCreateManager({ email, password, displayName, phone, percent });
       $('mgrCreateForm').reset();
       await reloadManagers();
-      setMsg(`Gerente ${displayName || email} criado.`, 'ok');
+      setMsg(`Gerente ${displayName || email} criado com ${fmt(percent)}%.`, 'ok');
     } catch (err) {
       const tip = /admin-managers|Failed to send|FunctionsRelay/i.test(err?.message || '')
         ? ' Faça o deploy: npx supabase functions deploy admin-managers'
-        : /admin_finish_manager|managers\.sql|schema cache/i.test(err?.message || '')
-          ? ' Rode o SQL supabase/managers.sql no Supabase.'
+        : /admin_finish_manager|managers\.sql|consultants\.sql|schema cache/i.test(err?.message || '')
+          ? ' Rode supabase/managers.sql e supabase/consultants.sql no Supabase.'
           : '';
       setMsg((err?.message || 'Falha ao criar gerente.') + tip, 'err');
     } finally {
@@ -1183,18 +1238,28 @@ body{margin:0;min-height:100vh}
     if (act === 'mgr') {
       const on = tr.dataset.manager !== '1';
       const nome = tr.dataset.name || 'jogador';
+      let percent = 0;
+      if (on) {
+        const raw = prompt(`Porcentagem do gerente ${nome} (0 a 100):`, '15');
+        if (raw == null) return;
+        percent = Number(raw);
+        if (!(Number.isFinite(percent) && percent >= 0 && percent <= 100)) {
+          setMsg('Porcentagem inválida.', 'err');
+          return;
+        }
+      }
       if (!confirm(on
-        ? `Tornar ${nome} gerente? Ele ganha link de indicação e painel restrito.`
+        ? `Tornar ${nome} gerente com ${percent}%?`
         : `Remover cargo de gerente de ${nome}?`)) return;
       btn.disabled = true;
       try {
-        await omahaAuth.adminSetManager(id, on);
+        await omahaAuth.adminSetManager(id, on, percent);
         await reload();
         if (currentTab === 'managers') await reloadManagers();
-        setMsg(on ? `${nome} agora é gerente.` : `${nome} deixou de ser gerente.`, 'ok');
+        setMsg(on ? `${nome} agora é gerente (${percent}%).` : `${nome} deixou de ser gerente.`, 'ok');
       } catch (err) {
-        const tip = /admin_set_manager|is_manager|schema cache/i.test(err?.message || '')
-          ? ' Rode o SQL supabase/managers.sql no Supabase.'
+        const tip = /admin_set_manager|is_manager|schema cache|consultants/i.test(err?.message || '')
+          ? ' Rode supabase/consultants.sql no Supabase.'
           : '';
         setMsg((err?.message || 'Falha ao alterar gerente.') + tip, 'err');
       } finally {

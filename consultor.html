@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Painel Consultor — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+.wrap{width:min(1100px,100%);margin:0 auto;padding:14px 10px 30px}
+.hero{text-align:center;margin-bottom:12px}
+.brand{margin:0;font-size:clamp(26px,6vw,42px)}
+.tag{margin:6px 0 0;font-weight:900;color:#fff;text-shadow:0 0 12px var(--gold)}
+.bar{
+  display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+  background:#060912;border:2px solid #17c8ff;border-radius:14px;
+  padding:10px 12px;margin-bottom:14px;box-shadow:0 0 14px #17c8ff88;
+}
+.bar strong{display:block}
+.bar small{color:var(--muted);font-weight:800}
+.bar button{border:0;border-radius:9px;padding:9px 12px;font-weight:900;cursor:pointer;color:#fff}
+.bar .lobby{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border:2px solid #7dd3fc}
+.bar .out{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.tabs button{
+  border:2px solid #17c8ff;border-radius:10px;padding:10px 6px;font-weight:900;cursor:pointer;
+  color:#7af0ff;background:#060912;font-size:12px;
+}
+.tabs button.on{background:linear-gradient(180deg,#0284c7,#17c8ff);color:#00131b;border-color:#7dd3fc}
+.tabPane{display:none}.tabPane.on{display:block}
+.panel{
+  background:#080812;border:2px solid var(--blue);border-radius:16px;
+  padding:12px;box-shadow:0 0 14px #17c8ff55;margin-bottom:12px;
+}
+.panel h2{margin:0 0 10px;color:var(--gold);text-shadow:0 0 10px var(--gold);font-size:16px}
+.cfgHelp{margin:0 0 12px;font-size:13px;font-weight:700;color:#9ab;line-height:1.45}
+.cfgStats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.cfgStat{
+  background:#060912;border:1px solid #334;border-radius:12px;padding:10px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.cfgStat span{font-size:11px;font-weight:800;color:var(--muted)}
+.cfgStat b{font-size:18px;color:#ffd91a}
+.pos{color:#5cff1a;font-weight:1000}.neg{color:#ff6b6b;font-weight:1000}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px 6px;border-bottom:1px solid #263042;text-align:left}
+.table th{color:var(--muted);font-size:12px}.table td{font-size:13px;font-weight:700}
+.credits{color:var(--gold);font-size:16px}
+.empty{padding:18px;text-align:center;color:var(--muted);font-weight:800}
+.msg{min-height:22px;margin-bottom:10px;font-weight:900;font-size:13px;text-align:center}
+.msg.ok{color:#5cff1a}.msg.err{color:#ff6b6b}
+.linkBox{display:grid;gap:8px;background:#060912;border:1px solid #334;border-radius:12px;padding:12px}
+.linkBox code{
+  display:block;word-break:break-all;padding:10px;border-radius:8px;
+  background:#0a0e18;border:1px solid #445;color:#7af0ff;font-size:13px;font-weight:800;
+}
+.linkBox button{
+  border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#00131b;
+  background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+}
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:900;
+  border:1px solid #17c8ff;color:#fff;background:#17c8ff22;
+}
+@media (max-width:720px){
+  .bar{grid-template-columns:1fr}
+  .tabs{grid-template-columns:1fr 1fr}
+  .table,.table thead,.table tbody,.table th,.table td,.table tr{display:block}
+  .table thead{display:none}
+  .table tr{margin-bottom:12px;border:1px solid #334;border-radius:12px;padding:8px;background:#060912}
+  .table td{border:0;padding:4px 2px}
+  .table td::before{content:attr(data-label);display:block;color:var(--muted);font-size:11px;margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="brand club-rainbow">PAINEL CONSULTOR</h1>
+      <p class="tag">CLUBEDEJOGOSCAIPIRA · seus indicados</p>
+    </header>
+
+    <section class="bar">
+      <div>
+        <small>CONSULTOR</small>
+        <strong id="consName">...</strong>
+      </div>
+      <button type="button" class="lobby" id="toLobby">LOBBY</button>
+      <button type="button" class="out" id="logoutBtn">SAIR</button>
+    </section>
+
+    <div class="msg" id="msg">Carregando...</div>
+
+    <nav class="tabs" id="consTabs">
+      <button type="button" class="on" data-tab="link">MEU LINK</button>
+      <button type="button" data-tab="players">INDICADOS</button>
+      <button type="button" data-tab="deposit">DEPÓSITOS</button>
+      <button type="button" data-tab="withdraw">SAQUES</button>
+      <button type="button" data-tab="profit">LUCRO</button>
+    </nav>
+
+    <div class="tabPane on" data-pane="link">
+      <section class="panel">
+        <h2>★ LINK DE COMPARTILHAMENTO</h2>
+        <p class="cfgHelp">Quem criar conta por este link fica vinculado a você. Você vê depósitos, saques e lucro deles.</p>
+        <div class="cfgStats">
+          <div class="cfgStat"><span>SUA %</span><b id="sumPct">0%</b></div>
+          <div class="cfgStat"><span>INDICADOS</span><b id="sumCount">0</b></div>
+          <div class="cfgStat"><span>DEPÓSITOS</span><b id="sumDep">0</b></div>
+          <div class="cfgStat"><span>SAQUES</span><b id="sumWd">0</b></div>
+          <div class="cfgStat"><span>CARTEIRA</span><b id="sumProfit">0</b></div>
+        </div>
+        <div class="linkBox">
+          <div><small style="color:var(--muted);font-weight:800">CÓDIGO</small><code id="refCode">—</code></div>
+          <div><small style="color:var(--muted);font-weight:800">LINK</small><code id="refLink">—</code></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" id="copyLink">COPIAR LINK</button>
+            <button type="button" id="copyCode">COPIAR CÓDIGO</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tabPane" data-pane="players">
+      <section class="panel"><h2>★ INDICADOS</h2><div id="playersList"><div class="empty">Carregando...</div></div></section>
+    </div>
+    <div class="tabPane" data-pane="deposit">
+      <section class="panel"><h2>★ DEPÓSITOS</h2><div id="depositList"><div class="empty">Carregando...</div></div></section>
+    </div>
+    <div class="tabPane" data-pane="withdraw">
+      <section class="panel"><h2>★ SAQUES</h2><div id="withdrawList"><div class="empty">Carregando...</div></div></section>
+    </div>
+    <div class="tabPane" data-pane="profit">
+      <section class="panel">
+        <h2>★ LUCRO / PREJUÍZO</h2>
+        <p class="cfgHelp">Lucro = (saldo + saques pagos) − depósitos pagos.</p>
+        <div id="profitList"><div class="empty">Carregando...</div></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=9"></script>
+  <script src="js/auth.js?v=24"></script>
+  <script>
+  const $ = (id) => document.getElementById(id);
+  const msg = $('msg');
+  let currentTab = 'link';
+  let players = [], deposits = [], withdrawals = [];
+  let refCode = '', refLink = '';
+
+  function setMsg(t, k){ msg.textContent=t||''; msg.className='msg'+(k?' '+k:''); }
+  function fmt(n){ const v=Number(n); return Number.isFinite(v)?v.toLocaleString('pt-BR',{maximumFractionDigits:2}):'0'; }
+  function fmtDate(iso){ if(!iso)return'—'; try{return new Date(iso).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});}catch(_){return'—';} }
+  function profitClass(v){ const n=Number(v)||0; return n>0?'pos':n<0?'neg':''; }
+  function statusBadge(s){ return `<span class="badge">${String(s||'').toUpperCase()}</span>`; }
+
+  function setTab(id){
+    currentTab=id;
+    document.querySelectorAll('#consTabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
+    document.querySelectorAll('.tabPane').forEach(el=>el.classList.toggle('on',el.dataset.pane===id));
+    if(id==='players') renderPlayers();
+    if(id==='deposit') renderDeposits();
+    if(id==='withdraw') renderWithdrawals();
+    if(id==='profit') renderProfit();
+  }
+
+  function renderSummary(s){
+    $('sumPct').textContent=fmt(s?.commission_percent||0)+'%';
+    $('sumCount').textContent=fmt(s?.referred_count||0);
+    $('sumDep').textContent=fmt(s?.total_deposits||0);
+    $('sumWd').textContent=fmt(s?.total_withdrawals||0);
+    const el=$('sumProfit'); el.textContent=fmt(s?.portfolio_profit||0); el.className=profitClass(s?.portfolio_profit);
+  }
+
+  function renderPlayers(){
+    const box=$('playersList');
+    if(!players.length){ box.innerHTML='<div class="empty">Nenhum indicado ainda. Compartilhe seu link.</div>'; return; }
+    box.innerHTML=`<table class="table"><thead><tr><th>JOGADOR</th><th>SALDO</th><th>DEPÓSITOS</th><th>SAQUES</th><th>LUCRO</th></tr></thead><tbody>
+      ${players.map(p=>`<tr>
+        <td data-label="JOGADOR">${p.display_name||'—'}<br><small style="color:#889">${p.email||''}</small></td>
+        <td data-label="SALDO"><span class="credits">${fmt(p.player_credits)}</span></td>
+        <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
+        <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
+        <td data-label="LUCRO"><span class="${profitClass(p.profit)}">${fmt(p.profit)}</span></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+  function renderDeposits(){
+    const box=$('depositList');
+    if(!deposits.length){ box.innerHTML='<div class="empty">Nenhum depósito.</div>'; return; }
+    box.innerHTML=`<table class="table"><thead><tr><th>JOGADOR</th><th>VALOR</th><th>STATUS</th><th>DATA</th></tr></thead><tbody>
+      ${deposits.map(d=>`<tr>
+        <td data-label="JOGADOR">${d.display_name||'—'}<br><small style="color:#889">${d.email||''}</small></td>
+        <td data-label="VALOR"><span class="credits">${fmt(d.amount)}</span></td>
+        <td data-label="STATUS">${statusBadge(d.status)}</td>
+        <td data-label="DATA">${fmtDate(d.paid_at||d.created_at)}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+  function renderWithdrawals(){
+    const box=$('withdrawList');
+    if(!withdrawals.length){ box.innerHTML='<div class="empty">Nenhum saque.</div>'; return; }
+    box.innerHTML=`<table class="table"><thead><tr><th>JOGADOR</th><th>VALOR</th><th>PIX</th><th>STATUS</th><th>DATA</th></tr></thead><tbody>
+      ${withdrawals.map(w=>`<tr>
+        <td data-label="JOGADOR">${w.display_name||'—'}<br><small style="color:#889">${w.email||''}</small></td>
+        <td data-label="VALOR"><span class="credits">${fmt(w.amount)}</span></td>
+        <td data-label="PIX">${w.pix_key||'—'}</td>
+        <td data-label="STATUS">${statusBadge(w.status)}</td>
+        <td data-label="DATA">${fmtDate(w.processed_at||w.created_at)}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+  function renderProfit(){
+    const box=$('profitList');
+    if(!players.length){ box.innerHTML='<div class="empty">Sem dados.</div>'; return; }
+    const sorted=[...players].sort((a,b)=>Number(b.profit)-Number(a.profit));
+    box.innerHTML=`<table class="table"><thead><tr><th>JOGADOR</th><th>DEPÓSITOS</th><th>SAQUES</th><th>RESULTADO</th></tr></thead><tbody>
+      ${sorted.map(p=>`<tr>
+        <td data-label="JOGADOR">${p.display_name||'—'}<br><small style="color:#889">${p.email||''}</small></td>
+        <td data-label="DEPÓSITOS">${fmt(p.total_deposits)}</td>
+        <td data-label="SAQUES">${fmt(p.total_withdrawals)}</td>
+        <td data-label="RESULTADO"><span class="${profitClass(p.profit)}">${fmt(p.profit)}</span></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  async function reload(){
+    const [code,summary,plist,dlist,wlist]=await Promise.all([
+      omahaAuth.consultantMyCode(),
+      omahaAuth.consultantSummary(),
+      omahaAuth.consultantListPlayers(),
+      omahaAuth.consultantListDeposits(),
+      omahaAuth.consultantListWithdrawals(),
+    ]);
+    refCode=code?.referral_code||'';
+    refLink=omahaAuth.referralSignupUrl(refCode);
+    $('refCode').textContent=refCode||'—';
+    $('refLink').textContent=refLink||'—';
+    renderSummary(summary||{});
+    players=plist||[]; deposits=dlist||[]; withdrawals=wlist||[];
+    if(currentTab==='players') renderPlayers();
+    if(currentTab==='deposit') renderDeposits();
+    if(currentTab==='withdraw') renderWithdrawals();
+    if(currentTab==='profit') renderProfit();
+  }
+
+  async function copyText(t,ok){ try{ await navigator.clipboard.writeText(t); setMsg(ok,'ok'); }catch(_){ setMsg('Não foi possível copiar.','err'); } }
+
+  $('consTabs').addEventListener('click',e=>{ const b=e.target.closest('button[data-tab]'); if(b) setTab(b.dataset.tab); });
+  $('copyLink').onclick=()=>copyText(refLink,'Link copiado.');
+  $('copyCode').onclick=()=>copyText(refCode,'Código copiado.');
+  $('toLobby').onclick=()=>{ location.href='lobby.html'; };
+  $('logoutBtn').onclick=async()=>{ await omahaAuth.signOut(); location.replace('login.html'); };
+
+  (async function boot(){
+    try{
+      const user=await omahaAuth.requireUser('login.html');
+      if(!user) return;
+      const me=await omahaAuth.ensureProfile(user);
+      if(omahaAuth.isAdmin(me)){ location.replace('admin.html'); return; }
+      if(omahaAuth.isManager(me)){ location.replace('gerente.html'); return; }
+      if(!omahaAuth.isConsultant(me)){ location.replace('lobby.html'); return; }
+      $('consName').textContent=me.display_name||me.email||'Consultor';
+      await reload();
+      setMsg('Painel do consultor carregado.','ok');
+      setInterval(()=>{ reload().catch(()=>{}); },20000);
+    }catch(err){
+      const tip=/consultant_|schema cache/i.test(err?.message||'')?' Rode supabase/consultants.sql no Supabase.':'';
+      setMsg((err?.message||'Falha ao abrir painel.')+tip,'err');
+    }
+  })();
+  </script>
+</body>
+</html>
