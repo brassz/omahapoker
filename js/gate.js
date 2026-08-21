@@ -173,10 +173,7 @@
           : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
             : file === '21_index' ? '21'
             : file);
-        const hidden = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) =>
-          typeof omahaAuth.normalizeGameId === 'function' ? omahaAuth.normalizeGameId(id) : String(id).toLowerCase()
-        ));
-        if (hidden.has(gameId)) {
+        if (omahaAuth.isGameHidden(file)) {
           document.body.innerHTML = `
             <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#05070e;color:#fff;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:24px">
               <div>

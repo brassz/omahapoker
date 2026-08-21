@@ -365,10 +365,11 @@
     },
 
     isGameHidden(gameId) {
-      const id = this.normalizeGameId(gameId);
+      const raw = String(gameId || '').toLowerCase().replace(/\.html$/, '');
       const list = window.CLUB_HIDDEN_GAMES;
-      if (!Array.isArray(list) || !id) return false;
-      return list.map((g) => this.normalizeGameId(g)).includes(id);
+      if (!Array.isArray(list) || !raw) return false;
+      // Compara o id “de arquivo” sem alias (flyx≠bacbo), para não esconder Ponto Maior.
+      return list.map((g) => String(g || '').toLowerCase().replace(/\.html$/, '')).includes(raw);
     },
 
     getMaintenanceGames(settings) {
