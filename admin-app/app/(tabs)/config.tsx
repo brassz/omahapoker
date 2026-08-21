@@ -101,10 +101,14 @@ export default function ConfigScreen() {
   const saveGameRtp = async () => {
     try {
       for (const row of gameRtp) {
+        const rtp = Math.floor(Number(row.rtp_percent ?? 20));
+        if (!(rtp >= 0 && rtp <= 100)) {
+          throw new Error(`RTP inválido em ${row.game_id}`);
+        }
         await adminApi.adminUpsertGameRtp({
           gameId: row.game_id,
           enabled: !!row.enabled,
-          rtpPercent: Number(row.rtp_percent ?? 20),
+          rtpPercent: rtp,
         });
       }
       setKind('ok');
@@ -157,7 +161,10 @@ export default function ConfigScreen() {
           </View>
         </Panel>
 
-        <Panel title="★ RTP POR JOGO">
+        <Panel title="★ MANIPULAÇÃO POR JOGO">
+          <Text style={[styles.meta, { marginBottom: 8 }]}>
+            Mesmo padrão da geral (chance = RTP%). SIM = RTP desta linha; NÃO = segue a geral.
+          </Text>
           {gameRtp.length === 0 ? (
             <Text style={styles.meta}>Sem dados (rode game-rtp.sql)</Text>
           ) : (

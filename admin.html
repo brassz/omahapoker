@@ -250,8 +250,9 @@ body{margin:0;min-height:100vh}
     <section class="panel">
       <h2>★ MANIPULAÇÃO POR JOGO</h2>
       <p class="cfgHelp">
-        Salas com <b>manipulação própria = SIM</b> usam só o RTP da linha — ignoram a configuração geral.
-        Com <b>NÃO</b>, a sala segue a manipulação geral acima (ou jogo justo se ela estiver desativada).
+        Cada sala pode ter manipulação própria com o <b>mesmo padrão da geral</b>
+        (chance = RTP% de vitória do jogador). Com <b>SIM</b>, usa o RTP % da linha.
+        Com <b>NÃO</b>, segue a manipulação geral (ligada/desligada).
       </p>
       <div id="rtpTableWrap" style="margin-top:4px;overflow:auto">
         <div class="empty">Carregando jogos...</div>
@@ -835,7 +836,7 @@ body{margin:0;min-height:100vh}
       setMsg(
         enabled
           ? `Manipulação geral salva: RTP ${rtpPercent}% (salas sem configuração própria).`
-          : `Manipulação geral desativada. Salas com "próprio = SIM" continuam com RTP individual.`,
+          : `Manipulação geral desativada. Salas com "próprio = SIM" usam o RTP da própria linha.`,
         'ok'
       );
     } catch (err) {
@@ -863,7 +864,7 @@ body{margin:0;min-height:100vh}
       gameRtp = [...byId.values()];
       await reloadSettings();
       renderRtpTable();
-      setMsg('RTP por jogo salvo. Salas com "próprio = SIM" ignoram a configuração geral.', 'ok');
+      setMsg('RTP por jogo salvo. Próprio=SIM usa o RTP da linha (mesmo padrão da geral).', 'ok');
     } catch (err) {
       console.error(err);
       const tip = /list_game_rtp|admin_upsert_game_rtp|schema cache|could not find/i.test(err?.message || '')

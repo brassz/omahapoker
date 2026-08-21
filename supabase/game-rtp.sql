@@ -189,6 +189,9 @@ begin
     use_own := coalesce(g.enabled, false);
   end if;
 
+  -- Mesmo padrão da geral: chance rtp% de 'player', senão 'bank'.
+  -- Próprio=SIM → usa o RTP % daquele jogo.
+  -- Próprio=NÃO → só se a geral estiver ligada (RTP da geral).
   if use_own then
     rtp := greatest(0, least(100, coalesce(g.rtp_percent, 20)));
   elsif coalesce(s.enabled, false) then
@@ -198,21 +201,32 @@ begin
   end if;
 
   roll := random() * 100.0;
-
   if roll < rtp then
     outcome := 'player';
   else
     outcome := 'bank';
   end if;
 
-  update public.game_settings
-  set
-    bet_counter = bet_counter + 1,
-    player_win_counter = player_win_counter + case when outcome = 'player' then 1 else 0 end,
-    updated_at = now()
-  where id = 1;
+  -- Contador global só quando a decisão veio da geral
+  if not use_own then
+    update public.game_settings
+    set
+      bet_counter = bet_counter + 1,
+      player_win_counter = player_win_counter + case when outcome = 'player' then 1 else 0 end,
+      updated_at = now()
+    where id = 1;
+  end if;
 
+  -- Contador do jogo só quando próprio=SIM (estatística por sala)
   if use_own and g.game_id is not null then
+    update public.game_rtp
+    set
+      bet_counter = bet_counter + 1,
+      player_win_counter = player_win_counter + case when outcome = 'player' then 1 else 0 end,
+      updated_at = now()
+    where game_id = gid;
+  elsif not use_own and gid is not null and gid <> '' and g.game_id is not null then
+    -- Geral ativa: também registra no jogo para o painel (sem misturar RTP)
     update public.game_rtp
     set
       bet_counter = bet_counter + 1,
@@ -227,3 +241,17 @@ $$;
 
 revoke all on function public.next_bet_outcome(text) from public;
 grant execute on function public.next_bet_outcome(text) to authenticated;
+
+create or replace function public.next_bet_outcome()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return public.next_bet_outcome(null);
+end;
+$$;
+
+revoke all on function public.next_bet_outcome() from public;
+grant execute on function public.next_bet_outcome() to authenticated;
