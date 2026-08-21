@@ -77,13 +77,14 @@ body{display:flex;flex-direction:column}
 .progress{height:3px;background:#223;margin:0 0 8px;overflow:hidden;border-radius:99px;flex:0 0 auto}
 .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#17c8ff,#5cff1a,#ffd91a);transition:width .15s linear}
 .amount-row{
-  display:grid;grid-template-columns:minmax(120px,180px) 1fr;gap:8px;align-items:end;
+  display:block;
   padding-bottom:8px;border-bottom:1px solid #334;flex:0 0 auto;
 }
 .label{display:block;color:#7af0ff;font-size:10px;font-weight:900;margin-bottom:4px;letter-spacing:.4px}
 .amount-box{
   height:36px;background:#060912;border:2px solid #17c8ff;border-radius:8px;
   display:flex;align-items:center;padding:0 8px;gap:8px;
+  max-width:240px;
 }
 .coin{
   width:22px;height:22px;border-radius:50%;background:#ffd91a;color:#3b3210;
@@ -91,12 +92,6 @@ body{display:flex;flex-direction:column}
 }
 .amount-box input{
   flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-size:15px;font-weight:800;
-}
-.quick{display:flex;flex-wrap:nowrap;gap:4px;overflow:hidden}
-.quick button{
-  height:36px;flex:1;min-width:0;padding:0 4px;background:#12101c!important;border:1px solid #556!important;
-  border-radius:8px;color:#d8e7ff!important;cursor:pointer;font-weight:800;font-size:11px;
-  background-image:none!important;animation:none!important;box-shadow:none!important;
 }
 .bets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px;flex:1;min-height:0}
 .bet-card.tone-red{border-color:#d8453e}
@@ -178,17 +173,13 @@ body{display:flex;flex-direction:column}
 }
 
 @media(max-width:700px){
-  .amount-row{grid-template-columns:1fr}
   .legend span:nth-child(n+2){display:none}
   .cell{width:44px;height:42px;font-size:14px}
   .roulette-window{height:62px}
   .track{top:8px;gap:5px}
   .spin{min-width:0;flex:0 0 42%}
-  .mode button{font-size:9px;padding:5px 2px}
   .bet-name{font-size:11px}
   .place{font-size:10px;height:30px}
-  .num{height:24px;font-size:11px}
-  .number-grid{grid-template-columns:repeat(4,1fr);gap:3px}
 }
 </style>
 </head>
@@ -221,18 +212,8 @@ body{display:flex;flex-direction:column}
         <label class="label">Valor da aposta (2 a 200)</label>
         <div class="amount-box">
           <span class="coin">C</span>
-          <input id="amount" type="number" inputmode="numeric" min="2" max="200" step="1" value="10" placeholder="Digite o valor">
+          <input id="amount" type="number" inputmode="numeric" min="2" max="200" step="1" value="" placeholder="Digite o valor">
         </div>
-      </div>
-      <div class="quick">
-        <button type="button" data-add="-1">-1</button>
-        <button type="button" data-add="1">+1</button>
-        <button type="button" data-add="5">+5</button>
-        <button type="button" data-add="10">+10</button>
-        <button type="button" data-add="100">+100</button>
-        <button type="button" id="half">1/2</button>
-        <button type="button" id="double">x2</button>
-        <button type="button" id="max">Max</button>
       </div>
     </div>
     <div class="bets" id="bets"></div>
@@ -248,8 +229,7 @@ body{display:flex;flex-direction:column}
   <h2>❓ COMO JOGAR — ROLETA</h2>
   <ul>
     <li>Informe o valor (2 a 200) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.</li>
-    <li><b>Somente cor:</b> vermelho/preto pagam 2x; verde paga 15x (só na cor). Chance de verde ≈ 1%.</li>
-    <li><b>Cor + número:</b> só no vermelho ou preto; acertou a cor e o número, paga 5x.</li>
+    <li>Apostas só na cor: vermelho/preto pagam <b>2x</b>; verde paga <b>15x</b> (chance ≈ 0,25%).</li>
     <li>Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de 200 e é debitado ao girar.</li>
   </ul>
   <button type="button" class="closeHelp" id="closeHelp">FECHAR REGRAS</button>
@@ -283,11 +263,6 @@ const creditsEl=document.getElementById("credits");
 
 let credits=0;
 let pendingBets=[];
-let selections={
-  red:{mode:"color",number:null},
-  green:{mode:"color",number:null},
-  black:{mode:"color",number:null}
-};
 let spinning=false;
 let history=[slots[3],slots[10],slots[12],slots[0],slots[7],slots[2],slots[13],slots[4],slots[11]];
 
@@ -316,8 +291,6 @@ function setAmount(n){
   return n;
 }
 
-function colorSlots(color){ return slots.filter(x=>x.c===color); }
-
 function renderLast(){
   lastResults.innerHTML="";
   history.slice(0,10).forEach(x=>{
@@ -331,57 +304,21 @@ function renderLast(){
 function renderBets(){
   betsContainer.innerHTML="";
   ["red","green","black"].forEach(color=>{
-    const sel=selections[color];
-    if(color==="green"){ sel.mode="color"; sel.number=null; }
     const box=document.createElement("div");
     box.className="bet-card tone-"+color;
-    const colorOnly=color==="green";
-    const numberButtons = (!colorOnly && sel.mode==="combo")
-      ? colorSlots(color).map(s=>`
-        <button type="button" class="num ${sel.number===s.n?"active":""}" data-color="${color}" data-number="${s.n}">${s.n}</button>
-      `).join("")
-      : (colorOnly
-        ? `<div class="no-number">Verde: apenas a cor</div>`
-        : `<div class="no-number">Toque em Cor + número</div>`);
-    const modeHtml=colorOnly
-      ? `<div class="mode"><button type="button" class="active" disabled>Só cor</button></div>`
-      : `<div class="mode">
-          <button type="button" class="${sel.mode==="color"?"active":""}" data-mode="color" data-color="${color}">Só cor</button>
-          <button type="button" class="${sel.mode==="combo"?"active":""}" data-mode="combo" data-color="${color}">Cor+nº 5x</button>
-        </div>`;
     box.innerHTML=`
       <div class="bet-head">
         <div class="bet-name">${names[color]}</div>
         <div class="multiplier">${baseMultiplier[color]}x</div>
       </div>
       <div class="bet-content">
-        ${modeHtml}
-        <div class="number-grid">${numberButtons}</div>
-        <button type="button" class="place ${color}" data-place="${color}">ADICIONAR APOSTA</button>
+        <button type="button" class="place ${color}" data-place="${color}">APOSTAR NA COR</button>
         <div class="bet-status">
           <span>${pendingBets.filter(b=>b.color===color).length} aposta(s)</span>
           <strong>${money(pendingBets.filter(b=>b.color===color).reduce((a,b)=>a+b.amount,0))}</strong>
         </div>
       </div>`;
     betsContainer.appendChild(box);
-  });
-  bindBetEvents();
-}
-
-function bindBetEvents(){
-  document.querySelectorAll("[data-mode]").forEach(btn=>{
-    btn.onclick=()=>{
-      const color=btn.dataset.color;
-      selections[color].mode=btn.dataset.mode;
-      if(btn.dataset.mode==="color") selections[color].number=null;
-      renderBets();
-    };
-  });
-  document.querySelectorAll("[data-number]").forEach(btn=>{
-    btn.onclick=()=>{
-      selections[btn.dataset.color].number=Number(btn.dataset.number);
-      renderBets();
-    };
   });
   document.querySelectorAll("[data-place]").forEach(btn=>{
     btn.onclick=()=>addBet(btn.dataset.place);
@@ -402,18 +339,8 @@ function addBet(color){
     message.textContent="O total das apostas nesta rodada não pode passar de 200.";
     return;
   }
-  const sel=selections[color];
-  if(color==="green"){
-    sel.mode="color";
-    sel.number=null;
-  }
-  if(sel.mode==="combo" && sel.number===null){
-    message.textContent=`Escolha um número ${names[color].toLowerCase()} antes de adicionar a aposta.`;
-    return;
-  }
-  pendingBets.push({color, mode:sel.mode, number:sel.number, amount:value});
-  const text=sel.mode==="color" ? names[color] : `${names[color]} + Nº ${sel.number}`;
-  message.textContent=`Aposta adicionada: ${text} — ${money(value)}.`;
+  pendingBets.push({color, amount:value});
+  message.textContent=`Aposta adicionada: ${names[color]} — ${money(value)}.`;
   updatePending();
   renderBets();
 }
@@ -428,22 +355,10 @@ function updatePending(){
 }
 
 function betWins(b, result){
-  if(b.mode==="color" && b.color===result.c) return b.amount*baseMultiplier[b.color];
-  if(b.mode==="combo" && b.color===result.c && b.number===result.n) return b.amount*5;
+  if(b.color===result.c) return b.amount*baseMultiplier[b.color];
   return 0;
 }
 
-document.querySelectorAll("[data-add]").forEach(btn=>{
-  btn.onclick=()=>{
-    setAmount((readAmount()||0)+Number(btn.dataset.add));
-  };
-});
-document.getElementById("half").onclick=()=>{ setAmount(Math.floor((readAmount()||2)/2)); };
-document.getElementById("double").onclick=()=>{ setAmount((readAmount()||2)*2); };
-document.getElementById("max").onclick=()=>{
-  const cap=window.clubBets ? clubBets.MAX : BET_MAX;
-  setAmount(Math.min(cap, Math.floor(credits)||cap));
-};
 amount.addEventListener("change",()=>{ if(readAmount()>0) setAmount(readAmount()); });
 
 function buildTrack(){
@@ -466,9 +381,7 @@ function evaluate(result){
     const win=betWins(b,result);
     if(win>0){
       payout+=win;
-      wins.push(b.mode==="color"
-        ? `${names[b.color]} ${baseMultiplier[b.color]}x`
-        : `${names[b.color]} + Nº ${b.number} 5x`);
+      wins.push(`${names[b.color]} ${baseMultiplier[b.color]}x`);
     }
   });
   if(payout>0){
@@ -480,8 +393,8 @@ function evaluate(result){
 }
 
 function pickWeightedSlot(){
-  // Verde ~1%; resto dividido entre vermelho e preto.
-  if(Math.random() < 0.01){
+  // Verde ~0.25%; resto dividido entre vermelho e preto.
+  if(Math.random() < 0.0025){
     const g=slots.find(s=>s.c==="green");
     if(g) return g;
   }
@@ -508,8 +421,8 @@ async function pickResult(){
     const winnersNoGreen=winners.filter(s=>s.c!=="green");
     if(winnersNoGreen.length){
       result=pickFrom(winnersNoGreen);
-    } else if(winners.length && Math.random()<0.01){
-      // Só verde ganharia: mantém 1% mesmo com RTP a favor do jogador
+    } else if(winners.length && Math.random()<0.0025){
+      // Só verde ganharia: mantém 0.25% mesmo com RTP a favor do jogador
       result=pickFrom(winners);
     } else {
       result=pickWeightedSlot();

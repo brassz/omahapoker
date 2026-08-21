@@ -152,7 +152,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
     <h3 id="pointTitle">🎯 Aposta no ponto</h3>
     <p id="pointText">Aguarde a banca definir o ponto. Esta aposta é opcional.</p>
     <div id="pointPay" class="pay">Pagamento: —</div>
-    <label for="pointBet">Valor no ponto (opcional, 2–200; total com inicial ≤ 200)</label>
+    <label for="pointBet">Valor no ponto (opcional, 2 a 200)</label>
     <input id="pointBet" type="number" min="2" max="200" step="1" value="" placeholder="Deixe vazio para não apostar" disabled>
   </div>
 </section>
@@ -185,7 +185,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
   <li>Ganhou (7 ou 11 no come-out, ou acertar o ponto): recebe 1 a 1 e já pode começar outra rodada.</li>
   <li>Perdeu (2, 3 ou 12 no come-out, ou 7 antes do ponto): perde a aposta e já pode começar outra rodada.</li>
   <li>O débito e o pagamento são automáticos. Não há botão de encerrar.</li>
-  <li><b>Aposta no ponto é opcional.</b> Depois que o ponto sair, você pode apostar nele ou só continuar nos dados. O total (aposta inicial + ponto) não pode passar de 200.</li>
+  <li><b>Aposta no ponto é opcional.</b> Depois que o ponto sair, você pode apostar nele (2 a 200) ou só continuar nos dados.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -270,34 +270,19 @@ async function confirmBase(){
 function enablePointBets(){
   const rate=rateForPoint(point);
   phase="betting";
-  const room=Math.max(0, (window.clubBets?clubBets.MAX:200) - Number(lineStake||0));
   $("pointTitle").textContent=`🎯 Apostar no ponto ${point} (opcional)`;
-  $("pointText").textContent=room>0
-    ? `Opcional. Vence se sair ${point} novamente antes do 7. Máx. ${room} nesta rodada (total com a aposta inicial ≤ 200).`
-    : `A aposta inicial já usou o limite de 200. Só jogue os dados até sair ${point} ou 7.`;
+  $("pointText").textContent=`Opcional. Vence se sair ${point} novamente antes do 7. Valor de 2 a 200.`;
   $("pointPay").textContent=rate===1?"Pagamento: 1 para 1":rate===1.5?"Pagamento: 100 paga 150 de lucro":"Pagamento: 100 paga 200 de lucro";
   $("pointBet").value="";
   $("pointBet").min=2;
-  $("pointBet").max=String(Math.max(2, room));
-  if(room < 2){
-    $("pointBet").disabled=true;
-    $("confirmSide").disabled=true;
-    $("pointCard").classList.add("disabled");
-    $("pointCard").classList.remove("active");
-  } else {
-    $("pointBet").disabled=false;
-    $("confirmSide").disabled=false;
-    $("pointCard").classList.remove("disabled");
-    $("pointCard").classList.add("active");
-  }
+  $("pointBet").max=200;
+  $("pointBet").disabled=false;
+  $("confirmSide").disabled=false;
+  $("pointCard").classList.remove("disabled");
+  $("pointCard").classList.add("active");
   $("roll").disabled=false;
   setSteps(3);
-  status(
-    room>0
-      ? `Ponto ${point}. Aposta no ponto opcional (máx. ${room}) ou só jogue os dados.`
-      : `Ponto ${point}. Limite da rodada já usado — jogue os dados.`,
-    "continue"
-  );
+  status(`Ponto ${point}. Aposta no ponto opcional (2 a 200) ou só jogue os dados.`,"continue");
   log(`Rodada ${round}: ponto ${point} definido.`);
   update();
 }
@@ -317,11 +302,6 @@ async function confirmSide(){
   if(!window.clubBets){status("Erro ao validar aposta. Recarregue a página.","lose");return}
   const check=clubBets.validate(raw);
   if(!check.ok){status(check.message,"lose");return}
-  const room=Math.max(0, clubBets.MAX - Number(lineStake||0));
-  if(check.value > room){
-    status(`Aposta no ponto limitada a ${fmt(room)} (total inicial + ponto máx. ${clubBets.MAX}).`,"lose");
-    return;
-  }
   pointBet=check.value;
   $("pointBet").value=pointBet;
   if(pointBet>playerBalance){status("O jogador não possui saldo suficiente.","lose");return}
