@@ -3,3 +3,6 @@ verify_jwt = true
 
 [functions.cajupay-webhook]
 verify_jwt = false
+
+[functions.notify-admin-profit]
+verify_jwt = true

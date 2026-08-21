@@ -248,7 +248,7 @@ body{display:flex;flex-direction:column}
   <h2>❓ COMO JOGAR — ROLETA</h2>
   <ul>
     <li>Informe o valor (2 a 200) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.</li>
-    <li><b>Somente cor:</b> vermelho/preto pagam 2x; verde paga 15x (só na cor).</li>
+    <li><b>Somente cor:</b> vermelho/preto pagam 2x; verde paga 15x (só na cor). Chance de verde ≈ 1%.</li>
     <li><b>Cor + número:</b> só no vermelho ou preto; acertou a cor e o número, paga 5x.</li>
     <li>Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de 200 e é debitado ao girar.</li>
   </ul>
@@ -479,16 +479,41 @@ function evaluate(result){
   return payout;
 }
 
+function pickWeightedSlot(){
+  // Verde ~1%; resto dividido entre vermelho e preto.
+  if(Math.random() < 0.01){
+    const g=slots.find(s=>s.c==="green");
+    if(g) return g;
+  }
+  const rb=slots.filter(s=>s.c!=="green");
+  return rb[Math.floor(Math.random()*rb.length)] || slots[0];
+}
+
+function pickFrom(list){
+  if(!list || !list.length) return null;
+  return list[Math.floor(Math.random()*list.length)];
+}
+
 async function pickResult(){
-  let result=slots[Math.floor(Math.random()*slots.length)];
+  let result=pickWeightedSlot();
   let force=null;
-  try{ if(window.clubHouse) force=await clubHouse.nextOutcome(); }catch(_){}
+  try{ if(window.clubHouse) force=await clubHouse.nextOutcome("roleta"); }catch(_){}
   if(force==="bank"){
     const losers=slots.filter(s=>pendingBets.every(b=>!(betWins(b,s)>0)));
-    if(losers.length) result=losers[Math.floor(Math.random()*losers.length)];
+    // Evita verde forçado como “perda” se o jogador não apostou nele — verde continua raro.
+    const losersNoGreen=losers.filter(s=>s.c!=="green");
+    result=pickFrom(losersNoGreen.length?losersNoGreen:losers) || pickWeightedSlot();
   } else if(force==="player"){
     const winners=slots.filter(s=>pendingBets.some(b=>betWins(b,s)>0));
-    if(winners.length) result=winners[Math.floor(Math.random()*winners.length)];
+    const winnersNoGreen=winners.filter(s=>s.c!=="green");
+    if(winnersNoGreen.length){
+      result=pickFrom(winnersNoGreen);
+    } else if(winners.length && Math.random()<0.01){
+      // Só verde ganharia: mantém 1% mesmo com RTP a favor do jogador
+      result=pickFrom(winners);
+    } else {
+      result=pickWeightedSlot();
+    }
   }
   return result;
 }

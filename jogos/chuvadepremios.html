@@ -164,7 +164,6 @@ var balls=[],pegs=[],slots=[];
 var balance=0,played=0,wagered=0,profit=0;
 var boardTop=60,boardBottom=400,pegSpace=36,pegR=4,speed=0.8;
 var roundActive=false,pending=0,roundGain=0,roundBet=0,roundCount=0,starting=false;
-var roundTwoX=0;
 var bgCache=null,needStatic=true,raf=0;
 
 function money(n){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2});}
@@ -385,18 +384,7 @@ function nearestSlot(x){
  return best;
 }
 function landSlot(b){
- var near=nearestSlot(b.x), i, alt, d, best, bestD;
- if(!near) return near;
- if(near.m===2 && roundTwoX>=3){
-  best=near; bestD=1e9;
-  for(i=0;i<slots.length;i++){
-   if(slots[i].m===2) continue;
-   d=Math.abs(slots[i].x+slots[i].w*0.5-b.x);
-   if(d<bestD){ bestD=d; best=slots[i]; }
-  }
-  return best;
- }
- return near;
+ return nearestSlot(b.x);
 }
 
 function clearHits(){
@@ -431,7 +419,6 @@ async function finish(b){
  var slot=b.slot||landSlot(b);
  b.slot=slot;
  var m=slot?slot.m:0.5;
- if(m===2) roundTwoX++;
  var gain=Math.round(b.bet*m*100)/100;
  balance+=gain; played++; profit+=gain-b.bet; roundGain+=gain; pending--;
  addHit(m);
@@ -610,7 +597,6 @@ async function startRound(ev){
   sizeCanvas();
   buildBoard();
   balls=[];
-  roundTwoX=0;
   var i;
   for(i=0;i<n;i++) spawn(bet, i*16);
   draw();
