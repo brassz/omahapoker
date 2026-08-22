@@ -331,7 +331,7 @@ body{display:flex;flex-direction:column}
     <p>Dois dados para o Jogador 1 (azul) e dois para o Jogador 2 (vermelho). Quem tiver a pontuação mais alta vence.</p>
     <h3>Pontuação</h3>
     <ul>
-      <li>A pontuação é o último dígito da soma dos dois dados (ex.: 4+6=10 → pontuação 0; 5+6=11 → pontuação 1).</li>
+      <li>A pontuação é a <b>soma</b> dos dois dados (ex.: 4+6=10; 5+6=11). Quem tiver o ponto maior vence.</li>
     </ul>
     <h3>Apostas</h3>
     <ul>
@@ -404,7 +404,8 @@ function setDie(el, n){
 }
 ['pDie1','pDie2','bDie1','bDie2'].forEach(id => setDie(document.getElementById(id), 1));
 
-function score(d1, d2){ return (d1 + d2) % 10; }
+/** Soma direta dos dados (Ponto Maior). Não usa % 10 — 4+6 = 10, não 0. */
+function score(d1, d2){ return d1 + d2; }
 
 const ALL_OUTCOMES = (() => {
   const list = [];
