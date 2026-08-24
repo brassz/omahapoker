@@ -1,7 +1,6 @@
--- Corrige erro 400 em list_game_rtp no admin.
--- Rode no SQL Editor do Supabase (projeto zwtvqpnpuahcuhodroib).
+-- Corrige "column reference game_id is ambiguous" em list_game_rtp.
+-- Rode de novo no SQL Editor do Supabase.
 
--- Garante tabela/colunas (instalações antigas podem não ter contadores).
 create table if not exists public.game_rtp (
   game_id text primary key,
   enabled boolean not null default false,
@@ -32,16 +31,16 @@ insert into public.game_settings (id)
 values (1)
 on conflict (id) do nothing;
 
-delete from public.game_rtp
-where game_id in ('maquininha', 'chuvadepremios', 'flyx', 'minas');
+delete from public.game_rtp gr
+where gr.game_id in ('maquininha', 'chuvadepremios', 'flyx', 'minas');
 
-insert into public.game_rtp (game_id, enabled, rtp_percent)
+insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
 select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
 from unnest(array[
   'omaha','crep','bacatela','roleta',
   'bacbo','ronda','caipira','21'
 ]) as g(id)
-on conflict (game_id) do nothing;
+on conflict on constraint game_rtp_pkey do nothing;
 
 drop function if exists public.list_game_rtp();
 
@@ -57,23 +56,29 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
 begin
-  insert into public.game_rtp (game_id, enabled, rtp_percent)
+  insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
     'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ]) as g(id)
-  on conflict (game_id) do nothing;
+  on conflict on constraint game_rtp_pkey do nothing;
 
   return query
-  select r.game_id, r.enabled, r.rtp_percent, r.bet_counter, r.player_win_counter
-  from public.game_rtp r
-  where r.game_id = any(array[
+  select
+    gr.game_id,
+    gr.enabled,
+    gr.rtp_percent,
+    gr.bet_counter,
+    gr.player_win_counter
+  from public.game_rtp as gr
+  where gr.game_id = any(array[
     'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ])
-  order by r.game_id;
+  order by 1;
 end;
 $$;
 

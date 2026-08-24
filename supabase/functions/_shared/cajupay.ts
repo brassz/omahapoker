@@ -78,6 +78,18 @@ export function payoutIdOf(obj = {}) {
   return obj.cajupay_payout_id || obj.payout_id || obj.id || '';
 }
 
+/** Taxa fixa de saque PIX (centavos). Padrão R$ 4,50. Ajuste via CAJUPAY_PAYOUT_FEE_CENTS. */
+export function payoutFeeCents() {
+  const raw = Number(Deno.env.get('CAJUPAY_PAYOUT_FEE_CENTS') || '450');
+  return Number.isFinite(raw) && raw >= 0 ? Math.round(raw) : 450;
+}
+
+/** Valor bruto enviado à CajuPay para o jogador receber `netCents` líquidos na chave PIX. */
+export function grossPayoutCents(netCents) {
+  const net = Math.max(0, Math.round(Number(netCents) || 0));
+  return net + payoutFeeCents();
+}
+
 export async function hmacHex(secret, message) {
   const key = await crypto.subtle.importKey(
     'raw',

@@ -333,7 +333,7 @@ declare
   row public.withdrawals;
 begin
   update public.withdrawals
-  set status = 'paid', processed_at = now(), admin_note = coalesce(admin_note, 'Pago automaticamente via CajuPay')
+  set status = 'paid', processed_at = now(), admin_note = coalesce(admin_note, 'Pago automaticamente via CajuPay (taxa paga pelo clube)')
   where payout_id = p_payout_id
     and status = 'pending'
   returning * into row;

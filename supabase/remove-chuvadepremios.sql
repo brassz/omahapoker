@@ -49,23 +49,29 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+#variable_conflict use_column
 begin
-  insert into public.game_rtp (game_id, enabled, rtp_percent)
+  insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
     'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ]) as g(id)
-  on conflict (game_id) do nothing;
+  on conflict on constraint game_rtp_pkey do nothing;
 
   return query
-  select r.game_id, r.enabled, r.rtp_percent, r.bet_counter, r.player_win_counter
-  from public.game_rtp r
-  where r.game_id = any(array[
+  select
+    gr.game_id,
+    gr.enabled,
+    gr.rtp_percent,
+    gr.bet_counter,
+    gr.player_win_counter
+  from public.game_rtp as gr
+  where gr.game_id = any(array[
     'omaha','crep','bacatela','roleta',
     'bacbo','ronda','caipira','21'
   ])
-  order by r.game_id;
+  order by 1;
 end;
 $$;
 

@@ -7,6 +7,8 @@ import {
   detectPixKey,
   paymentIdOf,
   ensureWebhookRegistered,
+  payoutFeeCents,
+  grossPayoutCents,
 } from '../_shared/cajupay.ts';
 
 function rpcHint(msg) {
@@ -233,14 +235,18 @@ async function sendCajuPayout(wd, { refundOnFail = false } = {}) {
   }
 
   const detected = detectPixKey(wd.pix_key);
-  const cents = Math.round(Number(wd.amount) * 100);
+  const playerCents = Math.round(Number(wd.amount) * 100);
+  const feeCents = payoutFeeCents();
+  const sendCents = grossPayoutCents(playerCents);
   const payload = {
-    amount_cents: cents,
+    amount_cents: sendCents,
     currency: 'BRL',
     wallet_kind: 'main',
     destination: { method: 'dict' },
     pix_key: detected.pix_key,
     pix_key_type: detected.pix_key_type,
+    // Alguns gateways aceitam; se ignorado, o gross-up acima garante o líquido ao jogador.
+    fee_payer: 'merchant',
   };
   if (['email', 'phone', 'evp'].includes(detected.pix_key_type)) {
     const doc = String(wd.document || '').replace(/\D/g, '');
@@ -286,10 +292,24 @@ async function sendCajuPayout(wd, { refundOnFail = false } = {}) {
   const st = String(caju.data?.status || '').toLowerCase();
   if (st === 'paid' || st === 'completed' || st === 'success') {
     await admin.rpc('complete_payout', { p_payout_id: payoutId });
-    return json({ status: 'paid', payout_id: payoutId, withdrawal_id: wd.id });
+    return json({
+      status: 'paid',
+      payout_id: payoutId,
+      withdrawal_id: wd.id,
+      player_amount_cents: playerCents,
+      fee_cents: feeCents,
+      sent_amount_cents: sendCents,
+    });
   }
 
-  return json({ status: 'pending', payout_id: payoutId, withdrawal_id: wd.id });
+  return json({
+    status: 'pending',
+    payout_id: payoutId,
+    withdrawal_id: wd.id,
+    player_amount_cents: playerCents,
+    fee_cents: feeCents,
+    sent_amount_cents: sendCents,
+  });
 }
 
 /** Jogador: cria o saque e dispara o PIX automático na mesma chamada. */
