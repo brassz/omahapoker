@@ -565,7 +565,7 @@ body{margin:0;min-height:100vh}
               <td data-label="AÇÕES">
                 ${w.status === 'pending' ? `
                   <div class="actions">
-                    <button type="button" class="pay" data-wact="paid">PAGO</button>
+                    <button type="button" class="pay" data-wact="pix">PAGAR PIX</button>
                     <button type="button" class="rej" data-wact="rej">RECUSAR</button>
                   </div>
                 ` : (w.admin_note ? `<small style="color:#889">${w.admin_note}</small>` : '—')}
@@ -747,7 +747,10 @@ body{margin:0;min-height:100vh}
       if (Array.isArray(list) && list.length) gameRtp = list;
     } catch (err) {
       console.warn('list_game_rtp', err);
-      // Não zera a tabela na tela se o list falhar (evita parecer que não salvou).
+      const tip = /fix-list-game-rtp|game-rtp\.sql|schema cache|could not find/i.test(err?.message || '')
+        ? ''
+        : ' Rode supabase/fix-list-game-rtp.sql no Supabase.';
+      setMsg((err?.message || 'Falha ao carregar RTP por jogo.') + tip, 'err');
     }
     renderSettings(settings);
   }
@@ -1319,14 +1322,19 @@ body{margin:0;min-height:100vh}
     const act = btn.dataset.wact;
     if (!id) return;
 
-    if (act === 'paid' && !confirm('Confirmar que o PIX foi pago ao cliente?')) return;
+    if (act === 'pix' && !confirm('Enviar PIX automático via CajuPay para este saque?')) return;
     if (act === 'rej' && !confirm('Recusar saque e devolver o valor ao saldo do jogador?')) return;
 
     btn.disabled = true;
     try {
-      if (act === 'paid') {
-        await omahaAuth.adminMarkWithdrawalPaid(id);
-        setMsg('Saque marcado como pago.', 'ok');
+      if (act === 'pix') {
+        const pay = await omahaAuth.adminPayWithdrawalPix(id);
+        setMsg(
+          pay?.status === 'paid'
+            ? 'PIX pago automaticamente.'
+            : 'PIX enviado. Aguardando confirmação da CajuPay.',
+          'ok'
+        );
       } else if (act === 'rej') {
         await omahaAuth.adminRejectWithdrawal(id, 'Recusado pelo admin');
         setMsg('Saque recusado. Saldo devolvido ao jogador.', 'ok');

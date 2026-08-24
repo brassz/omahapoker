@@ -109,3 +109,6 @@ begin
   return row;
 end;
 $$;
+
+revoke all on function public.list_game_rtp() from public;
+grant execute on function public.list_game_rtp() to authenticated;

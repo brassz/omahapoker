@@ -14,6 +14,9 @@ function rpcHint(msg) {
   if (/create_deposit|deposits|list_my_deposits|attach_deposit/i.test(m)) {
     return ' Rode o SQL supabase/cajupay.sql no Supabase.';
   }
+  if (/request_withdrawal|service_reject_withdrawal|withdrawals/i.test(m)) {
+    return ' Rode o SQL supabase/cajupay.sql (ou auto-withdraw.sql) no Supabase.';
+  }
   return '';
 }
 
@@ -64,6 +67,7 @@ Deno.serve(async (req) => {
 
     if (action === 'create-pix') return await createPix(userSb, userData.user, body);
     if (action === 'check-pix') return await checkPix(body);
+    if (action === 'request-withdraw') return await requestAndPay(userSb, userData.user, body);
     if (action === 'payout') return await createPayout(userSb, userData.user, body);
     return json({ error: 'unknown_action' }, 400);
   } catch (err) {
@@ -195,24 +199,38 @@ async function checkPix(body) {
   return json({ status: status || 'pending' });
 }
 
-async function createPayout(sb, user, body) {
+async function isCallerAdmin(sb) {
+  const { data, error } = await sb.rpc('is_admin');
+  return !error && !!data;
+}
+
+async function loadPendingWithdrawal(sb, user, withdrawalId) {
+  const admin = await isCallerAdmin(sb);
+  let q = serviceClient()
+    .from('withdrawals')
+    .select('*')
+    .eq('id', withdrawalId);
+  if (!admin) q = q.eq('user_id', user.id);
+  const { data: wd, error } = await q.maybeSingle();
+  if (error || !wd) return { error: json({ error: 'Saque não encontrado' }, 404) };
+  if (wd.status !== 'pending') {
+    return { error: json({ error: 'Saque já processado', status: wd.status }, 400) };
+  }
+  return { wd };
+}
+
+async function sendCajuPayout(wd, { refundOnFail = false } = {}) {
   if (!cajuKeysOk()) {
+    if (refundOnFail) {
+      await serviceClient().rpc('service_reject_withdrawal', {
+        p_id: wd.id,
+        p_note: 'Falha: chaves CajuPay inválidas. Saldo devolvido.',
+      });
+    }
     return json({
       error: 'Chaves CajuPay inválidas no Supabase. Configure os secrets e faça deploy de novo.',
     }, 400);
   }
-
-  const withdrawalId = String(body.withdrawal_id || '');
-  if (!withdrawalId) return json({ error: 'withdrawal_id obrigatório' }, 400);
-
-  const { data: wd, error } = await sb
-    .from('withdrawals')
-    .select('*')
-    .eq('id', withdrawalId)
-    .eq('user_id', user.id)
-    .maybeSingle();
-  if (error || !wd) return json({ error: 'Saque não encontrado' }, 404);
-  if (wd.status !== 'pending') return json({ error: 'Saque já processado', status: wd.status }, 400);
 
   const detected = detectPixKey(wd.pix_key);
   const cents = Math.round(Number(wd.amount) * 100);
@@ -227,6 +245,12 @@ async function createPayout(sb, user, body) {
   if (['email', 'phone', 'evp'].includes(detected.pix_key_type)) {
     const doc = String(wd.document || '').replace(/\D/g, '');
     if (doc.length !== 11 && doc.length !== 14) {
+      if (refundOnFail) {
+        await serviceClient().rpc('service_reject_withdrawal', {
+          p_id: wd.id,
+          p_note: 'Falha: CPF/CNPJ do titular obrigatório. Saldo devolvido.',
+        });
+      }
       return json({ error: 'Para esta chave PIX informe o CPF/CNPJ do titular.' }, 400);
     }
     payload.key_owner_document = doc;
@@ -241,10 +265,14 @@ async function createPayout(sb, user, body) {
   });
 
   if (!caju.ok) {
-    return json({
-      error: cajuErr(caju.data, caju.status),
-      detail: caju.data,
-    }, 400);
+    const errMsg = cajuErr(caju.data, caju.status);
+    if (refundOnFail) {
+      await serviceClient().rpc('service_reject_withdrawal', {
+        p_id: wd.id,
+        p_note: `PIX automático falhou: ${errMsg}. Saldo devolvido.`,
+      });
+    }
+    return json({ error: errMsg, detail: caju.data }, 400);
   }
 
   const payoutId = caju.data?.payout_id || caju.data?.cajupay_payout_id || caju.data?.id || '';
@@ -258,8 +286,39 @@ async function createPayout(sb, user, body) {
   const st = String(caju.data?.status || '').toLowerCase();
   if (st === 'paid' || st === 'completed' || st === 'success') {
     await admin.rpc('complete_payout', { p_payout_id: payoutId });
-    return json({ status: 'paid', payout_id: payoutId });
+    return json({ status: 'paid', payout_id: payoutId, withdrawal_id: wd.id });
   }
 
-  return json({ status: 'pending', payout_id: payoutId });
+  return json({ status: 'pending', payout_id: payoutId, withdrawal_id: wd.id });
+}
+
+/** Jogador: cria o saque e dispara o PIX automático na mesma chamada. */
+async function requestAndPay(sb, user, body) {
+  const amount = Number(body.amount);
+  const pixKey = String(body.pix_key || body.pixKey || '').trim();
+  const document = String(body.document || '').replace(/\D/g, '') || null;
+
+  const { data: wdRaw, error } = await sb.rpc('request_withdrawal', {
+    p_amount: amount,
+    p_pix_key: pixKey,
+    p_document: document,
+  });
+  if (error) {
+    return json({ error: error.message + rpcHint(error.message) }, 400);
+  }
+  const wd = Array.isArray(wdRaw) ? wdRaw[0] : wdRaw;
+  if (!wd?.id) return json({ error: 'Falha ao criar saque' }, 500);
+
+  return sendCajuPayout(wd, { refundOnFail: true });
+}
+
+/** Dispara PIX de um saque já pendente (jogador dono ou admin). */
+async function createPayout(sb, user, body) {
+  const withdrawalId = String(body.withdrawal_id || '');
+  if (!withdrawalId) return json({ error: 'withdrawal_id obrigatório' }, 400);
+
+  const loaded = await loadPendingWithdrawal(sb, user, withdrawalId);
+  if (loaded.error) return loaded.error;
+
+  return sendCajuPayout(loaded.wd, { refundOnFail: false });
 }

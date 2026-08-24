@@ -41,9 +41,9 @@ export default function WithdrawalsScreen() {
   const markPaid = async (id: string) => {
     setBusyId(id);
     try {
-      await adminApi.adminMarkWithdrawalPaid(id);
+      const pay = await adminApi.adminPayWithdrawalPix(id);
       setKind('ok');
-      setMsg('Saque marcado como pago');
+      setMsg(pay?.status === 'paid' ? 'PIX pago automaticamente' : 'PIX enviado. Aguardando CajuPay.');
       await load();
     } catch (e: any) {
       setKind('err');
@@ -91,7 +91,7 @@ export default function WithdrawalsScreen() {
               {item.status === 'pending' ? (
                 <View style={styles.actions}>
                   <Btn
-                    label={busyId === item.id ? '...' : 'PAGO'}
+                    label={busyId === item.id ? '...' : 'PAGAR PIX'}
                     onPress={() => markPaid(item.id)}
                     disabled={busyId === item.id}
                   />

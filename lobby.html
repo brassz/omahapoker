@@ -238,7 +238,7 @@ body{margin:0;min-height:100vh}
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=9"></script>
-  <script src="js/auth.js?v=25"></script>
+  <script src="js/auth.js?v=26"></script>
   <script>
   const GAMES_ALL = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -589,26 +589,21 @@ body{margin:0;min-height:100vh}
     }
     btn.disabled = true;
     try {
-      const wd = await omahaAuth.requestWithdrawal(amount, pix, doc);
+      setWalletMsg('Enviando saque automático via PIX...', 'ok');
+      const pay = await omahaAuth.requestAutomaticWithdrawal({ amount, pixKey: pix, document: doc });
       document.getElementById('wdAmount').value = '';
       document.getElementById('wdPix').value = '';
       document.getElementById('wdDoc').value = '';
-      setWalletMsg('Enviando PIX automático...', 'ok');
-      try {
-        const pay = await omahaAuth.sendAutomaticPayout(wd.id);
-        resetWalletPanels();
-        if (pay?.status === 'paid') {
-          setWalletMsg('Saque pago automaticamente via PIX.', 'ok');
-        } else {
-          setWalletMsg('Saque enviado. O PIX cai na chave em instantes.', 'ok');
-        }
-      } catch (payErr) {
-        resetWalletPanels();
-        setWalletMsg(payErr?.message || 'Saque registrado, mas o PIX automático falhou. O admin pode concluir no painel.', 'err');
+      resetWalletPanels();
+      if (pay?.status === 'paid') {
+        setWalletMsg('Saque pago automaticamente via PIX.', 'ok');
+      } else {
+        setWalletMsg('Saque enviado. O PIX cai na chave em instantes.', 'ok');
       }
       await refreshWallet();
     } catch (err) {
-      setWalletMsg(err?.message || 'Falha ao solicitar saque. Rode o SQL withdrawals.sql no Supabase.', 'err');
+      setWalletMsg(err?.message || 'Falha no saque automático. Verifique a chave PIX e tente de novo.', 'err');
+      await refreshWallet();
     } finally {
       btn.disabled = false;
     }

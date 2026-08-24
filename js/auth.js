@@ -8,6 +8,19 @@
     },
   });
 
+  async function parseFunctionInvoke({ data, error }, fallbackMsg) {
+    if (data?.error) throw new Error(data.error);
+    if (!error) return data;
+    let msg = error.message || fallbackMsg;
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        const body = await error.context.json();
+        if (body?.error) msg = body.error;
+      }
+    } catch (_) {}
+    throw new Error(msg);
+  }
+
   window.omahaAuth = {
     client,
 
@@ -207,12 +220,10 @@
     },
 
     async adminCreateManager({ email, password, displayName, phone, percent }) {
-      const { data, error } = await client.functions.invoke('admin-managers', {
+      const result = await client.functions.invoke('admin-managers', {
         body: { email, password, displayName, phone, percent: Number(percent) || 0 },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      return parseFunctionInvoke(result, 'Falha ao criar gerente');
     },
 
     async managerMyCode() {
@@ -270,12 +281,10 @@
     },
 
     async managerCreateConsultant({ email, password, displayName, phone, percent }) {
-      const { data, error } = await client.functions.invoke('manager-consultants', {
+      const result = await client.functions.invoke('manager-consultants', {
         body: { email, password, displayName, phone, percent: Number(percent) },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
+      return parseFunctionInvoke(result, 'Falha ao criar consultor');
     },
 
     async consultantMyCode() {
@@ -520,7 +529,13 @@
 
     async listGameRtp() {
       const { data, error } = await client.rpc('list_game_rtp');
-      if (error) throw error;
+      if (error) {
+        const msg = error.message || '';
+        if (/could not find|schema cache|list_game_rtp|column .* does not exist/i.test(msg)) {
+          throw new Error(`${msg} — Rode supabase/fix-list-game-rtp.sql no SQL Editor do Supabase.`);
+        }
+        throw error;
+      }
       return data || [];
     },
 
@@ -555,6 +570,16 @@
       return data;
     },
 
+    /** Solicita saque e dispara PIX automático (CajuPay) na mesma chamada. */
+    async requestAutomaticWithdrawal({ amount, pixKey, document }) {
+      return this.invokeCajupay({
+        action: 'request-withdraw',
+        amount: Number(amount),
+        pix_key: String(pixKey || '').trim(),
+        document: String(document || '').replace(/\D/g, '') || null,
+      });
+    },
+
     async invokeCajupay(payload) {
       const { data, error } = await client.functions.invoke('cajupay', { body: payload });
       if (data?.error) throw new Error(data.error);
@@ -587,6 +612,10 @@
 
     async sendAutomaticPayout(withdrawalId) {
       return this.invokeCajupay({ action: 'payout', withdrawal_id: withdrawalId });
+    },
+
+    async adminPayWithdrawalPix(withdrawalId) {
+      return this.sendAutomaticPayout(withdrawalId);
     },
 
     async listMyDeposits() {

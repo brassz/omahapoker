@@ -214,6 +214,15 @@ export const adminApi = {
     return data;
   },
 
+  async adminPayWithdrawalPix(id: string) {
+    const { data, error } = await supabase.functions.invoke('cajupay', {
+      body: { action: 'payout', withdrawal_id: id },
+    });
+    if (data?.error) throw new Error(data.error);
+    if (error) throw new Error(error.message || 'Falha no PIX automático');
+    return data;
+  },
+
   async adminRejectWithdrawal(id: string, note?: string) {
     const { data, error } = await supabase.rpc('admin_reject_withdrawal', {
       p_id: id,
