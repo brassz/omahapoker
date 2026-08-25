@@ -179,7 +179,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <p>Aposta presa contra a banca: a cada vitória o valor <b>dobra e continua em jogo</b> até você encerrar ou perder.</p>
 <ul>
   <li><b>Aposta presa:</b> confirmou 100 → fica em jogo. Ganhou → vira 200 presa. Ganhou de novo → 400 presa…</li>
-  <li><b>Encerrar e sacar:</b> só fica disponível depois da primeira vitória na sequência (7/11 no come-out ou acertar o ponto).</li>
+  <li><b>Encerrar e sacar:</b> só fica disponível depois da primeira vitória na sequência (7/11 no come-out ou acertar o ponto) e após jogar os dados uma vez após essa vitória.</li>
   <li><b>Perdeu:</b> perde tudo o que estava preso naquela sequência.</li>
   <li>Come-out: 7 ou 11 ganha (dobra); 2, 3 ou 12 perde; outros totais abrem o ponto.</li>
   <li>No ponto: acertar o ponto antes do 7 dobra a aposta presa; 7 perde tudo.</li>
@@ -190,7 +190,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 <script>
 let playerBalance=0, round=0, point=null, phase="idle", rolling=false;
-let baseBet=0, pointBet=0, lineStake=0, hasWon=false;
+let baseBet=0, pointBet=0, lineStake=0, hasWon=false, afterWin=false;
 function setDie(el,n){el.dataset.face=String(Math.max(1,Math.min(6,n|0)))}
 const $=id=>document.getElementById(id);
 
@@ -218,7 +218,7 @@ function update(){
   $("pointTop").textContent=point ?? "—";
   $("roundTop").textContent=round;
   $("pointLabel").textContent="Ponto: "+(point ?? "nenhum");
-  const canCash = lineStake>0 && hasWon && !rolling && ["comeout","betting","pointPlay","canCash"].includes(phase);
+  const canCash = lineStake>0 && hasWon && !afterWin && !rolling && ["comeout","betting","pointPlay","canCash"].includes(phase);
   $("cashOut").disabled=!canCash;
   const el=document.querySelector("#clubGateBar .user .saldo");
   if(el) el.textContent=`Saldo: ${Number(total).toLocaleString("pt-BR")}`;
@@ -260,6 +260,7 @@ async function confirmBase(){
   baseBet=value;
   lineStake=value;
   hasWon=false;
+  afterWin=false;
   playerBalance-=lineStake;
   round++;
   phase="comeout";
@@ -350,6 +351,7 @@ function showResult(html){
 }
 function readyAfterLoss(){
   phase="finished";
+  afterWin=false;
   lineStake=0;
   pointBet=0;
   hasWon=false;
@@ -368,6 +370,7 @@ function readyAfterLoss(){
 }
 function startNewRound(){
   phase="idle";
+  afterWin=false;
   clearPointUi();
   lineStake=0;
   hasWon=false;
@@ -401,21 +404,21 @@ async function lockWin(total, reason){
   }
   pointBet=0;
   clearPointUi();
+  afterWin=true;
   phase="comeout";
   $("confirmSide").disabled=true;
   $("roll").disabled=false;
-  $("cashOut").disabled=false;
   $("newRound").disabled=true;
   $("baseBet").disabled=true;
   $("confirmBase").disabled=true;
   setSteps(2);
-  status(`${reason} Aposta dobrou: ${fmt(before)} → ${fmt(lineStake)} presa. Continue ou ENCERRAR E SACAR.`,"win");
-  showResult(`<strong>Vitória — aposta presa</strong><br>${reason}<br>${fmt(before)} → <b>${fmt(lineStake)}</b> em jogo.<br>Toque em <b>ENCERRAR E SACAR</b> para levar ao saldo, ou jogue de novo arriscando o dobro.`);
+  status(`${reason} Aposta dobrou: ${fmt(before)} → ${fmt(lineStake)} presa. Jogue os dados para continuar.`,"win");
+  showResult(`<strong>Vitória — aposta presa</strong><br>${reason}<br>${fmt(before)} → <b>${fmt(lineStake)}</b> em jogo.<br>Jogue de novo arriscando o dobro. Depois desta jogada, você poderá <b>ENCERRAR E SACAR</b>.`);
   log(`Sequência ${round}: saiu ${total}. Dobra ${fmt(before)} → ${fmt(lineStake)} presa.`);
   update();
 }
 async function cashOut(){
-  if(rolling || !(lineStake>0) || !hasWon) return;
+  if(rolling || afterWin || !(lineStake>0) || !hasWon) return;
   if(!["comeout","betting","pointPlay","canCash"].includes(phase)) return;
   // Se havia aposta no ponto pendente, devolve ao saldo (não jogou ainda o settle)
   if(pointBet>0){
@@ -425,6 +428,7 @@ async function cashOut(){
   const took=lineStake;
   playerBalance+=took;
   lineStake=0;
+  afterWin=false;
   clearPointUi();
   phase="finished";
   $("roll").disabled=true;
@@ -478,6 +482,7 @@ async function resolveLine(naturalWin,total,winMsg,loseMsg){
 }
 async function roll(){
   if(rolling||!["comeout","betting","pointPlay"].includes(phase))return;
+  afterWin=false;
   if(phase==="betting"){
     phase="pointPlay";
     $("confirmSide").disabled=true;
