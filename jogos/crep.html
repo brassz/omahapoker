@@ -397,6 +397,14 @@ function dicePair(total){
   if(!opts.length) return [1,1];
   return opts[Math.floor(Math.random()*opts.length)];
 }
+async function getCrepForce(){
+  try{
+    if(!window.clubHouse) return null;
+    return await clubHouse.nextOutcome('crep');
+  }catch(_){
+    return null;
+  }
+}
 async function applyHouse(naturalWin){
   return naturalWin;
 }
@@ -440,26 +448,35 @@ async function roll(){
   let d1=Math.floor(Math.random()*6)+1;
   let d2=Math.floor(Math.random()*6)+1;
   let total=d1+d2;
-  const comeout=phase==="comeout";
-  const resolving=comeout
-    ? (total===7||total===11||total===2||total===3||total===12)
-    : (total===point||total===7);
-  if(resolving){
-    let force=null;
-    try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
-    if(force==="bank"){
-      total=comeout ? [2,3,12][Math.floor(Math.random()*3)] : 7;
-    } else if(force==="player"){
-      total=comeout ? (Math.random()<0.5?7:11) : point;
+  const onComeout=phase==="comeout";
+
+  if(onComeout){
+    // Come-out: só resolve com 2,3,7,11,12. Manipulação usa ESSE formato.
+    const settling=[2,3,7,11,12].includes(total);
+    if(settling){
+      const force=await getCrepForce();
+      if(force==="player") total=Math.random()<0.5?7:11;
+      else if(force==="bank") total=[2,3,12][Math.floor(Math.random()*3)];
+      [d1,d2]=dicePair(total);
+      total=d1+d2;
     }
-    if(!comeout && (total===point || total===7)) {
-      /* ponto: só 7 ou o ponto encerram — ambos legais */
-    } else if(comeout && !(total===2||total===3||total===7||total===11||total===12)){
-      total=force==="player"?7:2;
+  }else{
+    // Fase do ponto: só resolve com o ponto ou 7. Nunca usa formato do come-out (11/2/3/12).
+    const p=Number(point);
+    const settling=(total===p || total===7);
+    if(settling && Number.isFinite(p) && p>=4 && p<=10 && p!==7){
+      const force=await getCrepForce();
+      if(force==="player") total=p;
+      else if(force==="bank") total=7;
+      // Trava de segurança: resultado forçado só pode ser ponto ou 7
+      if(force==="player" || force==="bank"){
+        if(total!==p && total!==7) total=force==="player"?p:7;
+      }
+      [d1,d2]=dicePair(total);
+      total=d1+d2;
     }
-    [d1,d2]=dicePair(total);
-    total=d1+d2;
   }
+
   animate(d1,d2,async()=>{
     $("sum").textContent="Soma: "+total;
     log(`Rodada ${round}: ${d1} + ${d2} = ${total}.`);
@@ -489,7 +506,7 @@ update();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=7"></script>
 <script src="../js/auth.js?v=18"></script>
-<script src="../js/house.js?v=3"></script>
+<script src="../js/house.js?v=4"></script>
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
