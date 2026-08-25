@@ -351,6 +351,7 @@ function readyAfterLoss(){
   phase="finished";
   lineStake=0;
   pointBet=0;
+  hasWonInSequence=false;
   $("baseBet").disabled=true;
   $("pointBet").disabled=true;
   $("confirmBase").disabled=true;
@@ -422,6 +423,7 @@ async function cashOut(){
   const took=lineStake;
   playerBalance+=took;
   lineStake=0;
+  hasWonInSequence=false;
   clearPointUi();
   phase="finished";
   $("roll").disabled=true;
