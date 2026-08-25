@@ -179,7 +179,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <p>Aposta presa contra a banca: a cada vitória o valor <b>dobra e continua em jogo</b> até você encerrar ou perder.</p>
 <ul>
   <li><b>Aposta presa:</b> confirmou 100 → fica em jogo. Ganhou → vira 200 presa. Ganhou de novo → 400 presa…</li>
-  <li><b>Encerrar e sacar:</b> a qualquer momento (entre jogadas) você pode sacar o valor preso para o saldo.</li>
+  <li><b>Encerrar e sacar:</b> só fica disponível depois da primeira vitória na sequência (7/11 no come-out ou acertar o ponto).</li>
   <li><b>Perdeu:</b> perde tudo o que estava preso naquela sequência.</li>
   <li>Come-out: 7 ou 11 ganha (dobra); 2, 3 ou 12 perde; outros totais abrem o ponto.</li>
   <li>No ponto: acertar o ponto antes do 7 dobra a aposta presa; 7 perde tudo.</li>
@@ -190,7 +190,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 <script>
 let playerBalance=0, round=0, point=null, phase="idle", rolling=false;
-let baseBet=0, pointBet=0, lineStake=0;
+let baseBet=0, pointBet=0, lineStake=0, hasWon=false;
 function setDie(el,n){el.dataset.face=String(Math.max(1,Math.min(6,n|0)))}
 const $=id=>document.getElementById(id);
 
@@ -218,7 +218,7 @@ function update(){
   $("pointTop").textContent=point ?? "—";
   $("roundTop").textContent=round;
   $("pointLabel").textContent="Ponto: "+(point ?? "nenhum");
-  const canCash = lineStake>0 && !rolling && ["comeout","betting","pointPlay","canCash"].includes(phase);
+  const canCash = lineStake>0 && hasWon && !rolling && ["comeout","betting","pointPlay","canCash"].includes(phase);
   $("cashOut").disabled=!canCash;
   const el=document.querySelector("#clubGateBar .user .saldo");
   if(el) el.textContent=`Saldo: ${Number(total).toLocaleString("pt-BR")}`;
@@ -259,6 +259,7 @@ async function confirmBase(){
 
   baseBet=value;
   lineStake=value;
+  hasWon=false;
   playerBalance-=lineStake;
   round++;
   phase="comeout";
@@ -267,7 +268,7 @@ async function confirmBase(){
   $("confirmBase").disabled=true;
   $("roll").disabled=false;
   $("newRound").disabled=true;
-  $("cashOut").disabled=false;
+  $("cashOut").disabled=true;
   $("result").style.display="none";
   $("tableCard").style.display="";
   $("preTableCard").style.display="none";
@@ -351,6 +352,7 @@ function readyAfterLoss(){
   phase="finished";
   lineStake=0;
   pointBet=0;
+  hasWon=false;
   $("baseBet").disabled=true;
   $("pointBet").disabled=true;
   $("confirmBase").disabled=true;
@@ -368,6 +370,7 @@ function startNewRound(){
   phase="idle";
   clearPointUi();
   lineStake=0;
+  hasWon=false;
   $("baseBet").disabled=false;
   $("confirmBase").disabled=false;
   $("confirmSide").disabled=true;
@@ -385,6 +388,7 @@ function startNewRound(){
 }
 /** Vitória: dobra a aposta presa e continua em jogo (não credita no saldo). */
 async function lockWin(total, reason){
+  hasWon=true;
   const before=lineStake;
   lineStake=before*2;
   const extraPoint=pointBet;
@@ -411,7 +415,7 @@ async function lockWin(total, reason){
   update();
 }
 async function cashOut(){
-  if(rolling || !(lineStake>0)) return;
+  if(rolling || !(lineStake>0) || !hasWon) return;
   if(!["comeout","betting","pointPlay","canCash"].includes(phase)) return;
   // Se havia aposta no ponto pendente, devolve ao saldo (não jogou ainda o settle)
   if(pointBet>0){
