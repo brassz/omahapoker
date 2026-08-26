@@ -37,8 +37,8 @@ where gr.game_id in ('maquininha', 'chuvadepremios', 'flyx', 'minas');
 insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
 select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
 from unnest(array[
-  'omaha','crep','bacatela','roleta',
-  'bacbo','ronda','caipira','21'
+  'omaha','crep','bolaquente','roleta',
+  'bacbo','ronda','caipira','21','trincacaipira'
 ]) as g(id)
 on conflict on constraint game_rtp_pkey do nothing;
 
@@ -61,8 +61,8 @@ begin
   insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
-    'omaha','crep','bacatela','roleta',
-    'bacbo','ronda','caipira','21'
+    'omaha','crep','bolaquente','roleta',
+    'bacbo','ronda','caipira','21','trincacaipira'
   ]) as g(id)
   on conflict on constraint game_rtp_pkey do nothing;
 
@@ -75,8 +75,8 @@ begin
     gr.player_win_counter
   from public.game_rtp as gr
   where gr.game_id = any(array[
-    'omaha','crep','bacatela','roleta',
-    'bacbo','ronda','caipira','21'
+    'omaha','crep','bolaquente','roleta',
+    'bacbo','ronda','caipira','21','trincacaipira'
   ])
   order by 1;
 end;

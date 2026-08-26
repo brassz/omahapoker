@@ -28,12 +28,13 @@ from (
   values
     ('omaha'),
     ('crep'),
-    ('bacatela'),
+    ('bolaquente'),
     ('roleta'),
     ('bacbo'),
     ('ronda'),
     ('caipira'),
-    ('21')
+    ('21'),
+    ('trincacaipira')
 ) as g(id)
 on conflict (game_id) do nothing;
 
@@ -47,14 +48,17 @@ declare
 begin
   key := lower(trim(coalesce(p_id, '')));
   key := regexp_replace(key, '\.html$', '');
-  if key in ('bagatela', 'bacatela') then
-    return 'bacatela';
+  if key in ('bagatela', 'bacatela', 'bolaquente') then
+    return 'bolaquente';
   end if;
-  if key in ('21_index', '21') then
+  if key in ('21_index', '21', '21caipira', '21-caipira') then
     return '21';
   end if;
   if key in ('flyx', 'ponto-maior', 'pontomaior', 'bacbo') then
     return 'bacbo';
+  end if;
+  if key in ('trinca', 'trinca-caipira', 'trincacaipira') then
+    return 'trincacaipira';
   end if;
   return key;
 end;
@@ -77,8 +81,8 @@ begin
   insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
-    'omaha','crep','bacatela','roleta',
-    'bacbo','ronda','caipira','21'
+    'omaha','crep','bolaquente','roleta',
+    'bacbo','ronda','caipira','21','trincacaipira'
   ]) as g(id)
   on conflict on constraint game_rtp_pkey do nothing;
 

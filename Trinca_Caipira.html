@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trinca Caipira - Jogador x Banca</title>
+<style>
+:root{
+  --panel:#1f2937;--panel2:#0f172a;--text:#fff;--muted:#cbd5e1;
+  --green:#22c55e;--gold:#f59e0b;--blue:#38bdf8;--border:#374151;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:linear-gradient(#0b1220,#111827);
+  color:var(--text);padding:10px;min-height:100vh
+}
+.app{max-width:720px;margin:auto}
+.brand{text-align:center}
+.brand h1{font-size:clamp(25px,6vw,38px);margin:0}
+.brand p{color:var(--muted);font-weight:700}
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:10px;margin:8px 0
+}
+.saldos,.placar{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px
+}
+.box{
+  background:var(--panel2);border-radius:11px;
+  padding:9px;text-align:center
+}
+.box small{display:block;color:var(--muted);margin-bottom:3px}
+.box strong{font-size:21px}
+.player strong{color:var(--green)}
+.bank strong{color:var(--gold)}
+label{display:block;font-weight:700;margin:8px 0 4px}
+input{
+  width:100%;padding:9px;border-radius:9px;
+  border:1px solid var(--border);background:var(--panel2);
+  color:white;font-size:16px
+}
+.dice{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin:10px 0
+}
+.die{
+  aspect-ratio:1;background:white;color:#111;border-radius:12px;
+  display:grid;place-items:center;font-size:clamp(38px,10vw,64px);
+  font-weight:900;user-select:none
+}
+.rolling{animation:shake .12s linear infinite alternate}
+@keyframes shake{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.result{
+  background:var(--panel2);border-radius:11px;
+  padding:9px;text-align:center;min-height:98px
+}
+.result strong{
+  display:block;font-size:clamp(20px,5vw,30px);margin-bottom:5px
+}
+.result span{color:var(--muted)}
+.buttons{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:7px;margin-top:8px
+}
+button{
+  border:0;border-radius:10px;padding:10px;font-size:14px;
+  font-weight:800;min-height:42px;cursor:pointer
+}
+.primary{background:var(--green);color:#052e16}
+.secondary{background:#334155;color:white}
+.wide{grid-column:1/-1;background:var(--gold);color:#3b2200}
+.rules{
+  display:none;background:var(--panel2);
+  border-radius:10px;padding:10px;margin-top:8px;line-height:1.55
+}
+.rules.show{display:block}
+.status{
+  text-align:center;color:var(--blue);
+  font-weight:700;min-height:18px;margin-top:6px
+}
+.history-item{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:6px 0;border-bottom:1px solid var(--border);
+  font-size:14px
+}
+.muted{color:var(--muted)}
+.footer{text-align:center;color:var(--muted);font-size:12px}
+
+.dice-card{
+  padding:4px;
+  background:transparent;
+  border:0;
+  margin:4px 0;
+}
+.dice-card .dice{
+  margin:0 auto 6px;
+  gap:6px;
+  max-width:330px;
+}
+.dice-card .die{
+  border-radius:10px;
+  font-size:clamp(34px,9vw,56px);
+}
+
+@media(max-width:600px){
+  .saldos,.placar,.buttons{grid-template-columns:1fr}
+  .wide{grid-column:auto}
+}
+</style>
+</head>
+<body>
+<main class="app">
+
+<section class="brand">
+  <h1>🎲 TRINCA CAIPIRA</h1>
+  <p>JOGADOR X BANCA • CRÉDITOS FICTÍCIOS</p>
+</section>
+
+<section class="card">
+  <div class="saldos">
+    <div class="box player">
+      <small>👤 SALDO DO JOGADOR</small>
+      <strong id="playerBalance">1000</strong>
+    </div>
+    <div class="box bank">
+      <small>🏦 SALDO DA BANCA</small>
+      <strong id="bankBalance">5000</strong>
+    </div>
+  </div>
+
+  <div style="margin-top:8px">
+    <label for="addCredits">Adicionar créditos fictícios ao jogador</label>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:7px">
+      <input id="addCredits" type="number" min="1" step="1" value="500">
+      <button class="secondary" id="addCreditsBtn" type="button">➕ ADICIONAR</button>
+    </div>
+  </div>
+
+  <label for="betAmount">Valor da rodada em créditos fictícios</label>
+  <input id="betAmount" type="number" min="1" step="1" value="100">
+
+  <div class="status">Apostando 100: Par 150 • Trinca 200 • Sequência 250.</div>
+
+  <div class="status" id="status">
+    Prêmios: Par 1,5x • Trinca 2x • Sequência 2,5x • Sem combinação = banca vence.
+  </div>
+</section>
+
+<section class="card dice-card">
+  <div class="dice">
+    <div class="die" id="d1">⚀</div>
+    <div class="die" id="d2">⚀</div>
+    <div class="die" id="d3">⚀</div>
+  </div>
+
+  <div class="result" aria-live="polite">
+    <strong id="resultTitle">Pronto para jogar</strong>
+    <span id="resultText">Informe o valor e clique em “Jogar Rodada”.</span>
+  </div>
+
+  <div class="buttons">
+    <button class="primary wide" id="playBtn">🎲 JOGAR RODADA</button>
+    <button class="secondary" id="newBtn">🔄 NOVA RODADA</button>
+    <button class="secondary" id="rulesBtn">📖 COMO JOGAR</button>
+  </div>
+
+  <div class="rules" id="rules">
+    <b>Como jogar</b>
+    <p>1. Se precisar, use <b>Adicionar Créditos</b> para aumentar o saldo fictício do jogador.</p>
+    <p>2. Informe o valor da rodada em créditos fictícios.</p>
+    <p>2. Clique em <b>Jogar Rodada</b>.</p>
+    <p>3. Os três dados são sorteados.</p>
+    <p>4. Se sair <b>Par</b>, o jogador recebe <b>1,5x</b> o valor apostado.</p>
+    <p>5. Se sair <b>Trinca</b>, o jogador recebe <b>2x</b> o valor apostado.</p>
+    <p>6. Se sair <b>Sequência</b>, o jogador recebe <b>2,5x</b> o valor apostado.</p>
+    <p>7. Se não sair nenhuma combinação, a banca vence e fica com a aposta.</p>
+    <p class="muted">Créditos fictícios, sem valor monetário.</p>
+  </div>
+</section>
+
+
+
+<section class="card">
+  <b>📜 Histórico das rodadas</b>
+  <div id="history">
+    <p id="emptyHistory" class="muted">Nenhuma rodada jogada ainda.</p>
+  </div>
+</section>
+
+<p class="footer">
+  Simulação com créditos fictícios, sem compra, saque ou valor monetário.
+</p>
+
+</main>
+
+<script>
+const diceChars=["⚀","⚁","⚂","⚃","⚄","⚅"];
+const diceEls=[
+  document.getElementById("d1"),
+  document.getElementById("d2"),
+  document.getElementById("d3")
+];
+
+const playerBalanceEl=document.getElementById("playerBalance");
+const bankBalanceEl=document.getElementById("bankBalance");
+const betAmountEl=document.getElementById("betAmount");
+const addCreditsEl=document.getElementById("addCredits");
+const addCreditsBtn=document.getElementById("addCreditsBtn");
+const playBtn=document.getElementById("playBtn");
+const newBtn=document.getElementById("newBtn");
+const rulesBtn=document.getElementById("rulesBtn");
+const rules=document.getElementById("rules");
+const resultTitle=document.getElementById("resultTitle");
+const resultText=document.getElementById("resultText");
+const history=document.getElementById("history");
+const status=document.getElementById("status");
+
+let playerBalance=1000;
+let bankBalance=5000;
+let playerWins=0;
+let bankWins=0;
+let rolling=false;
+
+function randDie(){
+  return Math.floor(Math.random()*6)+1;
+}
+
+function render(){
+  playerBalanceEl.textContent=playerBalance;
+  bankBalanceEl.textContent=bankBalance;
+}
+
+function addHistory(values,winner,amount){
+  const empty=document.getElementById("emptyHistory");
+  if(empty) empty.remove();
+
+  const row=document.createElement("div");
+  row.className="history-item";
+
+  const left=document.createElement("span");
+  left.textContent="🎲 "+values.join(" - ")+" • "+winner;
+
+  const right=document.createElement("strong");
+  right.textContent="+"+amount;
+
+  row.append(left,right);
+  history.prepend(row);
+}
+
+
+function isSequence(values){
+  const s=[...values].sort((a,b)=>a-b);
+  return s[1]===s[0]+1 && s[2]===s[1]+1;
+}
+
+function getCombination(values){
+  const [a,b,c]=values;
+  if(a===b && b===c) return "TRINCA";
+  if(isSequence(values)) return "SEQUÊNCIA";
+  if(a===b || a===c || b===c) return "PAR";
+  return "SEM COMBINAÇÃO";
+}
+
+function play(){
+  if(rolling) return;
+
+  const amount=Math.floor(Number(betAmountEl.value));
+
+  if(!Number.isFinite(amount)||amount<1){
+    status.textContent="Digite um valor válido.";
+    return;
+  }
+
+  if(amount>playerBalance){
+    status.textContent="Saldo fictício do jogador insuficiente.";
+    return;
+  }
+
+  if(amount>bankBalance){
+    status.textContent="Saldo fictício da banca insuficiente para esta rodada.";
+    return;
+  }
+
+  rolling=true;
+  playBtn.disabled=true;
+  betAmountEl.disabled=true;
+
+  diceEls.forEach(d=>d.classList.add("rolling"));
+  resultTitle.textContent="Sorteando...";
+  resultText.textContent="Aguarde o resultado da rodada.";
+  status.textContent="Rodada em andamento.";
+
+  let ticks=0;
+
+  const timer=setInterval(()=>{
+    diceEls.forEach(d=>d.textContent=diceChars[randDie()-1]);
+    ticks++;
+
+    if(ticks>=10){
+      clearInterval(timer);
+
+      const values=[randDie(),randDie(),randDie()];
+      diceEls.forEach((d,i)=>{
+        d.classList.remove("rolling");
+        d.textContent=diceChars[values[i]-1];
+      });
+
+      const combination=getCombination(values);
+      const playerWon=combination!=="SEM COMBINAÇÃO";
+
+      if(playerWon){
+        let multiplier=1.5;
+        if(combination==="TRINCA") multiplier=2;
+        if(combination==="SEQUÊNCIA") multiplier=2.5;
+
+        const payout=Math.floor(amount*multiplier);
+        const net=payout-amount;
+
+        if(net>bankBalance){
+          resultTitle.textContent="🏦 BANCA SEM SALDO";
+          resultText.textContent="A banca não possui créditos fictícios suficientes para pagar este prêmio.";
+          status.textContent="Escolha um valor menor para a rodada.";
+        }else{
+          playerBalance-=amount;
+          bankBalance+=amount;
+
+          playerBalance+=payout;
+          bankBalance-=payout;
+
+          playerWins++;
+
+          resultTitle.textContent="🎉 JOGADOR VENCEU";
+          resultText.textContent=
+            "Saiu "+combination+". Apostou "+amount+
+            " e recebeu "+payout+" créditos fictícios.";
+          status.textContent="Par = 1,5x • Trinca = 2x • Sequência = 2,5x.";
+          addHistory(values,"Jogador venceu • "+combination,payout);
+        }
+      }else{
+        playerBalance-=amount;
+        bankBalance+=amount;
+        bankWins++;
+
+        resultTitle.textContent="🏦 BANCA VENCEU";
+        resultText.textContent=
+          "Não saiu nenhuma combinação. A banca recebeu "+amount+" créditos fictícios.";
+        status.textContent="Sem combinação = vitória da banca.";
+        addHistory(values,"Banca venceu • Sem combinação",amount);
+      }
+
+      render();
+
+      rolling=false;
+      playBtn.disabled=false;
+      betAmountEl.disabled=false;
+    }
+  },100);
+}
+
+addCreditsBtn.addEventListener("click",()=>{
+  const credits=Math.floor(Number(addCreditsEl.value));
+  if(!Number.isFinite(credits)||credits<1){
+    status.textContent="Digite uma quantidade válida de créditos fictícios.";
+    return;
+  }
+  playerBalance+=credits;
+  render();
+  status.textContent=credits+" créditos fictícios adicionados ao jogador.";
+});
+
+playBtn.addEventListener("click",play);
+
+newBtn.addEventListener("click",()=>{
+  if(rolling) return;
+  diceEls.forEach(d=>d.textContent="⚀");
+  resultTitle.textContent="Nova rodada";
+  resultText.textContent="Informe o valor e jogue novamente.";
+  status.textContent="Pronto para uma nova rodada.";
+});
+
+rulesBtn.addEventListener("click",()=>{
+  rules.classList.toggle("show");
+  rulesBtn.textContent=rules.classList.contains("show")
+    ?"✖ FECHAR REGRAS"
+    :"📖 COMO JOGAR";
+});
+
+render();
+</script>
+</body>
+</html>

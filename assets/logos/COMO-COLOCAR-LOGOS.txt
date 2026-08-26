@@ -6,12 +6,16 @@ Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
   club.png       → logo geral do clube (topo do lobby e login)
   omaha.png      → logo do Omaha5 (lobby)
   crep.png       → logo do Crep
-  bacatela.png   → logo da Bacatela
+  bacatela.png   → (legado) use bolaquente.png
+  bolaquente.png → logo da Bola Quente
   roleta.png     → logo da Roleta
   flyx.png       → logo do FLYX
   bagatela.png   → (mesmo jogo) pode usar bacatela.png
   ronda.png      → logo da Ronda
   caipira.png    → logo do Caipira
+  21.png         → logo do 21 Caipira
+  trincacaipira.png → logo da Trinca Caipira
+  bacbo.png      → logo do Ponto Maior
 
 Tamanho sugerido:
   - club.png:    512x512 (ou 800x300 se for faixa horizontal)

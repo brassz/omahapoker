@@ -5,12 +5,13 @@ export const SUPABASE_ANON_KEY =
 export const GAME_IDS = [
   'omaha',
   'crep',
-  'bacatela',
+  'bolaquente',
   'roleta',
   'bacbo',
   'ronda',
   'caipira',
   '21',
+  'trincacaipira',
 ] as const;
 
 export const PROFIT_ALERT_THRESHOLD = 600;

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Trinca Caipira — CLUBEDEJOGOSCAIPIRA</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
+.app{max-width:720px;margin:auto}
+h1{text-align:center;margin:6px 0 4px;font-size:clamp(26px,7vw,42px)}
+.sub{text-align:center;margin-bottom:10px;font-weight:900}
+.panel{
+  background:#0a0614;border:2px solid #17c8ff;border-radius:16px;
+  padding:12px;margin-bottom:12px;box-shadow:0 0 14px #17c8ff55;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.saldos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{
+  background:#060912;border:1px solid #17c8ff66;border-radius:12px;
+  padding:10px;text-align:center
+}
+.box small{display:block;color:#8899aa;font-weight:800;margin-bottom:4px;font-size:11px}
+.box strong{font-size:24px;color:#ffd91a;text-shadow:0 0 10px #ffd91a}
+label{display:block;font-weight:800;margin:10px 0 4px;color:#d8e7ff;font-size:13px}
+input{
+  width:100%;padding:12px;border-radius:12px;border:1px solid #445;
+  background:#090614;color:#fff;font-size:16px;font-weight:800
+}
+.dice{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:340px;margin:12px auto}
+.die{
+  aspect-ratio:1;background:#fff;color:#111;border-radius:14px;
+  display:grid;place-items:center;font-size:clamp(36px,10vw,58px);
+  font-weight:900;box-shadow:0 6px 16px #0007;user-select:none
+}
+.rolling{animation:shake .12s linear infinite alternate}
+@keyframes shake{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.result{
+  background:#060912;border:1px solid #17c8ff44;border-radius:12px;
+  padding:12px;text-align:center;min-height:90px;margin-top:8px
+}
+.result strong{display:block;font-size:clamp(18px,5vw,28px);margin-bottom:6px;color:#fff}
+.result span{color:#b8c9e0;font-weight:700}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button{
+  border:0;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;color:#120018
+}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8;grid-column:1/-1}
+.secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
+.status{text-align:center;color:#7af0ff;font-weight:800;min-height:20px;margin-top:8px}
+.history-item{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:8px 0;border-bottom:1px solid #17c8ff33;font-size:13px;font-weight:700
+}
+.muted{color:#8899aa}
+.pay{color:#ffd91a;font-weight:900;text-align:center;margin:6px 0}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard h3{color:#ffd91a;margin:12px 0 4px}.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+@media(max-width:520px){.saldos{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1 class="club-rainbow">TRINCA CAIPIRA</h1>
+  <div class="sub">3 dados · Par · Trinca · Sequência</div>
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
+
+  <section class="panel">
+    <div class="saldos">
+      <div class="box">
+        <small>SALDO</small>
+        <strong id="playerBalance">0</strong>
+      </div>
+      <div class="box">
+        <small>APOSTA</small>
+        <strong id="betShow">10</strong>
+      </div>
+    </div>
+    <label for="betAmount">Valor da rodada (2 a 200)</label>
+    <input id="betAmount" type="number" min="2" max="200" step="1" value="10">
+    <div class="pay">Par 1,5× · Trinca 2× · Sequência 2,5× · Sem combinação = banca</div>
+    <div class="status" id="status">Defina a aposta e jogue.</div>
+  </section>
+
+  <section class="panel">
+    <div class="dice">
+      <div class="die" id="d1">⚀</div>
+      <div class="die" id="d2">⚀</div>
+      <div class="die" id="d3">⚀</div>
+    </div>
+    <div class="result">
+      <strong id="resultTitle">Pronto</strong>
+      <span id="resultText">Toque em JOGAR RODADA.</span>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="playBtn" type="button">🎲 JOGAR RODADA</button>
+      <button class="secondary" id="newBtn" type="button">🔄 LIMPAR</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <b>Histórico</b>
+    <div id="history"><p id="emptyHistory" class="muted">Nenhuma rodada ainda.</p></div>
+  </section>
+</main>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — TRINCA CAIPIRA</h2>
+<ul>
+  <li>Aposte de <b>2 a 200</b> e role 3 dados.</li>
+  <li><b>Par</b> (dois iguais): recebe <b>1,5×</b> a aposta.</li>
+  <li><b>Trinca</b> (três iguais): recebe <b>2×</b>.</li>
+  <li><b>Sequência</b> (ex.: 2-3-4): recebe <b>2,5×</b>.</li>
+  <li>Sem combinação: a banca leva a aposta.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script>
+const diceChars=['⚀','⚁','⚂','⚃','⚄','⚅'];
+const diceEls=[document.getElementById('d1'),document.getElementById('d2'),document.getElementById('d3')];
+const playerBalanceEl=document.getElementById('playerBalance');
+const betAmountEl=document.getElementById('betAmount');
+const betShow=document.getElementById('betShow');
+const playBtn=document.getElementById('playBtn');
+const newBtn=document.getElementById('newBtn');
+const resultTitle=document.getElementById('resultTitle');
+const resultText=document.getElementById('resultText');
+const history=document.getElementById('history');
+const status=document.getElementById('status');
+
+let playerBalance=0, rolling=false;
+
+function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
+async function persist(){
+  if(window.clubWallet){
+    await clubWallet.set(playerBalance);
+    playerBalance=Number(clubWallet.credits||playerBalance);
+  }
+  render();
+}
+function render(){
+  playerBalanceEl.textContent=fmt(playerBalance);
+  const v=Math.floor(Number(betAmountEl.value)||0);
+  betShow.textContent=fmt(v>0?v:0);
+}
+function addHistory(values,winner,amount){
+  const empty=document.getElementById('emptyHistory');
+  if(empty) empty.remove();
+  const row=document.createElement('div');
+  row.className='history-item';
+  row.innerHTML=`<span>🎲 ${values.join(' - ')} · ${winner}</span><strong>${amount}</strong>`;
+  history.prepend(row);
+}
+function isSequence(values){
+  const s=[...values].sort((a,b)=>a-b);
+  return s[1]===s[0]+1 && s[2]===s[1]+1;
+}
+function getCombination(values){
+  const [a,b,c]=values;
+  if(a===b&&b===c) return 'TRINCA';
+  if(isSequence(values)) return 'SEQUÊNCIA';
+  if(a===b||a===c||b===c) return 'PAR';
+  return 'SEM COMBINAÇÃO';
+}
+function randDie(){return Math.floor(Math.random()*6)+1}
+function forceCombo(kind){
+  if(kind==='TRINCA'){
+    const n=randDie(); return [n,n,n];
+  }
+  if(kind==='SEQUÊNCIA'){
+    const start=1+Math.floor(Math.random()*4);
+    const seq=[start,start+1,start+2];
+    for(let i=seq.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[seq[i],seq[j]]=[seq[j],seq[i]]}
+    return seq;
+  }
+  // PAR
+  const n=randDie();
+  let other=randDie();
+  while(other===n) other=randDie();
+  const vals=[n,n,other];
+  for(let i=vals.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[vals[i],vals[j]]=[vals[j],vals[i]]}
+  return vals;
+}
+function forceNoCombo(){
+  for(let tries=0;tries<40;tries++){
+    const v=[randDie(),randDie(),randDie()];
+    if(getCombination(v)==='SEM COMBINAÇÃO') return v;
+  }
+  return [1,3,5];
+}
+function multiplierOf(combo){
+  if(combo==='TRINCA') return 2;
+  if(combo==='SEQUÊNCIA') return 2.5;
+  if(combo==='PAR') return 1.5;
+  return 0;
+}
+
+async function play(){
+  if(rolling) return;
+  if(!window.clubWallet){status.textContent='Carregando carteira...';return}
+  const check=clubBets.validate(betAmountEl.value);
+  if(!check.ok){status.textContent=check.message;return}
+  const amount=check.value;
+  betAmountEl.value=amount;
+  if(amount>playerBalance){status.textContent='Saldo insuficiente.';return}
+
+  rolling=true;
+  playBtn.disabled=true;
+  betAmountEl.disabled=true;
+  diceEls.forEach(d=>d.classList.add('rolling'));
+  resultTitle.textContent='Sorteando...';
+  resultText.textContent='Aguarde.';
+  status.textContent='Rodada em andamento.';
+
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome('trincacaipira'):null; }catch(_){ force=null; }
+
+  let ticks=0;
+  const timer=setInterval(async ()=>{
+    diceEls.forEach(d=>d.textContent=diceChars[randDie()-1]);
+    ticks++;
+    if(ticks<10) return;
+    clearInterval(timer);
+
+    let values=[randDie(),randDie(),randDie()];
+    let combination=getCombination(values);
+
+    if(force==='bank'){
+      values=forceNoCombo();
+      combination='SEM COMBINAÇÃO';
+    } else if(force==='player'){
+      if(combination==='SEM COMBINAÇÃO'){
+        const kinds=['PAR','PAR','TRINCA','SEQUÊNCIA'];
+        const kind=kinds[Math.floor(Math.random()*kinds.length)];
+        values=forceCombo(kind);
+        combination=getCombination(values);
+      }
+    }
+
+    diceEls.forEach((d,i)=>{
+      d.classList.remove('rolling');
+      d.textContent=diceChars[values[i]-1];
+    });
+
+    playerBalance-=amount;
+    const mult=multiplierOf(combination);
+    if(mult>0){
+      const payout=Math.floor(amount*mult);
+      playerBalance+=payout;
+      resultTitle.textContent='🎉 VOCÊ VENCEU';
+      resultText.textContent=`Saiu ${combination}. Apostou ${fmt(amount)} e recebeu ${fmt(payout)}.`;
+      status.textContent='Par 1,5× · Trinca 2× · Sequência 2,5×.';
+      addHistory(values,combination,`+${fmt(payout)}`);
+    } else {
+      resultTitle.textContent='🏦 BANCA VENCEU';
+      resultText.textContent=`Sem combinação. Perdeu ${fmt(amount)}.`;
+      status.textContent='Sem combinação = vitória da banca.';
+      addHistory(values,'Sem combinação',`-${fmt(amount)}`);
+    }
+
+    await persist();
+    rolling=false;
+    playBtn.disabled=false;
+    betAmountEl.disabled=false;
+  },100);
+}
+
+betAmountEl.addEventListener('input',render);
+playBtn.addEventListener('click',()=>play());
+newBtn.addEventListener('click',()=>{
+  if(rolling) return;
+  diceEls.forEach(d=>d.textContent='⚀');
+  resultTitle.textContent='Nova rodada';
+  resultText.textContent='Defina a aposta e jogue.';
+  status.textContent='Pronto.';
+});
+render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=9"></script>
+<script src="../js/auth.js?v=26"></script>
+<script src="../js/house.js?v=4"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=15"></script>
+<script>
+window.clubWalletReady.then((w)=>{
+  if(!w||w.sealed) return;
+  playerBalance=Number(w.credits||0);
+  render();
+});
+const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};
+if(ch&&hm) ch.onclick=()=>{hm.style.display='none'};
+if(hm) hm.addEventListener('click',(e)=>{ if(e.target===hm) hm.style.display='none'; });
+</script>
+</body>
+</html>

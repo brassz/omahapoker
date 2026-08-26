@@ -12,4 +12,4 @@ window.CLUB_DEPOSIT = {
 };
 
 /* Jogos ocultos no lobby (remova o id para reativar) */
-window.CLUB_HIDDEN_GAMES = [];
+window.CLUB_HIDDEN_GAMES = ['trincacaipira'];

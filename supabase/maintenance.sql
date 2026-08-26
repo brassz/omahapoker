@@ -30,8 +30,8 @@ alter table public.game_settings
 -- Migra modo antigo (boolean = todos os jogos)
 update public.game_settings
 set maintenance_games = array[
-  'omaha', 'crep', 'bacatela', 'roleta',
-  'bacbo', 'ronda', 'caipira', '21'
+  'omaha', 'crep', 'bolaquente', 'roleta',
+  'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
 ]::text[]
 where maintenance = true
   and maintenance_games = '{}';
@@ -45,8 +45,8 @@ as $$
 declare
   row public.game_settings;
   allowed text[] := array[
-    'omaha', 'crep', 'bacatela', 'roleta',
-    'bacbo', 'ronda', 'caipira', '21'
+    'omaha', 'crep', 'bolaquente', 'roleta',
+    'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
   ];
   cleaned text[];
 begin
@@ -89,8 +89,8 @@ as $$
 begin
   if coalesce(p_on, false) then
     return public.admin_set_maintenance_games(array[
-      'omaha', 'crep', 'bacatela', 'roleta',
-      'bacbo', 'ronda', 'caipira', '21'
+      'omaha', 'crep', 'bolaquente', 'roleta',
+      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
     ]::text[]);
   end if;
   return public.admin_set_maintenance_games('{}'::text[]);

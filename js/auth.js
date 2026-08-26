@@ -334,14 +334,17 @@
       const map = {
         omaha: 'OMAHA5',
         crep: 'CREP',
-        bacatela: 'BACATELA',
-        bagatela: 'BACATELA',
+        bacatela: 'BOLA QUENTE',
+        bagatela: 'BOLA QUENTE',
+        bolaquente: 'BOLA QUENTE',
         roleta: 'ROLETA',
         flyx: 'PONTO MAIOR',
         bacbo: 'PONTO MAIOR',
         ronda: 'RONDA',
         caipira: 'CAIPIRA',
-        '21': '21',
+        '21': '21 CAIPIRA',
+        trincacaipira: 'TRINCA CAIPIRA',
+        trinca: 'TRINCA CAIPIRA',
       };
       const key = String(id || '').toLowerCase();
       return map[key] || (key ? key.toUpperCase() : '—');
@@ -438,14 +441,15 @@
     },
 
     GAME_IDS: [
-      'omaha', 'crep', 'bacatela', 'roleta',
-      'bacbo', 'ronda', 'caipira', '21',
+      'omaha', 'crep', 'bolaquente', 'roleta',
+      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira',
     ],
 
     normalizeGameId(id) {
       const key = String(id || '').toLowerCase().replace(/\.html$/, '');
-      if (key === 'bagatela' || key === 'bacatela') return 'bacatela';
-      if (key === '21_index') return '21';
+      if (key === 'bagatela' || key === 'bacatela' || key === 'bolaquente') return 'bolaquente';
+      if (key === '21_index' || key === '21caipira' || key === '21-caipira') return '21';
+      if (key === 'trinca' || key === 'trinca-caipira') return 'trincacaipira';
       if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
       return key;
     },

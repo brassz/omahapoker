@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>Caribbean Stud - Créditos Fictícios</title>
+<style>
+:root{--bg:#071c14;--panel:#0d2a1f;--gold:#e7c76d;--text:#f5f5ef;--muted:#b8c7be;--red:#d84b4b}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#174d36,#071c14 65%);color:var(--text);min-height:100vh}
+.app{max-width:760px;margin:0 auto;padding:12px}.top{background:linear-gradient(180deg,#183f31,#0b281e);border:1px solid rgba(231,199,109,.5);border-radius:16px;padding:12px;text-align:center;box-shadow:0 8px 24px #0006}
+h1{margin:0;color:var(--gold);font-size:24px}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.score div{background:#081b14;border-radius:10px;padding:8px}.score b{display:block;color:var(--gold);font-size:18px}.score span{font-size:11px;color:var(--muted)}
+.table{margin-top:12px;background:rgba(4,30,20,.75);border:2px solid #7a6632;border-radius:22px;padding:12px;box-shadow:inset 0 0 40px #0005,0 12px 30px #0006}
+.area{background:rgba(0,0,0,.13);border-radius:16px;padding:10px;margin:8px 0}.label{text-align:center;font-weight:700;color:var(--gold);letter-spacing:.7px;margin-bottom:8px}.handname{text-align:center;font-size:12px;color:#d7e4dc;min-height:16px;margin-top:6px}
+.cards{display:flex;justify-content:center;gap:6px;flex-wrap:nowrap}.card{width:58px;height:82px;background:#faf9f2;border-radius:7px;border:1px solid #ddd;box-shadow:0 4px 10px #0005;color:#111;position:relative;display:flex;align-items:center;justify-content:center;font-weight:700}.card.red{color:#b31f2b}.corner{position:absolute;top:4px;left:5px;font-size:14px;line-height:12px;text-align:center}.corner.bottom{top:auto;left:auto;right:5px;bottom:4px;transform:rotate(180deg)}.suit{font-size:28px}.back{background:repeating-linear-gradient(45deg,#173b71 0 6px,#244f92 6px 12px);border:3px solid #eee;color:transparent}.hidden{visibility:hidden}
+.betpanel{background:#081b14;border-radius:12px;padding:10px;margin-top:10px}.betrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}.betrow label{font-size:12px;font-weight:800;color:var(--gold)}.betrow input{width:100%;min-width:0;border:1px solid #6e7f76;background:#f7f5ec;color:#111;border-radius:10px;padding:10px 8px;font-size:16px;font-weight:800;text-align:center}.betrow button{border:0;border-radius:10px;padding:10px 8px;font-weight:800;background:#315c49;color:white}.betnote{text-align:center;color:var(--muted);font-size:11px;margin-top:6px}.message{text-align:center;min-height:44px;padding:9px 8px;background:#081b14;border-radius:12px;margin-top:10px;font-size:14px;display:flex;align-items:center;justify-content:center}.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.buttons button{border:0;border-radius:12px;padding:12px 8px;font-weight:800;font-size:14px;cursor:pointer}.primary{background:var(--gold);color:#201a08}.secondary{background:#2e6b50;color:white}.danger{background:#8e2d35;color:white}button:disabled{opacity:.45;cursor:not-allowed}.rules{font-size:12px;color:#cbd7d0;line-height:1.45;background:#081b14;border-radius:12px;padding:10px;margin-top:10px}.rules b{color:var(--gold)}
+@media(max-width:460px){.app{padding:8px}.card{width:50px;height:72px}.suit{font-size:24px}.corner{font-size:12px}.buttons button{font-size:12px;padding:11px 4px}h1{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <h1>CARIBBEAN STUD</h1>
+    <div class="sub">Jogador x Banca • Apostas com créditos fictícios • Sem valor monetário</div>
+    <div class="score">
+      <div><b id="playerCredits">1000</b><span>Créditos Jogador</span></div>
+      <div><b id="bankCredits">50000</b><span>Créditos Banca</span></div>
+      <div><b id="round">0</b><span>Rodadas</span></div>
+    </div>
+  </div>
+
+  <div class="table">
+    <div class="area">
+      <div class="label">BANCA</div>
+      <div id="bankCards" class="cards"></div>
+      <div id="bankHand" class="handname"></div>
+    </div>
+
+    <div class="betpanel">
+      <div class="betrow"><label for="bet">APOSTA</label><input id="bet" type="number" min="2" max="200" value="10" inputmode="numeric"><button id="addCredits" type="button">+ CRÉDITOS</button></div>
+      <div class="betnote">Aposta inicial: 2 a 200 créditos. Para disputar, a segunda aposta é automaticamente o dobro.</div>
+    </div>
+
+    <div class="message" id="message">Defina a aposta e toque em <b>&nbsp;NOVA RODADA&nbsp;</b>.</div>
+
+    <div class="area">
+      <div class="label">JOGADOR</div>
+      <div id="playerCards" class="cards"></div>
+      <div id="playerHand" class="handname"></div>
+    </div>
+
+    <div class="buttons">
+      <button id="newBtn" class="primary">NOVA RODADA</button>
+      <button id="continueBtn" class="secondary" disabled>DISPUTAR 2×</button>
+      <button id="foldBtn" class="danger" disabled>DESISTIR</button>
+    </div>
+
+    <div class="rules">
+      <b>Regras usadas:</b> o jogador faz uma aposta inicial de 2 a 200 créditos fictícios e recebe 5 cartas. A banca recebe 5 cartas, mas apenas 1 fica aberta. Para <b>DISPUTAR</b>, o jogador coloca uma segunda aposta de <b>2× a aposta inicial</b>. Se desistir, a banca fica com a primeira aposta. Se disputar, a banca revela as cartas e precisa de <b>Ás-Rei ou melhor</b> para se qualificar. Se não se qualificar, a segunda aposta é devolvida e a primeira paga 1×. Se a banca se qualificar, as mãos são comparadas. Pagamento sobre a segunda aposta: Par 1×, Dois Pares 2×, Trinca 3×, Sequência 4×, Flush 5×, Full House 7×, Quadra 20×, Straight Flush 30× e Royal Straight Flush 50×. A primeira aposta paga sempre 1× quando o jogador vence. Exemplo: primeira 50 + segunda 100 com Flush = <b>550 créditos</b>.
+    </div>
+  </div>
+</div>
+<script>
+const suits=['♠','♥','♦','♣']; const ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const rv={2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
+let player=[], bank=[], state='idle', playerCredits=1000,bankCredits=50000,round=0,currentBet=0,secondBet=0;
+const $=id=>document.getElementById(id);
+function deck(){let d=[]; for(const s of suits) for(const r of ranks) d.push({r,s}); return d.sort(()=>Math.random()-.5)}
+function cardEl(c,back=false){const d=document.createElement('div'); d.className='card'+((c&&['♥','♦'].includes(c.s))?' red':'')+(back?' back':''); if(!back){d.innerHTML=`<div class="corner">${c.r}<br>${c.s}</div><div class="suit">${c.s}</div><div class="corner bottom">${c.r}<br>${c.s}</div>`} return d}
+function render(reveal=false){$('playerCards').innerHTML=''; player.forEach(c=>$('playerCards').appendChild(cardEl(c))); $('bankCards').innerHTML=''; bank.forEach((c,i)=>$('bankCards').appendChild(cardEl(c,!reveal&&i>0))); $('playerHand').textContent=player.length?evalHand(player).name:''; $('bankHand').textContent=reveal&&bank.length?evalHand(bank).name:''}
+function evalHand(cards){let vals=cards.map(c=>rv[c.r]).sort((a,b)=>b-a); let counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1); let flush=cards.every(c=>c.s===cards[0].s); let uniq=[...new Set(vals)]; if(uniq.join(',')==='14,5,4,3,2') uniq=[5,4,3,2,1]; let straight=uniq.length===5&&uniq[0]-uniq[4]===4; let groups=Object.entries(counts).map(([v,n])=>({v:+v,n})).sort((a,b)=>b.n-a.n||b.v-a.v);
+ let rank,name,tie=[];
+ if(straight&&flush&&uniq[0]===14){rank=9;name='Royal Straight Flush';tie=[14]}
+ else if(straight&&flush){rank=8;name='Straight Flush';tie=[uniq[0]]}
+ else if(groups[0].n===4){rank=7;name='Quadra';tie=[groups[0].v,groups[1].v]}
+ else if(groups[0].n===3&&groups[1].n===2){rank=6;name='Full House';tie=[groups[0].v,groups[1].v]}
+ else if(flush){rank=5;name='Flush';tie=vals}
+ else if(straight){rank=4;name='Sequência';tie=[uniq[0]]}
+ else if(groups[0].n===3){rank=3;name='Trinca';tie=[groups[0].v,...groups.filter(g=>g.n===1).map(g=>g.v).sort((a,b)=>b-a)]}
+ else if(groups[0].n===2&&groups[1].n===2){rank=2;name='Dois Pares';let ps=[groups[0].v,groups[1].v].sort((a,b)=>b-a);tie=[...ps,groups.find(g=>g.n===1).v]}
+ else if(groups[0].n===2){rank=1;name='Par';tie=[groups[0].v,...groups.filter(g=>g.n===1).map(g=>g.v).sort((a,b)=>b-a)]}
+ else {rank=0;name='Carta Alta';tie=vals}
+ return{rank,name,tie}
+}
+function cmp(a,b){let A=evalHand(a),B=evalHand(b); if(A.rank!==B.rank)return A.rank>B.rank?1:-1; for(let i=0;i<Math.max(A.tie.length,B.tie.length);i++){let x=A.tie[i]||0,y=B.tie[i]||0;if(x!==y)return x>y?1:-1} return 0}
+function bankQualifies(){let h=evalHand(bank); if(h.rank>=1)return true; return h.tie[0]===14&&h.tie[1]>=13}
+function updatePanel(){ $('round').textContent=round; $('playerCredits').textContent=playerCredits; $('bankCredits').textContent=bankCredits }
+function payoutMultiplier(hand){
+  const map={
+    'Par':1,
+    'Dois Pares':2,
+    'Trinca':3,
+    'Sequência':4,
+    'Flush':5,
+    'Full House':7,
+    'Quadra':20,
+    'Straight Flush':30,
+    'Royal Straight Flush':50
+  };
+  return map[hand.name]||1;
+}
+function finishRound(){
+  round++;
+  updatePanel();
+  $('continueBtn').disabled=true;
+  $('foldBtn').disabled=true;
+  $('newBtn').disabled=false;
+}
+$('newBtn').onclick=()=>{
+  let v=Math.floor(Number($('bet').value));
+  if(!Number.isFinite(v)||v<2||v>200){$('message').textContent='Digite uma aposta entre 2 e 200 créditos fictícios.';return}
+  if(v>playerCredits){$('message').textContent='Créditos fictícios insuficientes para a primeira aposta.';return}
+  currentBet=v;
+  secondBet=v*2;
+  playerCredits-=currentBet;
+  bankCredits+=currentBet;
+  updatePanel();
+  let d=deck(); player=d.splice(0,5); bank=d.splice(0,5); state='decision'; render(false);
+  $('message').innerHTML='Primeira aposta: <b>&nbsp;'+currentBet+'</b>. Para disputar, a segunda aposta será de <b>&nbsp;'+secondBet+' créditos</b>.';
+  $('continueBtn').disabled=false; $('foldBtn').disabled=false; $('newBtn').disabled=true; $('bankHand').textContent='';
+}
+$('continueBtn').onclick=()=>{
+  if(state!=='decision')return;
+  if(secondBet>playerCredits){$('message').innerHTML='Você precisa de <b>&nbsp;'+secondBet+' créditos</b> para fazer a segunda aposta e disputar.';return}
+  state='done';
+  playerCredits-=secondBet;
+  bankCredits+=secondBet;
+  updatePanel();
+  render(true);
+  const q=bankQualifies();
+  if(!q){
+    // Regra padrão do Caribbean Stud: Raise devolvido e Ante paga 1×.
+    playerCredits+=secondBet; bankCredits-=secondBet;
+    const anteReturn=currentBet*2; // devolução do ante + ganho 1x
+    playerCredits+=anteReturn; bankCredits-=anteReturn;
+    $('message').innerHTML='Banca não se qualificou. Segunda aposta devolvida e primeira aposta paga 1×. Recebimento: <b>&nbsp;'+(secondBet+anteReturn)+' créditos</b>.';
+    finishRound(); return;
+  }
+  const r=cmp(player,bank);
+  if(r>0){
+    const h=evalHand(player);
+    const mult=payoutMultiplier(h);
+    const prize=currentBet+(secondBet*mult);
+    playerCredits+=prize;
+    bankCredits-=prize;
+    $('message').innerHTML='Jogador venceu com <b>&nbsp;'+h.name+'</b>. Pagamento: '+currentBet+' + ('+secondBet+' × '+mult+') = <b>&nbsp;'+prize+' créditos fictícios</b>.';
+  } else if(r<0){
+    $('message').innerHTML='Banca qualificou e venceu. A banca fica com a primeira e a segunda aposta: <b>&nbsp;'+(currentBet+secondBet)+' créditos</b>.';
+  } else {
+    playerCredits+=currentBet+secondBet;
+    bankCredits-=currentBet+secondBet;
+    $('message').innerHTML='Empate. As duas apostas foram devolvidas: <b>&nbsp;'+(currentBet+secondBet)+' créditos</b>.';
+  }
+  finishRound();
+}
+$('foldBtn').onclick=()=>{
+  if(state!=='decision')return;
+  state='done'; render(true);
+  $('message').innerHTML='Jogador desistiu. A banca fica com a primeira aposta de <b>&nbsp;'+currentBet+' créditos</b>.';
+  finishRound();
+}
+$('addCredits').onclick=()=>{playerCredits+=500;bankCredits+=5000;updatePanel();$('message').textContent='500 créditos adicionados ao Jogador e 5.000 à Banca para simulação.';}
+updatePanel();
+render(false);
+</script>
+</body>
+</html>

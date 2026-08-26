@@ -170,7 +170,7 @@
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
         const gameId = typeof omahaAuth.normalizeGameId === 'function'
           ? omahaAuth.normalizeGameId(file)
-          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : (file === 'bacatela' || file === 'bagatela' || file === 'bolaquente' ? 'bolaquente'
             : file === '21_index' ? '21'
             : file);
         if (omahaAuth.isGameHidden(file)) {
@@ -204,7 +204,7 @@
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
         const gameId = typeof omahaAuth.normalizeGameId === 'function'
           ? omahaAuth.normalizeGameId(file)
-          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : (file === 'bacatela' || file === 'bagatela' || file === 'bolaquente' ? 'bolaquente'
             : file === '21_index' ? '21'
             : file);
         omahaAuth.startMaintenanceWatch({ gameId, lobbyUrl: '../lobby.html', intervalMs: 8000 });
@@ -213,7 +213,7 @@
         const file = (location.pathname.split('/').pop() || '').replace(/\.html$/i, '').toLowerCase();
         const game = typeof omahaAuth.normalizeGameId === 'function'
           ? omahaAuth.normalizeGameId(file)
-          : (file === 'bacatela' || file === 'bagatela' ? 'bacatela'
+          : (file === 'bacatela' || file === 'bagatela' || file === 'bolaquente' ? 'bolaquente'
             : file === '21_index' ? '21'
             : file);
         omahaAuth.startPresence(game);

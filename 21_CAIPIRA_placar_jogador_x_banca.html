@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21 Caipira — Simulador por Pontos</title>
+<style>
+:root{--bg:#07150c;--panel:#0e2a18;--gold:#e7b84a;--text:#f7f3df;--muted:#b7c9bb;--red:#df5b5b}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,Arial;background:radial-gradient(circle at top,#174a2a,#061109 62%);color:var(--text);min-height:100vh}
+.wrap{max-width:900px;margin:auto;padding:10px}.title{text-align:center;font-weight:900;font-size:clamp(28px,6vw,52px);color:var(--gold);letter-spacing:2px}
+.sub{text-align:center;color:var(--muted);margin-bottom:16px}.grid{display:grid;grid-template-columns:1fr;gap:8px}
+.panel{background:rgba(9,29,16,.92);border:1px solid #2e6b41;border-radius:12px;padding:9px;box-shadow:0 6px 18px #0005}
+.row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.between{justify-content:space-between}
+.cards{display:flex;gap:4px;flex-wrap:wrap;min-height:56px;margin:4px 0}.card{width:40px;height:56px;border-radius:7px;background:#fff;color:#151515;display:flex;flex-direction:column;justify-content:space-between;padding:5px;font-weight:900;box-shadow:0 5px 14px #0006}
+.card.red{color:#b71625}.card.back{background:repeating-linear-gradient(45deg,#153c23,#153c23 8px,#e7b84a 8px,#e7b84a 12px);color:transparent;border:3px solid #fff}
+.hand{border:1px dashed #43885a;border-radius:8px;padding:5px;margin-top:5px}.active{outline:2px solid var(--gold)}
+button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;background:#e7b84a;color:#142015;cursor:pointer}
+button.secondary{background:#215f37;color:white}button.danger{background:#8d2d2d;color:white}button:disabled{opacity:.4;cursor:not-allowed}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}.side{background:#0a2012;border:1px solid #2e6b41;border-radius:10px;padding:10px;text-align:center}.side h3{font-size:18px;color:var(--gold);margin:0 0 6px}.scoreline{font-size:13px;color:var(--muted);margin:3px 0}.scoreline b{color:var(--text);font-size:20px;margin-left:4px}.versus{align-self:center;font-weight:900;color:var(--gold);font-size:18px}.credit-add{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}.credit-add input{width:105px;padding:9px;border-radius:9px;border:1px solid #43885a;background:#fff;color:#111;font-size:16px}.credit-add button{padding:9px 11px}@media(max-width:520px){.scoreboard{grid-template-columns:1fr}.versus{text-align:center}.credit-add input{flex:1;min-width:120px}}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#214f32;color:#e9ffd8;font-weight:700;font-size:13px;margin:3px}
+.msg{padding:9px;border-radius:9px;background:#143821;min-height:48px}.tiny{font-size:12px;color:var(--muted)}
+h2,h3{margin:2px 0 5px;font-size:16px}.rules{line-height:1.5;color:#d9e8dc}
+@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">21 CAIPIRA</div>
+  <div class="sub">Simulador recreativo por pontos — sem dinheiro, apostas ou valor monetário</div>
+
+  <div class="grid two">
+    <div class="panel">
+      <div class="scoreboard">
+        <div class="side">
+          <h3>JOGADOR</h3>
+          <div class="scoreline">Pontos: <b id="playerScore">0</b></div>
+          <div class="scoreline">Créditos: <b id="playerCredits">1000</b></div>
+          <div class="credit-add">
+            <input id="addCreditValue" type="number" inputmode="numeric" min="1" step="1" value="100" aria-label="Créditos fictícios para adicionar">
+            <button class="secondary" id="addCreditBtn">+ Créditos</button>
+          </div>
+        </div>
+        <div class="versus">×</div>
+        <div class="side">
+          <h3>BANCA</h3>
+          <div class="scoreline">Pontos: <b id="dealerScore">0</b></div>
+          <div class="scoreline">Créditos: <b id="dealerCredits">1000</b></div>
+          <div class="scoreline">Rodadas: <b id="rounds">0</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Conquistas da rodada</h3>
+      <div id="badges"><span class="tiny">Nenhuma ainda.</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Banca</h2>
+    <div class="cards" id="dealerCards"></div>
+    <div>Total: <b id="dealerTotal">?</b></div>
+  </div>
+
+  <div class="panel">
+    <div class="row between"><h2>Jogador</h2><span id="handIndicator"></span></div>
+    <div id="hands"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="margin-bottom:7px">
+      <label for="challengeValue" style="font-weight:800">Valor do desafio:</label>
+      <input id="challengeValue" type="number" inputmode="numeric" min="2" max="200" step="1" value="2"
+        style="width:92px;padding:10px;border-radius:10px;border:1px solid #43885a;font-size:16px"
+        aria-label="Valor do desafio de 2 a 200 pontos">
+      <button class="secondary" id="challengeBtn">Definir desafio</button>
+      <span id="challengeStatus" class="badge">Desafio: 2 pontos</span>
+    </div>
+    <div class="row">
+      <button id="newBtn">Nova rodada</button>
+      <button class="secondary" id="hitBtn">Pedir carta</button>
+      <button class="secondary" id="standBtn">Parar</button>
+      <button class="secondary" id="doubleBtn">Double</button>
+      <button class="secondary" id="splitBtn">eSplit</button>
+      <button class="secondary" id="nextHandBtn">Próxima mão</button>
+      <button class="danger" id="resetBtn">Zerar placar</button>
+    </div>
+    <div class="msg" id="msg">Clique em “Nova rodada”.</div>
+  </div>
+
+  <div class="panel rules">
+    <h3>Regras desta versão</h3>
+    <div>• Sempre que as 2 cartas da mão ativa tiverem o mesmo valor de pontos, o botão eSplit é liberado. Exemplo: duas cartas de valor 10 totalizam 20 pontos e permitem eSplit. Para essa regra, 10, J, Q e K têm valor 10. O jogador escolhe se prefere usar eSplit ou continuar a mão normalmente.</div>
+    <div>• Double só fica disponível quando as 2 cartas iniciais do jogador somam exatamente 8, 9, 10 ou 11 pontos. Ao usar, o jogador recebe mais uma carta e a mão é encerrada.</div>
+    <div>• Ao dividir AA, cada nova mão recebe somente uma carta automática e fica encerrada.</div>
+    <div>• O jogador define o valor do desafio em pontos fictícios e joga sua mão normalmente.</div>
+    <div>• No final da rodada, a banca revela as cartas. Se tiver Ás + 10, J, Q ou K nas duas cartas iniciais, forma 21 legítimo e vence automaticamente.</div>
+    <div>• Se o jogador tiver 21 natural, o resultado só é confirmado depois da conferência final da banca.</div>
+    <div>• A banca compra até 16 e para em 17 ou mais. Para aumentar a dificuldade, empate favorece a banca.</div>
+    <div>• “Perfect Pair” virou conquista: mesmo valor e mesmo naipe. Par da mesma cor e par misto também recebem medalhas, sem pagamentos.</div>
+    <div>• O jogador pode digitar no teclado um valor de 2 a 200 pontos para definir quanto vale cada mão. O vencedor recebe esses pontos; o outro lado não perde créditos.</div>
+    <div>• Painel Jogador X Banca começa com 1.000 créditos fictícios para cada lado. Os créditos servem apenas como placar recreativo.</div>
+    <div>• Não há ante, aposta, saque, prêmio em dinheiro ou conversão de créditos/pontos.</div>
+  </div>
+</div>
+
+<script>
+const suits=[['♠','black'],['♣','black'],['♥','red'],['♦','red']];
+const ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let deck=[], hands=[], active=0, dealer=[], roundOver=true, reveal=false;
+let score={p:0,d:0,r:0};
+let credits={p:1000,d:1000};
+let challengePoints=2;
+
+function makeDeck(){
+  deck=[];
+  // 6 baralhos para permitir pares idênticos de naipe.
+  for(let d=0;d<6;d++) for(const [s,c] of suits) for(const r of ranks) deck.push({r,s,c});
+  for(let i=deck.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+}
+function draw(){if(deck.length<30)makeDeck();return deck.pop()}
+function value(cards){
+  let t=0,a=0;
+  for(const c of cards){if(c.r==='A'){t+=11;a++} else if(['J','Q','K'].includes(c.r))t+=10; else t+=+c.r}
+  while(t>21&&a){t-=10;a--}
+  return t;
+}
+function pairType(cards){
+  if(cards.length!==2||cards[0].r!==cards[1].r)return null;
+  if(cards[0].s===cards[1].s)return 'Perfect Pair';
+  if(cards[0].c===cards[1].c)return 'Par da mesma cor';
+  return 'Par misto';
+}
+
+function isNatural21(cards){
+  if(cards.length!==2)return false;
+  const ranks21=cards.map(c=>c.r);
+  const hasAce=ranks21.includes('A');
+  const hasTenValue=ranks21.some(r=>['10','J','Q','K'].includes(r));
+  return hasAce && hasTenValue;
+}
+
+function splitCardValue(card){
+  if(['10','J','Q','K'].includes(card.r)) return 10;
+  if(card.r==='A') return 11;
+  return Number(card.r);
+}
+function canESplit(cards){
+  return cards.length===2 && splitCardValue(cards[0])===splitCardValue(cards[1]);
+}
+function cardHTML(c, hidden=false){
+  if(hidden)return `<div class="card back">?</div>`;
+  return `<div class="card ${c.c==='red'?'red':''}"><span>${c.r}</span><span style="font-size:20px">${c.s}</span></div>`;
+}
+function msg(t){document.getElementById('msg').textContent=t}
+function addBadge(t){
+  const el=document.getElementById('badges');
+  if(el.querySelector('.tiny'))el.innerHTML='';
+  el.innerHTML+=`<span class="badge">${t}</span>`;
+}
+function render(){
+  document.getElementById('playerScore').textContent=score.p;
+  document.getElementById('dealerScore').textContent=score.d;
+  document.getElementById('rounds').textContent=score.r;
+  document.getElementById('playerCredits').textContent=credits.p;
+  document.getElementById('dealerCredits').textContent=credits.d;
+  document.getElementById('dealerCards').innerHTML=dealer.map((c,i)=>cardHTML(c,!reveal&&i===1)).join('');
+  document.getElementById('dealerTotal').textContent=reveal?value(dealer):'?';
+  let out='';
+  hands.forEach((h,i)=>{
+    out+=`<div class="hand ${i===active&&!roundOver?'active':''}">
+      <b>Mão ${i+1}</b> ${h.done?'— encerrada':''}
+      <div class="cards">${h.cards.map(c=>cardHTML(c)).join('')}</div>
+      <div>Total: <b>${value(h.cards)}</b></div>
+    </div>`;
+  });
+  document.getElementById('hands').innerHTML=out||'<span class="tiny">Sem cartas.</span>';
+  document.getElementById('handIndicator').textContent=hands.length?`Mão ${active+1} de ${hands.length}`:'';
+  const h=hands[active];
+  const canPlay=!roundOver&&h&&!h.done;
+  document.getElementById('hitBtn').disabled=!canPlay;
+  document.getElementById('standBtn').disabled=!canPlay;
+  const doubleAllowed=canPlay && h.cards.length===2 && [8,9,10,11].includes(value(h.cards));
+  document.getElementById('doubleBtn').disabled=!doubleAllowed;
+  const splitAllowed=canPlay && canESplit(h.cards);
+  document.getElementById('splitBtn').disabled=!splitAllowed;
+  document.getElementById('nextHandBtn').disabled=roundOver||!hands.some((x,i)=>i!==active&&!x.done);
+}
+function newRound(){
+  makeDeck(); dealer=[draw(),draw()]; hands=[{cards:[draw(),draw()],done:false}]; active=0; roundOver=false; reveal=false; score.r++;
+  document.getElementById('badges').innerHTML='<span class="tiny">Nenhuma ainda.</span>';
+  const pt=pairType(hands[0].cards); if(pt)addBadge(pt);
+
+  if(isNatural21(hands[0].cards)){
+    hands[0].done=true;
+    addBadge('21 Natural');
+    msg('21 natural do jogador. A banca será conferida no final da rodada.');
+    advance();
+    render();
+    return;
+  }
+
+  msg('Sua vez. Você pode pedir, parar, Double ou usar eSplit quando as duas cartas tiverem o mesmo valor de pontos.');
+  render();
+}
+function hit(){
+  let h=hands[active]; h.cards.push(draw());
+  if(value(h.cards)>21){h.done=true;msg('Mão passou de 21.');advance()}
+  render();
+}
+function stand(){hands[active].done=true;msg('Mão encerrada.');advance();render()}
+function doubleAction(){
+  let h=hands[active];
+  if(!h || h.cards.length!==2 || ![8,9,10,11].includes(value(h.cards))){
+    msg('Double disponível somente com total inicial de 8, 9, 10 ou 11 pontos.');
+    render();
+    return;
+  }
+  h.cards.push(draw()); h.done=true;
+  addBadge('Double');
+  msg('Double realizado: uma carta recebida e a mão foi encerrada.');
+  advance(); render();
+}
+function split(){
+  let h=hands[active];
+  if(!h || h.done || !canESplit(h.cards)){
+    msg('eSplit disponível quando as duas cartas tiverem o mesmo valor de pontos.');
+    render();
+    return;
+  }
+  const isAA=h.cards[0].r==='A';
+  const a={cards:[h.cards[0],draw()],done:isAA};
+  const b={cards:[h.cards[1],draw()],done:isAA};
+  hands.splice(active,1,a,b); addBadge(isAA?'eSplit AA':'eSplit');
+  const pa=pairType(a.cards), pb=pairType(b.cards); if(pa)addBadge(pa); if(pb)addBadge(pb);
+  if(isAA){msg('AA dividido: cada mão recebeu uma carta no escuro e foi encerrada.');advance()}
+  else msg('eSplit realizado. Se surgir novamente duas cartas do mesmo valor, você pode usar eSplit outra vez.');
+  render();
+}
+function advance(){
+  const nxt=hands.findIndex((h,i)=>i>active&&!h.done);
+  if(nxt>=0){active=nxt;return}
+  const any=hands.findIndex(h=>!h.done);
+  if(any>=0){active=any;return}
+  dealerTurn();
+}
+function nextHand(){
+  const idx=hands.findIndex((h,i)=>i!==active&&!h.done);if(idx>=0){active=idx;msg('Outra mão selecionada.');render()}
+}
+function dealerTurn(){
+  reveal=true;
+  if(!isNatural21(dealer)){
+    while(value(dealer)<17)dealer.push(draw());
+  }
+  settle();
+}
+function settle(){
+  roundOver=true;
+  const dt=value(dealer);
+  let pWins=0,dWins=0;
+
+  if(isNatural21(dealer)){
+    dWins=hands.length;
+    addBadge('21 Legítimo da Banca');
+    msg('Final da rodada: a banca revelou Ás + carta de valor 10 e venceu automaticamente todas as mãos.');
+  } else {
+    for(const h of hands){
+      const pt=value(h.cards);
+      if(pt<=21 && (dt>21 || pt>dt))pWins++; else dWins++; // empate banca
+    }
+  }
+
+  score.p+=pWins*challengePoints; score.d+=dWins*challengePoints;
+  credits.p+=pWins*challengePoints; credits.d+=dWins*challengePoints;
+
+  if(!isNatural21(dealer)){
+    if(pWins>dWins)msg(`Rodada do jogador: ${pWins} mão(ões) vencida(s) contra ${dWins}.`);
+    else if(dWins>pWins)msg(`Rodada da banca: ${dWins} mão(ões) vencida(s) contra ${pWins}.`);
+    else msg(`Rodada equilibrada: ${pWins} a ${dWins}.`);
+  }
+  render();
+}
+
+document.getElementById('challengeBtn').onclick=()=>{
+  const input=document.getElementById('challengeValue');
+  let v=parseInt(input.value,10);
+  if(!Number.isFinite(v)) v=2;
+  v=Math.max(2,Math.min(200,v));
+  input.value=v;
+  challengePoints=v;
+  document.getElementById('challengeStatus').textContent=`Desafio: ${challengePoints} pontos`;
+  msg(`Desafio definido: cada mão vencida vale ${challengePoints} pontos.`);
+};
+
+
+document.getElementById('addCreditBtn').onclick=()=>{
+  const input=document.getElementById('addCreditValue');
+  let v=parseInt(input.value,10);
+  if(!Number.isFinite(v) || v<1){
+    msg('Digite um valor válido de créditos fictícios.');
+    return;
+  }
+  v=Math.min(v,1000000);
+  input.value=v;
+  credits.p+=v;
+  msg(`${v} créditos fictícios adicionados ao jogador.`);
+  render();
+};
+
+document.getElementById('newBtn').onclick=newRound;
+document.getElementById('hitBtn').onclick=hit;
+document.getElementById('standBtn').onclick=stand;
+document.getElementById('doubleBtn').onclick=doubleAction;
+document.getElementById('splitBtn').onclick=split;
+document.getElementById('nextHandBtn').onclick=nextHand;
+document.getElementById('resetBtn').onclick=()=>{score={p:0,d:0,r:0};credits={p:1000,d:1000};roundOver=true;hands=[];dealer=[];reveal=false;msg('Placar zerado.');render()};
+render();
+</script>
+</body></html>
