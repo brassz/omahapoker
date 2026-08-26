@@ -27,13 +27,14 @@ h1{margin:0;font-size:clamp(22px,5vw,36px)}
   border-radius:18px;padding:12px;box-shadow:0 0 14px #17c8ff44;
 }
 .machine{
-  position:relative;min-height:390px;border-radius:20px;overflow:hidden;
+  position:relative;width:100%;aspect-ratio:1;max-height:min(92vw,520px);
+  margin:0 auto;border-radius:50%;overflow:hidden;
   background:
-    radial-gradient(circle at 50% 48%,#1a0a2e 0%,#0a0614 45%,#050308 100%);
+    radial-gradient(circle at 50% 50%,#1a0a2e 0%,#0a0614 45%,#050308 100%);
   border:3px solid #ff4fd8;box-shadow:inset 0 0 40px #000b,0 0 20px #ff4fd855;
 }
 .machine:before{
-  content:"";position:absolute;inset:0;pointer-events:none;
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:50%;
   background:repeating-radial-gradient(circle at center,transparent 0 24px,#17c8ff12 25px 27px);
 }
 .center{
@@ -101,12 +102,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
 @media(max-width:760px){
   .controls{grid-template-columns:1fr}
-  .machine{min-height:340px}
+  .machine{max-height:min(92vw,420px)}
   .ball{width:44px;height:44px;font-size:14px}
   .prizes{grid-template-columns:1fr}
 }
 @media(max-width:420px){
-  .machine{min-height:300px}
+  .machine{max-height:min(94vw,360px)}
   .ball{width:36px;height:36px;font-size:12px}
   h1{font-size:20px}
 }
@@ -227,15 +228,16 @@ function ballStyle(i){
 function positionBalls(){
   const rect=machine.getBoundingClientRect();
   const cx=rect.width/2, cy=rect.height/2;
-  ballNodes.forEach((b)=>{
-    const bw=b.offsetWidth, bh=b.offsetHeight;
-    const margin=8;
-    const rx=Math.max(0, Math.min(rect.width*0.39, cx-bw/2-margin));
-    const ry=Math.max(0, Math.min(rect.height*0.39, cy-bh/2-margin));
-    const i=Number(b.dataset.n)-1;
+  const sample=ballNodes[0];
+  const bw=sample?sample.offsetWidth:56;
+  const bh=sample?sample.offsetHeight:56;
+  /* raio único = círculo perfeito; margem evita colar na borda */
+  const pad=Math.max(6, bw*0.12);
+  const r=Math.max(0, Math.min(cx, cy) - Math.max(bw,bh)/2 - pad);
+  ballNodes.forEach((b,i)=>{
     const a=(Math.PI*2*i/20)-Math.PI/2;
-    b.style.left=(cx+Math.cos(a)*rx-bw/2)+'px';
-    b.style.top=(cy+Math.sin(a)*ry-bh/2)+'px';
+    b.style.left=(cx+Math.cos(a)*r-bw/2)+'px';
+    b.style.top=(cy+Math.sin(a)*r-bh/2)+'px';
   });
 }
 for(let i=1;i<=20;i++){

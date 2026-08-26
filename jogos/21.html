@@ -37,14 +37,43 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
 .danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
 .green{background:linear-gradient(180deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
-.cards{display:flex;gap:6px;flex-wrap:wrap;min-height:70px;margin:6px 0}
-.card{
-  width:48px;height:70px;border-radius:8px;background:#fff;color:#151515;
-  display:flex;flex-direction:column;justify-content:space-between;padding:5px;
-  font-weight:900;box-shadow:0 4px 12px #0006
+.cards{display:flex;gap:6px;flex-wrap:wrap;min-height:78px;margin:6px 0}
+.playing-card{
+  position:relative;width:52px;height:76px;border-radius:8px;padding:0;overflow:hidden;
+  background:#fff!important;color:#111!important;
+  border:1.5px solid #c8c8c8!important;box-shadow:0 3px 8px #0007!important;
+  font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  animation:none!important;
 }
-.card.red{color:#b71625}
-.card.back{background:repeating-linear-gradient(45deg,#114a8d,#114a8d 8px,#fff 8px,#fff 10px);color:transparent;border:2px solid #fff}
+.playing-card .corner{
+  position:absolute;top:3px;left:4px;display:flex;flex-direction:column;align-items:center;
+  line-height:1;z-index:1;
+}
+.playing-card .corner.br{
+  top:auto;left:auto;bottom:3px;right:4px;transform:rotate(180deg);
+}
+.playing-card .corner .rank{font-size:13px;font-weight:800;color:inherit}
+.playing-card .corner .pip{font-size:12px;color:inherit;margin-top:1px}
+.playing-card .center-suit{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:26px;line-height:1;color:inherit;
+}
+.playing-card.black{color:#111!important}
+.playing-card.red{color:#d40000!important}
+.playing-card.back{
+  background:repeating-linear-gradient(45deg,#1a3a6e 0 6px,#24508f 6px 12px)!important;
+  color:transparent!important;border-color:#0f274d!important;
+}
+.playing-card.back::after{
+  content:'';position:absolute;inset:5px;border:2px solid #6ea0d8;border-radius:5px;
+  background:radial-gradient(circle at 50% 50%,#2c5fa0 0,#163a6e 70%);
+}
+@media(max-width:560px){
+  .playing-card{width:44px;height:64px}
+  .playing-card .corner .rank{font-size:11px}
+  .playing-card .corner .pip{font-size:10px}
+  .playing-card .center-suit{font-size:20px}
+}
 .hand{border:1px dashed #17c8ff66;border-radius:10px;padding:8px;margin-top:6px;background:#060912}
 .hand.active{outline:2px solid #ffd91a}
 .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#1a3a55;color:#e9ffd8;font-weight:800;font-size:12px;margin:3px}
@@ -176,8 +205,13 @@ function canESplit(cards){
   return cards.length===2 && splitCardValue(cards[0])===splitCardValue(cards[1]);
 }
 function cardHTML(c, hidden=false){
-  if(hidden)return `<div class="card back">?</div>`;
-  return `<div class="card ${c.c==='red'?'red':''}"><span>${c.r}</span><span style="font-size:18px">${c.s}</span></div>`;
+  if(hidden)return `<div class="playing-card back" aria-hidden="true"></div>`;
+  const color=c.c==='red'?'red':'black';
+  return `<div class="playing-card ${color}">
+    <div class="corner"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+    <div class="center-suit">${c.s}</div>
+    <div class="corner br"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+  </div>`;
 }
 function msg(t){document.getElementById('msg').textContent=t}
 function addBadge(t){
