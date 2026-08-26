@@ -1,6 +1,6 @@
 # Admin App (Expo)
 
-Painel admin mobile do CLUBEDEJOGOSCAIPIRA — paridade com `admin.html` + tela de **Lucro** e push ao cruzar R$ 600.
+Painel admin mobile do NextPlay Club — paridade com `admin.html` + tela de **Lucro** e push ao cruzar R$ 600.
 
 ## Setup
 

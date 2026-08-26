@@ -12,6 +12,7 @@ export const GAME_IDS = [
   'caipira',
   '21',
   'trincacaipira',
+  'baccarat',
 ] as const;
 
 export const PROFIT_ALERT_THRESHOLD = 600;

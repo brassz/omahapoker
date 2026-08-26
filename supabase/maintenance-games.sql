@@ -31,7 +31,7 @@ alter table public.game_settings
 update public.game_settings
 set maintenance_games = array[
   'omaha', 'crep', 'bolaquente', 'roleta',
-  'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
+  'bacbo', 'ronda', 'caipira', '21', 'trincacaipira', 'baccarat'
 ]::text[]
 where maintenance = true
   and maintenance_games = '{}';
@@ -46,7 +46,7 @@ declare
   row public.game_settings;
   allowed text[] := array[
     'omaha', 'crep', 'bolaquente', 'roleta',
-    'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
+    'bacbo', 'ronda', 'caipira', '21', 'trincacaipira', 'baccarat'
   ];
   cleaned text[];
 begin
@@ -91,7 +91,7 @@ begin
   if coalesce(p_on, false) then
     return public.admin_set_maintenance_games(array[
       'omaha', 'crep', 'bolaquente', 'roleta',
-      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira'
+      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira', 'baccarat'
     ]::text[]);
   end if;
   return public.admin_set_maintenance_games('{}'::text[]);

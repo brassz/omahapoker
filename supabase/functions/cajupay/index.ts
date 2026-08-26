@@ -122,7 +122,7 @@ async function createPix(sb, user, body) {
     body: {
       amount_cents: dep.amount_cents,
       currency: 'BRL',
-      description: `Saldo CLUBEDEJOGOSCAIPIRA #${String(dep.id).slice(0, 8)}`,
+      description: `Saldo NextPlay Club #${String(dep.id).slice(0, 8)}`,
       product_ref: String(dep.id),
       customer_ref: String(user.id),
       partner_checkout_url: checkoutUrl,

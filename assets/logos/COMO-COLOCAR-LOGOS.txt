@@ -1,4 +1,4 @@
-CLUBEDEJOGOSCAIPIRA — Logos do lobby
+NextPlay Club — Logos do lobby
 ====================================
 
 Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
@@ -15,6 +15,7 @@ Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
   caipira.png    → logo do Caipira
   21.png         → logo do 21 Caipira
   trincacaipira.png → logo da Trinca Caipira
+  baccarat.png   → logo do Baccarat
   bacbo.png      → logo do Ponto Maior
 
 Tamanho sugerido:

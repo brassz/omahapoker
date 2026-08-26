@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Admin Caipira",
-    "slug": "admin-caipira",
+    "name": "Admin NextPlay",
+    "slug": "admin-nextplay",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

@@ -68,7 +68,7 @@
     const credits = Number(profile?.player_credits || 0).toLocaleString('pt-BR');
     bar.innerHTML = `
       <div>
-        <div class="club-name">CLUBEDEJOGOSCAIPIRA</div>
+        <div class="club-name">NextPlay Club</div>
         <button type="button" id="clubBackLobby">← LOBBY</button>
       </div>
       <div class="user">

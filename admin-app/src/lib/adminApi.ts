@@ -19,6 +19,7 @@ function normalizeGameId(id: string | null | undefined) {
   if (key === 'bagatela' || key === 'bacatela' || key === 'bolaquente') return 'bolaquente';
   if (key === '21_index' || key === '21caipira' || key === '21-caipira') return '21';
   if (key === 'trinca' || key === 'trinca-caipira') return 'trincacaipira';
+  if (key === 'bacara' || key === 'bakara') return 'baccarat';
   if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
   return key;
 }
@@ -38,6 +39,8 @@ export function gameLabel(id: string | null | undefined) {
     '21': '21 CAIPIRA',
     trincacaipira: 'TRINCA CAIPIRA',
     trinca: 'TRINCA CAIPIRA',
+    baccarat: 'BACCARAT',
+    bacara: 'BACCARAT',
   };
   const key = normalizeGameId(id);
   return map[key] || (key ? key.toUpperCase() : '—');

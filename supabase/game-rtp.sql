@@ -34,7 +34,8 @@ from (
     ('ronda'),
     ('caipira'),
     ('21'),
-    ('trincacaipira')
+    ('trincacaipira'),
+    ('baccarat')
 ) as g(id)
 on conflict (game_id) do nothing;
 
@@ -60,6 +61,9 @@ begin
   if key in ('trinca', 'trinca-caipira', 'trincacaipira') then
     return 'trincacaipira';
   end if;
+  if key in ('bacara', 'baccarat', 'bakara') then
+    return 'baccarat';
+  end if;
   return key;
 end;
 $$;
@@ -82,7 +86,7 @@ begin
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
     'omaha','crep','bolaquente','roleta',
-    'bacbo','ronda','caipira','21','trincacaipira'
+    'bacbo','ronda','caipira','21','trincacaipira','baccarat'
   ]) as g(id)
   on conflict on constraint game_rtp_pkey do nothing;
 

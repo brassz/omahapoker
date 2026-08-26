@@ -33,7 +33,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.wrap}
       >
-        <Text style={styles.brand}>CLUBEDEJOGOSCAIPIRA</Text>
+        <Text style={styles.brand}>NextPlay Club</Text>
         <Text style={styles.tag}>PAINEL ADMIN</Text>
         <View style={styles.card}>
           <Msg text={msg} kind="err" />

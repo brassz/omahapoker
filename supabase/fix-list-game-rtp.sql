@@ -38,7 +38,7 @@ insert into public.game_rtp as gr (game_id, enabled, rtp_percent)
 select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
 from unnest(array[
   'omaha','crep','bolaquente','roleta',
-  'bacbo','ronda','caipira','21','trincacaipira'
+  'bacbo','ronda','caipira','21','trincacaipira','baccarat'
 ]) as g(id)
 on conflict on constraint game_rtp_pkey do nothing;
 
@@ -62,7 +62,7 @@ begin
   select g.id, false, coalesce((select s.rtp_percent from public.game_settings s where s.id = 1), 20)
   from unnest(array[
     'omaha','crep','bolaquente','roleta',
-    'bacbo','ronda','caipira','21','trincacaipira'
+    'bacbo','ronda','caipira','21','trincacaipira','baccarat'
   ]) as g(id)
   on conflict on constraint game_rtp_pkey do nothing;
 
@@ -76,7 +76,7 @@ begin
   from public.game_rtp as gr
   where gr.game_id = any(array[
     'omaha','crep','bolaquente','roleta',
-    'bacbo','ronda','caipira','21','trincacaipira'
+    'bacbo','ronda','caipira','21','trincacaipira','baccarat'
   ])
   order by 1;
 end;

@@ -141,7 +141,7 @@ export async function ensureWebhookRegistered() {
       method: 'POST',
       body: {
         url,
-        description: 'CLUBEDEJOGOSCAIPIRA',
+        description: 'NextPlay Club',
         event_types: ['pix.payment.*', 'payout.*'],
       },
     });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>CLUBEDEJOGOSCAIPIRA — Lobby</title>
+<title>NextPlay Club — Lobby</title>
 <link rel="stylesheet" href="css/theme-bacatela.css?v=11">
 <style>
 *{box-sizing:border-box}
@@ -237,8 +237,8 @@ body{margin:0;min-height:100vh}
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=10"></script>
-  <script src="js/auth.js?v=26"></script>
+  <script src="js/config.js?v=11"></script>
+  <script src="js/auth.js?v=28"></script>
   <script>
   const GAMES_ALL = [
     { id: 'omaha', name: 'OMAHA5', href: 'jogos/omaha.html' },
@@ -249,6 +249,7 @@ body{margin:0;min-height:100vh}
     { id: 'ronda', name: 'RONDA', href: 'jogos/ronda.html' },
     { id: 'caipira', name: 'CAIPIRA', href: 'jogos/caipira.html' },
     { id: '21', name: '21 CAIPIRA', href: 'jogos/21.html' },
+    { id: 'baccarat', name: 'BACCARAT', href: 'jogos/baccarat.html', launch: true },
     { id: 'trincacaipira', name: 'TRINCA CAIPIRA', href: 'jogos/trincacaipira.html', launch: true },
   ];
   const HIDDEN_GAMES = new Set((window.CLUB_HIDDEN_GAMES || []).map((id) => String(id).toLowerCase()));
@@ -404,7 +405,7 @@ body{margin:0;min-height:100vh}
     document.getElementById('app').innerHTML = `
       <header class="hero">
         ${logoImg('club', 'club-logo')}
-        <h1 class="brand club-rainbow"><span class="brand-line">CLUBEDEJOGOS</span><span class="brand-line">CAIPIRA</span></h1>
+        <h1 class="brand club-rainbow"><span class="brand-line">NextPlay</span><span class="brand-line">Club</span></h1>
         <p class="tag">Escolha um jogo</p>
       </header>
 

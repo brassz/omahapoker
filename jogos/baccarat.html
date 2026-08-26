@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Baccarat — NextPlay Club</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
+.app{max-width:1050px;margin:auto}
+.top{
+  display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  background:#0a0614;border:2px solid #17c8ff;border-radius:18px;padding:12px 14px;
+  box-shadow:0 0 16px #17c8ff55;animation:clubNeonGlow 1.8s ease-in-out infinite;
+}
+h1{font-size:clamp(22px,5vw,36px);margin:0}
+.sub{font-size:12px;color:#8899aa;margin-top:4px;font-weight:800}
+.credito{
+  min-width:140px;text-align:right;background:#060912;border:1px solid #17c8ff66;
+  border-radius:12px;padding:8px 10px;font-weight:800
+}
+.credito .label{font-size:10px;color:#8899aa}
+.credito b{font-size:22px;color:#5cff1a;text-shadow:0 0 10px #5cff1a88}
+.mesa{
+  margin-top:12px;background:#0a0614;border:2px solid #ff4fd8;border-radius:24px;padding:14px;
+  box-shadow:0 0 18px #ff4fd855,inset 0 0 40px #0008;animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.status{
+  text-align:center;min-height:44px;padding:10px;font-weight:900;color:#fff;
+  background:#060912;border:1px solid #17c8ff44;border-radius:12px;margin-bottom:12px
+}
+.lados{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lado{
+  background:#060912;border:1px solid #17c8ff66;border-radius:16px;padding:10px;
+  min-height:150px;display:flex;flex-direction:column;align-items:center
+}
+.lado h2{width:100%;text-align:center;margin:0 0 6px;font-size:18px;letter-spacing:1px}
+.jogador h2{color:#7af0ff;text-shadow:0 0 10px #17c8ff66}
+.banca h2{color:#ff8ab8;text-shadow:0 0 10px #ff4fd866}
+.pontos{
+  text-align:center;font-size:15px;color:#ffd91a;font-weight:900;
+  background:#0a0614;border:1px solid #ffd91a55;border-radius:999px;padding:4px 12px;min-width:96px
+}
+.cartas{width:100%;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;min-height:96px}
+.playing-card{
+  position:relative;width:68px;height:96px;border-radius:8px;overflow:hidden;padding:0;
+  background:#fff!important;color:#111!important;border:1.5px solid #c8c8c8!important;
+  box-shadow:0 5px 11px #0008!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  animation:deal .28s ease,none!important
+}
+.playing-card .corner{
+  position:absolute;top:4px;left:5px;z-index:2;width:20px;text-align:center;line-height:.85;font-size:15px
+}
+.playing-card .corner.br{top:auto;left:auto;bottom:4px;right:5px;transform:rotate(180deg)}
+.playing-card .corner .pip{display:block;font-size:12px;margin-top:1px}
+.playing-card .center-suit{
+  position:absolute;inset:0;display:grid;place-items:center;font-size:30px;line-height:1
+}
+.playing-card.black{color:#111!important}
+.playing-card.red{color:#d40000!important}
+@keyframes deal{from{transform:translateY(-16px) scale(.86);opacity:0}to{transform:none;opacity:1}}
+.apostas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.aposta{
+  border:2px solid #fff4;border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;
+  color:#120018;font-weight:1000;transition:.2s
+}
+.aposta:hover{transform:translateY(-2px)}
+.aposta.sel{outline:3px solid #ffd91a;box-shadow:0 0 18px #ffd91a88}
+.aposta.player{background:linear-gradient(180deg,#0b3a66,#1565c0);color:#e8f7ff;border-color:#7dd3fc}
+.aposta.banker{background:linear-gradient(180deg,#7a1048,#ff4fd8);color:#fff;border-color:#ff9de0}
+.aposta.tie{background:linear-gradient(180deg,#1f7a00,#58df00);color:#041;border-color:#9dff76}
+.aposta small{display:block;font-weight:700;opacity:.9;margin-top:4px;font-size:11px}
+.controles{
+  margin-top:12px;background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:14px
+}
+.linha{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.linha label{font-weight:800;color:#d8e7ff}
+.valor{
+  flex:1;min-width:110px;background:#090614;color:#fff;border:1px solid #445;
+  border-radius:12px;padding:12px;font-size:16px;font-weight:800
+}
+button{
+  border:0;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:1000;cursor:pointer;color:#120018
+}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8
+}
+.btn-secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chip{
+  border:1px solid #17c8ff66;background:#120a22;color:#fff;border-radius:999px;
+  padding:8px 12px;cursor:pointer;font-weight:800
+}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.box{
+  background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:13px
+}
+.box h3{margin:0 0 8px;color:#ffd91a}
+.historico{display:flex;gap:7px;flex-wrap:wrap}
+.bola{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900}
+.bp{background:#1565c0}.bb{background:#ff4fd8}.bt{background:#2d8c5d}
+.regras{font-size:13px;line-height:1.45;color:#d8e7ff;font-weight:700}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+@media(max-width:700px){
+  .lados,.info{grid-template-columns:1fr}
+  .lado{min-height:128px}
+  .playing-card{width:56px;height:80px}
+  .playing-card .center-suit{font-size:24px}
+  .apostas{gap:6px}
+  .aposta{padding:11px 4px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
+  <div class="top">
+    <div>
+      <h1 class="club-rainbow">♠ BACCARAT ♦</h1>
+      <div class="sub">Jogador · Banca · Empate · aposta 2 a 200</div>
+    </div>
+    <div class="credito">
+      <div class="label">SALDO</div>
+      <b id="saldo">0</b>
+    </div>
+  </div>
+
+  <div class="mesa">
+    <div class="status" id="status">Escolha Jogador, Banca ou Empate e defina a aposta.</div>
+    <div class="lados">
+      <div class="lado jogador">
+        <h2>🔵 JOGADOR</h2>
+        <div class="pontos">Pontos: <span id="pj">0</span></div>
+        <div class="cartas" id="cj"></div>
+      </div>
+      <div class="lado banca">
+        <h2>🔴 BANCA</h2>
+        <div class="pontos">Pontos: <span id="pb">0</span></div>
+        <div class="cartas" id="cb"></div>
+      </div>
+    </div>
+
+    <div class="apostas">
+      <div class="aposta player" data-tipo="player">JOGADOR<small>Paga 1:1</small></div>
+      <div class="aposta banker" data-tipo="banker">BANCA<small>Paga 0,95:1</small></div>
+      <div class="aposta tie" data-tipo="tie">EMPATE<small>Paga 8:1</small></div>
+    </div>
+  </div>
+
+  <div class="controles">
+    <div class="linha">
+      <label for="valor">Aposta:</label>
+      <input class="valor" id="valor" type="number" min="2" max="200" value="20" inputmode="numeric">
+      <button class="btn-primary" id="jogar" type="button">DISTRIBUIR CARTAS</button>
+      <button class="btn-secondary" id="nova" type="button">NOVA RODADA</button>
+    </div>
+    <div class="chips">
+      <button class="chip" type="button" data-v="2">2</button>
+      <button class="chip" type="button" data-v="10">10</button>
+      <button class="chip" type="button" data-v="20">20</button>
+      <button class="chip" type="button" data-v="50">50</button>
+      <button class="chip" type="button" data-v="100">100</button>
+      <button class="chip" type="button" data-v="200">200</button>
+    </div>
+  </div>
+
+  <div class="info">
+    <div class="box">
+      <h3>Histórico</h3>
+      <div class="historico" id="hist"></div>
+    </div>
+    <div class="box regras">
+      <h3>Regras</h3>
+      Ás=1 · 2–9 face · 10/J/Q/K=0. Soma só o último dígito. Natural 8/9 encerra. Terceira carta segue a tabela clássica.
+    </div>
+  </div>
+</div>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — BACCARAT</h2>
+<ul>
+  <li>Escolha <b>Jogador</b>, <b>Banca</b> ou <b>Empate</b>.</li>
+  <li>Aposte de <b>2 a 200</b> e toque em DISTRIBUIR CARTAS.</li>
+  <li>Ganha quem chegar mais perto de 9 pontos.</li>
+  <li>Pagamentos: Jogador 1:1 · Banca 0,95:1 · Empate 8:1.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script>
+const naipes=['♠','♥','♦','♣'], ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let saldo=0, tipo=null, rodada=false, hist=[];
+const $=id=>document.getElementById(id);
+function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
+function valorCarta(r){if(r==='A')return 1;if(['10','J','Q','K'].includes(r))return 0;return Number(r)}
+function deck(){
+  const d=[];
+  for(let x=0;x<8;x++) for(const n of naipes) for(const r of ranks) d.push({r,n,v:valorCarta(r)});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
+  return d;
+}
+function pontos(mao){return mao.reduce((s,c)=>s+c.v,0)%10}
+function cartaHTML(c){
+  const red=c.n==='♥'||c.n==='♦';
+  return `<div class="playing-card ${red?'red':'black'}">
+    <div class="corner"><span>${c.r}</span><span class="pip">${c.n}</span></div>
+    <div class="center-suit">${c.n}</div>
+    <div class="corner br"><span>${c.r}</span><span class="pip">${c.n}</span></div>
+  </div>`;
+}
+function render(maoJ,maoB){
+  $('cj').innerHTML=maoJ.map(cartaHTML).join('');
+  $('cb').innerHTML=maoB.map(cartaHTML).join('');
+  $('pj').textContent=pontos(maoJ);
+  $('pb').textContent=pontos(maoB);
+}
+function bankerDraw(total, third){
+  if(third==null) return total<=5;
+  if(total<=2) return true;
+  if(total===3) return third!==8;
+  if(total===4) return third>=2&&third<=7;
+  if(total===5) return third>=4&&third<=7;
+  if(total===6) return third===6||third===7;
+  return false;
+}
+function playRound(d){
+  const j=[d.pop(),d.pop()], b=[d.pop(),d.pop()];
+  let third=null;
+  const pj0=pontos(j), pb0=pontos(b);
+  if(!(pj0>=8||pb0>=8)){
+    if(pj0<=5){ j.push(d.pop()); third=j[2].v; }
+    if(bankerDraw(pb0, third)) b.push(d.pop());
+  }
+  const pj=pontos(j), pb=pontos(b);
+  const vencedor=pj>pb?'player':pb>pj?'banker':'tie';
+  return {j,b,vencedor,steps:{needPlayer3:pj0<=5&&!(pj0>=8||pb0>=8), needBanker3:false}};
+}
+function resolveRound(force){
+  let target=null;
+  if(force==='player') target=tipo;
+  else if(force==='bank'){
+    const opts=['player','banker','tie'].filter(x=>x!==tipo);
+    target=opts[Math.floor(Math.random()*opts.length)];
+  }
+  for(let t=0;t<80;t++){
+    const r=playRound(deck());
+    if(!target || r.vencedor===target) return r;
+  }
+  return playRound(deck());
+}
+function msg(t){$('status').textContent=t}
+function setSaldo(){$('saldo').textContent=fmt(saldo)}
+async function persist(){
+  if(window.clubWallet){
+    await clubWallet.set(saldo);
+    saldo=Number(clubWallet.credits||saldo);
+  }
+  setSaldo();
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+document.querySelectorAll('.aposta').forEach(el=>{
+  el.onclick=()=>{
+    if(rodada) return;
+    document.querySelectorAll('.aposta').forEach(x=>x.classList.remove('sel'));
+    el.classList.add('sel');
+    tipo=el.dataset.tipo;
+    msg(`Selecionado: ${tipo==='player'?'Jogador':tipo==='banker'?'Banca':'Empate'}.`);
+  };
+});
+document.querySelectorAll('.chip[data-v]').forEach(b=>{
+  b.onclick=()=>{$('valor').value=b.dataset.v};
+});
+$('nova').onclick=()=>{
+  if(rodada) return;
+  tipo=null;
+  document.querySelectorAll('.aposta').forEach(x=>x.classList.remove('sel'));
+  $('cj').innerHTML='';$('cb').innerHTML='';
+  $('pj').textContent='0';$('pb').textContent='0';
+  msg('Nova rodada pronta. Escolha uma opção.');
+};
+$('jogar').onclick=async()=>{
+  if(rodada) return;
+  if(!tipo){msg('Escolha Jogador, Banca ou Empate.');return}
+  if(!window.clubWallet){msg('Carregando carteira...');return}
+  const check=clubBets.validate($('valor').value);
+  if(!check.ok){msg(check.message);return}
+  const aposta=check.value;
+  $('valor').value=aposta;
+  if(aposta>saldo){msg('Saldo insuficiente.');return}
+
+  rodada=true;
+  $('jogar').disabled=true;
+  saldo-=aposta;
+  await persist();
+
+  let force=null;
+  try{ force=window.clubHouse?await clubHouse.nextOutcome('baccarat'):null; }catch(_){ force=null; }
+
+  const full=resolveRound(force);
+  const j=full.j.slice(0,2), b=full.b.slice(0,2);
+  render(j,b);
+  msg('Cartas iniciais distribuídas...');
+  await sleep(700);
+
+  let pj=pontos(j), pb=pontos(b);
+  if(!(pj>=8||pb>=8)){
+    if(full.j.length>2){
+      j.push(full.j[2]);
+      render(j,b);
+      msg('Jogador recebe a terceira carta.');
+      await sleep(650);
+    }
+    if(full.b.length>2){
+      b.push(full.b[2]);
+      render(j,b);
+      msg('Banca recebe a terceira carta.');
+      await sleep(650);
+    }
+  }
+
+  const vencedor=full.vencedor;
+  let ganho=0;
+  if(tipo===vencedor){
+    if(vencedor==='player') ganho=Math.round(aposta*2);
+    else if(vencedor==='banker') ganho=Math.round(aposta*1.95);
+    else ganho=Math.round(aposta*9);
+    saldo+=ganho;
+    msg(`${vencedor==='player'?'JOGADOR':vencedor==='banker'?'BANCA':'EMPATE'} venceu. Você acertou e recebeu ${fmt(ganho)}.`);
+  } else {
+    msg(`Resultado: ${vencedor==='player'?'JOGADOR':vencedor==='banker'?'BANCA':'EMPATE'} venceu. Sem prêmio nesta rodada.`);
+  }
+  await persist();
+  hist.unshift(vencedor);
+  hist=hist.slice(0,20);
+  $('hist').innerHTML=hist.map(x=>`<div class="bola ${x==='player'?'bp':x==='banker'?'bb':'bt'}">${x==='player'?'J':x==='banker'?'B':'E'}</div>`).join('');
+  rodada=false;
+  $('jogar').disabled=false;
+};
+setSaldo();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=10"></script>
+<script src="../js/auth.js?v=28"></script>
+<script src="../js/house.js?v=4"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=16"></script>
+<script>
+window.clubWalletReady.then((w)=>{
+  if(!w||w.sealed) return;
+  saldo=Number(w.credits||0);
+  setSaldo();
+});
+const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};
+if(ch&&hm) ch.onclick=()=>{hm.style.display='none'};
+if(hm) hm.addEventListener('click',(e)=>{ if(e.target===hm) hm.style.display='none'; });
+</script>
+</body>
+</html>
