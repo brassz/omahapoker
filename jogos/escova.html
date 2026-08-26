@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ESCOVA — Banca x Jogador</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#0d3b2c;
+  --felt-deep:#071f18;
+  --felt-edge:#145c45;
+  --ink:#f4fff8;
+  --gold:#ffd91a;
+  --cyan:#17c8ff;
+  --pink:#ff4fd8;
+  --danger:#ff3434;
+  --ok:#5cff1a;
+  --panel:#0a0614;
+  --muted:#c8d8d0;
+  --card-w:64px;
+  --card-h:92px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;color:var(--ink);font-family:'DM Sans',Arial,sans-serif}
+body{
+  background:
+    radial-gradient(ellipse at 50% -10%,#1a5c45 0%,transparent 55%),
+    radial-gradient(circle at 10% 80%,#0a2a40 0%,transparent 40%),
+    radial-gradient(circle at 90% 70%,#2a1040 0%,transparent 35%),
+    linear-gradient(165deg,#050a08,#0a0614 55%,#061018);
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+.app{width:min(920px,100%);margin:0 auto;padding:8px 10px 28px}
+
+.brand-wrap{text-align:center;padding:4px 0 8px;position:relative}
+.brand{
+  margin:0;font-family:'Bebas Neue',Impact,sans-serif;
+  font-size:clamp(48px,14vw,84px);letter-spacing:.12em;line-height:1;
+  background:linear-gradient(90deg,#17c8ff,#ffd91a,#5cff1a,#ff4fd8,#17c8ff);
+  background-size:280% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:clubRainbowShift 3.2s linear infinite, brandPulse 2.8s ease-in-out infinite;
+  filter:drop-shadow(0 4px 0 #04120c);
+}
+@keyframes brandPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.02)}
+}
+.tagline{
+  margin:2px 0 0;font-weight:800;font-size:12px;letter-spacing:.35em;
+  color:var(--gold);text-transform:uppercase;
+  text-shadow:0 0 12px #ffd91a66;
+}
+.helpBtn{
+  width:100%;margin:8px 0 10px;padding:11px;border-radius:12px;font-weight:900;
+  cursor:pointer;color:#e8f7ff;font-family:inherit;font-size:13px;letter-spacing:.04em;
+  background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;
+}
+
+.hud{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;
+}
+.hud .box{
+  background:var(--panel);border:2px solid var(--cyan);border-radius:14px;
+  padding:8px 6px;text-align:center;
+  box-shadow:0 0 14px #17c8ff44;animation:clubNeonGlow 1.8s ease-in-out infinite;
+}
+.hud small{display:block;font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.hud strong{display:block;margin-top:2px;font-size:18px;color:var(--gold);text-shadow:0 0 10px #ffd91a88}
+
+.bet-panel{
+  background:var(--panel);border:2px solid var(--cyan);border-radius:16px;
+  padding:12px;margin-bottom:10px;box-shadow:0 0 18px #17c8ff33;
+}
+.bet-panel h2{margin:0 0 8px;font-size:13px;letter-spacing:.12em;color:#7af0ff;text-align:center}
+.bet-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+input[type=number]{
+  width:100%;padding:12px;border-radius:12px;border:1px solid #334;
+  background:#090614;color:#fff;font-weight:800;font-size:16px;font-family:inherit;
+}
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+button{
+  border:0;border-radius:12px;padding:12px 14px;font-weight:900;font-size:14px;
+  cursor:pointer;font-family:inherit;color:#120018;
+}
+button:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.3)}
+.primary{
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);
+  background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;
+  border:2px solid #fff8;color:#120018;
+}
+.ghost{background:#1a2233;border:2px solid #445;color:#fff}
+.green{background:linear-gradient(180deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
+.red{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
+.gold{background:linear-gradient(180deg,#9c7914,#ffd91a);border:2px solid #ffe98a;color:#2a1a00}
+.quick button{padding:9px 4px;font-size:13px;background:#142033;color:#fff;border:1px solid #335}
+
+.felt{
+  position:relative;border-radius:22px;padding:14px 12px 16px;margin-bottom:10px;
+  background:
+    radial-gradient(ellipse at 50% 30%,#176b4f 0%,transparent 55%),
+    linear-gradient(180deg,#145c45,#0d3b2c 40%,#071f18);
+  border:3px solid #0a4a38;
+  box-shadow:
+    inset 0 0 60px #0008,
+    inset 0 1px 0 #2a9a7444,
+    0 0 0 2px #17c8ff55,
+    0 12px 40px #000a;
+  overflow:hidden;
+  min-height:420px;
+}
+.felt::before{
+  content:'';position:absolute;inset:10px;border:1px dashed #ffffff18;border-radius:16px;pointer-events:none;
+}
+.felt.locked .zone-cards,
+.felt.locked .hand-row{filter:blur(5px);opacity:.35;pointer-events:none}
+.felt-lock{
+  display:none;position:absolute;inset:0;z-index:5;
+  align-items:center;justify-content:center;text-align:center;padding:20px;
+  background:#0006;backdrop-filter:blur(2px);
+}
+.felt.locked .felt-lock{display:flex}
+.felt-lock span{
+  font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(22px,6vw,36px);
+  letter-spacing:.08em;color:#7af0ff;text-shadow:0 0 20px #17c8ff;
+}
+
+.zone{position:relative;z-index:1;margin-bottom:12px}
+.zone-label{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-bottom:8px;font-size:11px;font-weight:800;letter-spacing:.14em;color:#b8f5d8;
+  text-transform:uppercase;
+}
+.zone-label .pill{
+  background:#04180f;border:1px solid #2a9a74;border-radius:999px;
+  padding:3px 10px;font-size:10px;color:var(--gold);
+}
+.zone-cards{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;
+  min-height:calc(var(--card-h) + 8px);
+}
+.hand-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:var(--card-h)}
+
+.pcard{
+  --rx:0deg;--lift:0px;
+  width:var(--card-w);height:var(--card-h);border-radius:10px;position:relative;
+  background:#fff;color:#111;border:1.5px solid #c8c8c8;
+  box-shadow:0 6px 14px #0007;font-family:Georgia,'Times New Roman',serif;
+  overflow:hidden;cursor:default;user-select:none;
+  transform:translateY(var(--lift)) rotate(var(--rx));
+  transition:transform .18s ease, box-shadow .18s ease, outline-color .18s;
+  animation:dealIn .42s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes dealIn{
+  from{opacity:0;transform:translateY(-28px) scale(.85) rotate(-8deg)}
+  to{opacity:1;transform:translateY(var(--lift)) rotate(var(--rx)) scale(1)}
+}
+.pcard .c{position:absolute;top:4px;left:5px;display:flex;flex-direction:column;align-items:center;line-height:1;z-index:1}
+.pcard .c.br{top:auto;left:auto;bottom:4px;right:5px;transform:rotate(180deg)}
+.pcard .rank{font-size:14px;font-weight:800}
+.pcard .pip{font-size:13px;margin-top:1px}
+.pcard .suit{position:absolute;inset:0;display:grid;place-items:center;font-size:30px}
+.pcard.red{color:#d40000}
+.pcard.black{color:#111}
+.pcard.back{
+  background:
+    radial-gradient(circle at 50% 50%,#2c5fa0 0%,#163a6e 70%),
+    repeating-linear-gradient(45deg,#1a3a6e 0 6px,#24508f 6px 12px);
+  color:transparent;border-color:#0f274d;
+}
+.pcard.back::after{
+  content:'';position:absolute;inset:5px;border:2px solid #6ea0d8;border-radius:6px;
+}
+.pcard.selectable{cursor:pointer}
+.pcard.selectable:hover,.pcard.selected{
+  --lift:-10px;outline:3px solid var(--gold);box-shadow:0 10px 22px #ffd91a55,0 8px 16px #0008;
+}
+.pcard.target{cursor:pointer;outline:3px solid var(--cyan);animation:targetPulse 1s ease-in-out infinite}
+.pcard.target.on{outline-color:var(--ok);background:#e8ffe8}
+@keyframes targetPulse{
+  0%,100%{box-shadow:0 0 0 0 #17c8ff00}
+  50%{box-shadow:0 0 0 6px #17c8ff44}
+}
+.pcard.capture-flash{animation:capFlash .55s ease}
+@keyframes capFlash{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.18) rotate(4deg);box-shadow:0 0 24px #ffd91a}
+  100%{transform:scale(0);opacity:0}
+}
+.pcard.escova-glow{animation:escovaBoom .8s ease}
+@keyframes escovaBoom{
+  0%{box-shadow:0 0 0 #ffd91a00}
+  40%{box-shadow:0 0 40px #ffd91a,0 0 80px #5cff1a}
+  100%{box-shadow:0 6px 14px #0007}
+}
+
+.scoreboard{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;
+}
+.score-card{
+  background:rgba(10,6,20,.92);border:2px solid #17c8ff66;border-radius:14px;padding:10px;
+}
+.score-card.player{border-color:#5cff1a88}
+.score-card.bank{border-color:#ff343488}
+.score-card h3{margin:0 0 6px;font-size:12px;letter-spacing:.12em;text-align:center}
+.score-card.player h3{color:var(--ok)}
+.score-card.bank h3{color:#ff8a8a}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px;font-weight:800;color:var(--muted)}
+.metrics b{color:#fff;float:right}
+.points-total{
+  margin-top:8px;text-align:center;font-family:'Bebas Neue',Impact,sans-serif;
+  font-size:28px;letter-spacing:.06em;color:var(--gold);text-shadow:0 0 12px #ffd91a66;
+}
+
+.status{
+  background:var(--panel);border:2px solid var(--cyan);border-radius:14px;
+  padding:12px;text-align:center;font-weight:800;min-height:52px;line-height:1.4;
+  margin-bottom:10px;box-shadow:0 0 14px #17c8ff33;
+}
+.status .best{color:var(--gold);font-size:18px;font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.08em}
+.status .note{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-weight:700}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.actions.full{grid-template-columns:1fr}
+.combo-bar{
+  display:none;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 10px;
+  background:#04180f;border:1px solid #2a9a74;border-radius:12px;padding:8px;
+}
+.combo-bar.show{display:flex}
+.combo-bar button{
+  background:#0d3b2c;color:#b8f5d8;border:1px solid #2a9a74;font-size:12px;padding:8px 10px;
+}
+.combo-bar button.active{background:var(--gold);color:#1a1200;border-color:#ffe98a}
+
+.escova-banner{
+  display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.6);
+  z-index:20;pointer-events:none;
+  font-family:'Bebas Neue',Impact,sans-serif;font-size:clamp(42px,12vw,72px);
+  letter-spacing:.2em;color:var(--gold);
+  text-shadow:0 0 20px #ffd91a,0 4px 0 #5a3a00,0 0 60px #5cff1a;
+  opacity:0;
+}
+.escova-banner.show{display:block;animation:escovaPop 1.1s ease forwards}
+@keyframes escovaPop{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-8deg)}
+  25%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg)}
+  70%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+  100%{opacity:0;transform:translate(-50%,-60%) scale(.9)}
+}
+
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{
+  max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;
+  border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700;
+}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px;font-family:'Bebas Neue',Impact,sans-serif;font-size:28px;letter-spacing:.1em}
+.helpCard h3{color:#ffd91a;margin:12px 0 4px}
+.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+
+@media(max-width:560px){
+  :root{--card-w:52px;--card-h:76px}
+  .pcard .rank{font-size:12px}.pcard .pip{font-size:11px}.pcard .suit{font-size:24px}
+  .hud{grid-template-columns:1fr 1fr;gap:6px}
+  .hud .box:last-child{grid-column:1/-1}
+  .actions{grid-template-columns:1fr}
+  .felt{min-height:380px;padding:12px 8px}
+  .quick{grid-template-columns:repeat(3,1fr)}
+}
+@media(min-width:700px){
+  :root{--card-w:72px;--card-h:104px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="brand-wrap">
+    <h1 class="brand">ESCOVA</h1>
+    <p class="tagline">Banca × Jogador</p>
+  </div>
+  <button type="button" id="openHelp" class="helpBtn">COMO JOGAR / REGRAS</button>
+
+  <section class="hud">
+    <div class="box"><small>SALDO</small><strong id="saldo">0</strong></div>
+    <div class="box"><small>APOSTA</small><strong id="apostaAtual">0</strong></div>
+    <div class="box"><small>RODADA</small><strong id="rodadaNum">—</strong></div>
+  </section>
+
+  <section class="bet-panel" id="betPanel">
+    <h2>1 · CONFIRMAR APOSTA</h2>
+    <div class="bet-row">
+      <input id="aposta" type="number" min="2" max="200" step="1" value="50" placeholder="2 a 200">
+      <button type="button" class="primary" id="btnConfirmar">CONFIRMAR</button>
+    </div>
+    <div class="quick">
+      <button type="button" data-bet="2">2</button>
+      <button type="button" data-bet="25">25</button>
+      <button type="button" data-bet="50">50</button>
+      <button type="button" data-bet="100">100</button>
+      <button type="button" data-bet="200">200</button>
+    </div>
+  </section>
+
+  <section class="felt locked" id="felt" aria-label="Mesa de Escova">
+    <div class="felt-lock"><span>Confirme a aposta<br>para revelar a mesa</span></div>
+    <div class="escova-banner" id="escovaBanner">ESCOVA!</div>
+
+    <div class="zone">
+      <div class="zone-label">
+        <span>Banca</span>
+        <span class="pill" id="bankHandCount">0 cartas</span>
+      </div>
+      <div class="hand-row" id="bankHand"></div>
+    </div>
+
+    <div class="zone">
+      <div class="zone-label">
+        <span>Mesa</span>
+        <span class="pill" id="tableCount">0 cartas</span>
+      </div>
+      <div class="zone-cards" id="tableCards"></div>
+    </div>
+
+    <div class="zone">
+      <div class="zone-label">
+        <span>Sua mão</span>
+        <span class="pill" id="playerHandCount">0 cartas</span>
+      </div>
+      <div class="hand-row" id="playerHand"></div>
+    </div>
+  </section>
+
+  <div class="combo-bar" id="comboBar"></div>
+
+  <section class="actions" id="playActions" style="display:none">
+    <button type="button" class="green" id="btnCapturar" disabled>CAPTURAR</button>
+    <button type="button" class="ghost" id="btnDescartar" disabled>DEIXAR NA MESA</button>
+  </section>
+  <section class="actions full" id="endActions" style="display:none">
+    <button type="button" class="primary" id="btnNova">NOVA RODADA</button>
+  </section>
+
+  <section class="scoreboard">
+    <div class="score-card player">
+      <h3>JOGADOR</h3>
+      <div class="metrics">
+        <div>Cartas <b id="pCartas">0</b></div>
+        <div>Ouros <b id="pOuros">0</b></div>
+        <div>Escovas <b id="pEscovas">0</b></div>
+        <div>7♦ <b id="pSete">—</b></div>
+      </div>
+      <div class="points-total" id="pPts">0</div>
+    </div>
+    <div class="score-card bank">
+      <h3>BANCA</h3>
+      <div class="metrics">
+        <div>Cartas <b id="bCartas">0</b></div>
+        <div>Ouros <b id="bOuros">0</b></div>
+        <div>Escovas <b id="bEscovas">0</b></div>
+        <div>7♦ <b id="bSete">—</b></div>
+      </div>
+      <div class="points-total" id="bPts">0</div>
+    </div>
+  </section>
+
+  <section class="status" id="status">
+    Defina a aposta (2 a 200) e toque em <b>CONFIRMAR</b> para começar.
+  </section>
+</main>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+  <h2>COMO JOGAR — ESCOVA</h2>
+  <h3>Objetivo</h3>
+  <p>Disputa contra a Banca. Capture cartas da mesa e marque mais pontos na rodada.</p>
+  <h3>Baralho</h3>
+  <ul>
+    <li>40 cartas: A, 2–7, J, Q, K nos 4 naipes.</li>
+    <li>Valores: A=1 · 2–7=face · J=8 · Q=9 · K=10.</li>
+  </ul>
+  <h3>Jogada</h3>
+  <ul>
+    <li>Cada um recebe 3 cartas; a mesa começa com 4.</li>
+    <li>Na sua vez, escolha uma carta da mão.</li>
+    <li>Capture cartas da mesa cuja soma seja igual ao valor da sua carta (ou uma carta do mesmo valor).</li>
+    <li>Se não houver captura, a carta fica na mesa.</li>
+    <li><b>ESCOVA:</b> limpar a mesa por completo vale +1 ponto (exceto a última jogada da rodada).</li>
+  </ul>
+  <h3>Pontuação</h3>
+  <ul>
+    <li>+1 quem tiver mais cartas</li>
+    <li>+1 quem tiver mais ouros (♦)</li>
+    <li>+1 quem tiver o 7♦ (Sete Belo)</li>
+    <li>+1 por cada Escova</li>
+  </ul>
+  <h3>Aposta</h3>
+  <ul>
+    <li>Mínimo 2 · máximo 200 créditos.</li>
+    <li>Vitória: recebe o dobro da aposta.</li>
+    <li>Empate: aposta devolvida.</li>
+    <li>Derrota: perde a aposta.</li>
+  </ul>
+  <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=7"></script>
+<script src="../js/auth.js?v=18"></script>
+<script src="../js/house.js?v=3"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=15"></script>
+<script>
+(function () {
+  const RANKS = [
+    { r: 'A', v: 1 }, { r: '2', v: 2 }, { r: '3', v: 3 }, { r: '4', v: 4 },
+    { r: '5', v: 5 }, { r: '6', v: 6 }, { r: '7', v: 7 },
+    { r: 'J', v: 8 }, { r: 'Q', v: 9 }, { r: 'K', v: 10 },
+  ];
+  const SUITS = [
+    { s: '♠', red: false }, { s: '♥', red: true },
+    { s: '♦', red: true }, { s: '♣', red: false },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Number(n || 0).toLocaleString('pt-BR');
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const uid = () => 'c' + Math.random().toString(36).slice(2, 10);
+
+  let credits = 0;
+  let activeBet = 0;
+  let round = 0;
+  let deck = [];
+  let table = [];
+  let playerHand = [];
+  let bankHand = [];
+  let playerPile = [];
+  let bankPile = [];
+  let playerEscovas = 0;
+  let bankEscovas = 0;
+  let lastCapture = null;
+  let phase = 'bet'; // bet | player | bank | deal | end
+  let busy = false;
+  let selectedHandIdx = -1;
+  let selectedCombo = null;
+  let combos = [];
+  let dealIndex = 0;
+  let roundForce = null;
+  let lastActor = null;
+
+  function makeDeck() {
+    const d = [];
+    for (const rk of RANKS) {
+      for (const su of SUITS) {
+        d.push({ id: uid(), r: rk.r, v: rk.v, s: su.s, red: su.red });
+      }
+    }
+    return shuffle(d);
+  }
+  function shuffle(a) {
+    const arr = a.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function cardHtml(c, opts = {}) {
+    if (!c) return '';
+    if (opts.hidden) return `<div class="pcard back" data-id="${c.id}" aria-hidden="true"></div>`;
+    const cls = [
+      'pcard',
+      c.red ? 'red' : 'black',
+      opts.selectable ? 'selectable' : '',
+      opts.selected ? 'selected' : '',
+      opts.target ? 'target' : '',
+      opts.targetOn ? 'on' : '',
+    ].filter(Boolean).join(' ');
+    const delay = opts.delay != null ? `style="animation-delay:${opts.delay}ms"` : '';
+    return `<div class="${cls}" data-id="${c.id}" ${delay}>
+      <div class="c"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+      <div class="suit">${c.s}</div>
+      <div class="c br"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+    </div>`;
+  }
+
+  function subsetsSum(cards, target) {
+    const out = [];
+    const n = cards.length;
+    function rec(start, sum, path) {
+      if (sum === target && path.length) {
+        out.push(path.slice());
+        return;
+      }
+      if (sum >= target || start >= n) return;
+      for (let i = start; i < n; i++) {
+        path.push(cards[i]);
+        rec(i + 1, sum + cards[i].v, path);
+        path.pop();
+      }
+    }
+    rec(0, 0, []);
+    // Prefer exact single-card matches first, then fewer cards
+    out.sort((a, b) => {
+      const ae = a.length === 1 && a[0].v === target ? 0 : 1;
+      const be = b.length === 1 && b[0].v === target ? 0 : 1;
+      if (ae !== be) return ae - be;
+      return a.length - b.length;
+    });
+    // Deduplicate by id set
+    const seen = new Set();
+    return out.filter((combo) => {
+      const key = combo.map((c) => c.id).sort().join(',');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function findCombos(handCard, tableCards) {
+    if (!handCard) return [];
+    return subsetsSum(tableCards, handCard.v);
+  }
+
+  function isLastPlayOfRound() {
+    // Chamado após remover a carta jogada da mão: última jogada da rodada não conta Escova.
+    return deck.length === 0 && playerHand.length === 0 && bankHand.length === 0;
+  }
+
+  function pileStats(pile, escovas) {
+    const cartas = pile.length;
+    const ouros = pile.filter((c) => c.s === '♦').length;
+    const sete = pile.some((c) => c.r === '7' && c.s === '♦');
+    return { cartas, ouros, sete, escovas };
+  }
+
+  function computePoints(pStats, bStats) {
+    let p = pStats.escovas;
+    let b = bStats.escovas;
+    if (pStats.cartas > bStats.cartas) p += 1;
+    else if (bStats.cartas > pStats.cartas) b += 1;
+    if (pStats.ouros > bStats.ouros) p += 1;
+    else if (bStats.ouros > pStats.ouros) b += 1;
+    if (pStats.sete) p += 1;
+    else if (bStats.sete) b += 1;
+    return { p, b };
+  }
+
+  function liveScore() {
+    const ps = pileStats(playerPile, playerEscovas);
+    const bs = pileStats(bankPile, bankEscovas);
+    const pts = computePoints(ps, bs);
+    return { ps, bs, pts };
+  }
+
+  function setStatus(html) {
+    $('status').innerHTML = html;
+  }
+
+  function renderScore() {
+    const { ps, bs, pts } = liveScore();
+    $('pCartas').textContent = ps.cartas;
+    $('pOuros').textContent = ps.ouros;
+    $('pEscovas').textContent = ps.escovas;
+    $('pSete').textContent = ps.sete ? 'SIM' : '—';
+    $('pPts').textContent = pts.p;
+    $('bCartas').textContent = bs.cartas;
+    $('bOuros').textContent = bs.ouros;
+    $('bEscovas').textContent = bs.escovas;
+    $('bSete').textContent = bs.sete ? 'SIM' : '—';
+    $('bPts').textContent = pts.b;
+  }
+
+  function renderHud() {
+    $('saldo').textContent = fmt(credits);
+    $('apostaAtual').textContent = fmt(activeBet);
+    $('rodadaNum').textContent = round > 0 ? String(round) : '—';
+  }
+
+  function renderTable() {
+    const showBank = phase === 'end';
+    $('bankHand').innerHTML = bankHand.map((c, i) =>
+      cardHtml(c, { hidden: !showBank, delay: i * 40 })
+    ).join('');
+    $('playerHand').innerHTML = playerHand.map((c, i) =>
+      cardHtml(c, {
+        selectable: phase === 'player' && !busy,
+        selected: phase === 'player' && i === selectedHandIdx,
+        delay: i * 40,
+      })
+    ).join('');
+    const comboIds = new Set((selectedCombo || []).map((c) => c.id));
+    $('tableCards').innerHTML = table.map((c, i) =>
+      cardHtml(c, {
+        target: phase === 'player' && selectedHandIdx >= 0 && combos.length > 0,
+        targetOn: comboIds.has(c.id),
+        delay: i * 30,
+      })
+    ).join('');
+    $('bankHandCount').textContent = `${bankHand.length} carta${bankHand.length === 1 ? '' : 's'}`;
+    $('playerHandCount').textContent = `${playerHand.length} carta${playerHand.length === 1 ? '' : 's'}`;
+    $('tableCount').textContent = `${table.length} carta${table.length === 1 ? '' : 's'}`;
+
+    renderScore();
+    renderComboBar();
+    updateActionButtons();
+  }
+
+  function renderComboBar() {
+    const bar = $('comboBar');
+    if (phase !== 'player' || selectedHandIdx < 0 || !combos.length) {
+      bar.classList.remove('show');
+      bar.innerHTML = '';
+      return;
+    }
+    bar.classList.add('show');
+    bar.innerHTML = combos.map((combo, i) => {
+      const label = combo.map((c) => `${c.r}${c.s}`).join(' + ');
+      const active = selectedCombo && combo.length === selectedCombo.length &&
+        combo.every((c) => selectedCombo.some((x) => x.id === c.id));
+      return `<button type="button" class="${active ? 'active' : ''}" data-combo="${i}">${label}</button>`;
+    }).join('');
+    bar.querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => {
+        selectedCombo = combos[Number(btn.dataset.combo)];
+        renderTable();
+      };
+    });
+  }
+
+  function updateActionButtons() {
+    const canPlay = phase === 'player' && !busy && selectedHandIdx >= 0;
+    const hasCombo = !!(selectedCombo && selectedCombo.length);
+    $('btnCapturar').disabled = !(canPlay && hasCombo);
+    $('btnDescartar').disabled = !(canPlay && combos.length === 0);
+    $('playActions').style.display = phase === 'player' ? 'grid' : 'none';
+    $('endActions').style.display = phase === 'end' ? 'grid' : 'none';
+    $('betPanel').style.display = phase === 'bet' ? 'block' : 'none';
+    $('felt').classList.toggle('locked', phase === 'bet');
+    $('btnConfirmar').disabled = phase !== 'bet' || busy;
+  }
+
+  function selectHandCard(i) {
+    if (phase !== 'player' || busy) return;
+    selectedHandIdx = i;
+    const card = playerHand[i];
+    combos = findCombos(card, table);
+    selectedCombo = combos[0] || null;
+    if (combos.length) {
+      setStatus(`Carta <b>${card.r}${card.s}</b> (vale ${card.v}). Escolha a combinação e toque em <b>CAPTURAR</b>.`);
+    } else {
+      setStatus(`Carta <b>${card.r}${card.s}</b> não captura nada. Toque em <b>DEIXAR NA MESA</b>.`);
+    }
+    renderTable();
+  }
+
+  function toggleTableCard(id) {
+    if (phase !== 'player' || selectedHandIdx < 0 || !combos.length) return;
+    // Cycle to combo that includes this card, or build custom if matches a combo
+    const match = combos.find((combo) => combo.some((c) => c.id === id));
+    if (match) {
+      selectedCombo = match;
+      renderTable();
+    }
+  }
+
+  async function flashEscova() {
+    const el = $('escovaBanner');
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    await sleep(1000);
+    el.classList.remove('show');
+  }
+
+  async function animateCapture(ids) {
+    ids.forEach((id) => {
+      const el = document.querySelector(`.pcard[data-id="${id}"]`);
+      if (el) el.classList.add('capture-flash');
+    });
+    await sleep(480);
+  }
+
+  function applyCapture(who, handCard, captured) {
+    const pile = who === 'player' ? playerPile : bankPile;
+    pile.push(handCard, ...captured);
+    if (who === 'player') {
+      playerHand = playerHand.filter((c) => c.id !== handCard.id);
+    } else {
+      bankHand = bankHand.filter((c) => c.id !== handCard.id);
+    }
+    const capIds = new Set(captured.map((c) => c.id));
+    table = table.filter((c) => !capIds.has(c.id));
+    lastCapture = who;
+    lastActor = who;
+    const cleared = table.length === 0 && captured.length > 0;
+    const countEscova = cleared && !isLastPlayOfRound();
+    if (countEscova) {
+      if (who === 'player') playerEscovas += 1;
+      else bankEscovas += 1;
+    }
+    return { escova: countEscova };
+  }
+
+  function discardToTable(who, handCard) {
+    table.push(handCard);
+    if (who === 'player') playerHand = playerHand.filter((c) => c.id !== handCard.id);
+    else bankHand = bankHand.filter((c) => c.id !== handCard.id);
+    lastActor = who;
+  }
+
+  async function playerCapture() {
+    if (busy || phase !== 'player' || selectedHandIdx < 0 || !selectedCombo) return;
+    busy = true;
+    updateActionButtons();
+    const card = playerHand[selectedHandIdx];
+    const captured = selectedCombo.slice();
+    const ids = [card.id, ...captured.map((c) => c.id)];
+    await animateCapture(ids);
+    const res = applyCapture('player', card, captured);
+    selectedHandIdx = -1;
+    selectedCombo = null;
+    combos = [];
+    renderTable();
+    if (res.escova) {
+      setStatus('<span class="best">ESCOVA!</span><span class="note">Você limpou a mesa (+1 ponto).</span>');
+      await flashEscova();
+    } else {
+      setStatus(`Você capturou com <b>${card.r}${card.s}</b>.`);
+    }
+    busy = false;
+    await afterPlay();
+  }
+
+  async function playerDiscard() {
+    if (busy || phase !== 'player' || selectedHandIdx < 0) return;
+    if (combos.length > 0) return;
+    busy = true;
+    updateActionButtons();
+    const card = playerHand[selectedHandIdx];
+    discardToTable('player', card);
+    selectedHandIdx = -1;
+    selectedCombo = null;
+    combos = [];
+    renderTable();
+    setStatus(`Você deixou <b>${card.r}${card.s}</b> na mesa.`);
+    busy = false;
+    await afterPlay();
+  }
+
+  function scoreCombo(combo, handCard, wouldEscova) {
+    let score = combo.length * 2;
+    if (combo.some((c) => c.r === '7' && c.s === '♦') || (handCard.r === '7' && handCard.s === '♦')) score += 20;
+    score += combo.filter((c) => c.s === '♦').length * 3;
+    if (wouldEscova) score += 50;
+    if (combo.length === 1 && combo[0].v === handCard.v) score += 2;
+    return score;
+  }
+
+  function bankChoosePlay() {
+    let best = null;
+    bankHand.forEach((card, hi) => {
+      const options = findCombos(card, table);
+      if (!options.length) {
+        const cand = { type: 'discard', hi, card, score: -card.v + (card.s === '♦' ? -5 : 0) };
+        if (!best || cand.score > best.score) best = cand;
+        return;
+      }
+      options.forEach((combo) => {
+        const remaining = table.length - combo.length;
+        const wouldEscova = remaining === 0 && !(deck.length === 0 && playerHand.length === 0 && bankHand.length === 1);
+        const score = scoreCombo(combo, card, wouldEscova);
+        const cand = { type: 'capture', hi, card, combo, score };
+        if (!best || cand.score > best.score) best = cand;
+      });
+    });
+    return best;
+  }
+
+  async function bankTurn() {
+    phase = 'bank';
+    busy = true;
+    selectedHandIdx = -1;
+    selectedCombo = null;
+    combos = [];
+    renderTable();
+    setStatus('A Banca está jogando…');
+    await sleep(700);
+    const choice = bankChoosePlay();
+    if (!choice) {
+      busy = false;
+      await afterPlay();
+      return;
+    }
+    if (choice.type === 'capture') {
+      const ids = [choice.card.id, ...choice.combo.map((c) => c.id)];
+      // Briefly reveal bank card intent via status
+      setStatus(`Banca joga <b>${choice.card.r}${choice.card.s}</b>…`);
+      await sleep(350);
+      await animateCapture(ids);
+      const res = applyCapture('bank', choice.card, choice.combo);
+      renderTable();
+      if (res.escova) {
+        setStatus('<span class="best">ESCOVA DA BANCA!</span><span class="note">A Banca limpou a mesa.</span>');
+        await flashEscova();
+      } else {
+        setStatus(`Banca capturou com <b>${choice.card.r}${choice.card.s}</b>.`);
+      }
+    } else {
+      discardToTable('bank', choice.card);
+      renderTable();
+      setStatus(`Banca deixou <b>${choice.card.r}${choice.card.s}</b> na mesa.`);
+    }
+    await sleep(400);
+    busy = false;
+    await afterPlay();
+  }
+
+  async function dealHands() {
+    phase = 'deal';
+    busy = true;
+    updateActionButtons();
+    setStatus('Distribuindo cartas…');
+    for (let i = 0; i < 3; i++) {
+      if (deck.length) playerHand.push(deck.shift());
+      if (deck.length) bankHand.push(deck.shift());
+    }
+    dealIndex += 1;
+    renderTable();
+    await sleep(450);
+    busy = false;
+    phase = 'player';
+    setStatus('Sua vez. Toque em uma carta da sua mão.');
+    renderTable();
+  }
+
+  async function afterPlay() {
+    if (playerHand.length === 0 && bankHand.length === 0) {
+      if (deck.length >= 6) {
+        await dealHands();
+        return;
+      }
+      if (deck.length > 0) {
+        while (deck.length) {
+          if (playerHand.length <= bankHand.length) playerHand.push(deck.shift());
+          else bankHand.push(deck.shift());
+        }
+        if (playerHand.length || bankHand.length) {
+          phase = 'player';
+          renderTable();
+          setStatus('Últimas cartas. Sua vez.');
+          return;
+        }
+      }
+      await finishRound();
+      return;
+    }
+    if (lastActor === 'player' && bankHand.length) {
+      await bankTurn();
+      return;
+    }
+    if (playerHand.length) {
+      phase = 'player';
+      setStatus('Sua vez. Toque em uma carta da sua mão.');
+      renderTable();
+      return;
+    }
+    if (bankHand.length) {
+      await bankTurn();
+      return;
+    }
+    await finishRound();
+  }
+
+  async function finishRound() {
+    busy = true;
+    phase = 'end';
+    // Remaining table cards go to last capturer
+    if (table.length && lastCapture) {
+      if (lastCapture === 'player') playerPile.push(...table);
+      else bankPile.push(...table);
+      table = [];
+    } else if (table.length) {
+      // No captures all game — split is unused; give to bank by house rule
+      bankPile.push(...table);
+      table = [];
+    }
+    renderTable();
+
+    let { ps, bs, pts } = liveScore();
+    let result = pts.p > pts.b ? 'player' : pts.b > pts.p ? 'bank' : 'tie';
+
+    // House edge: nudge score if needed
+    if (roundForce === 'player' || roundForce === 'bank') {
+      if (result !== roundForce && !(roundForce === 'bank' && result === 'tie')) {
+        ({ ps, bs, pts, result } = forceOutcome(roundForce, ps, bs, pts));
+        renderScore();
+      } else if (roundForce === 'bank' && result === 'tie') {
+        ({ ps, bs, pts, result } = forceOutcome('bank', ps, bs, pts));
+        renderScore();
+      } else if (roundForce === 'player' && result === 'tie') {
+        ({ ps, bs, pts, result } = forceOutcome('player', ps, bs, pts));
+        renderScore();
+      }
+    }
+
+    const bet = activeBet;
+    let note = '';
+    if (result === 'player') {
+      credits += bet * 2;
+      note = `Você venceu ${pts.p} × ${pts.b}. Apostou ${fmt(bet)} e recebeu ${fmt(bet * 2)}.`;
+    } else if (result === 'tie') {
+      credits += bet;
+      note = `Empate ${pts.p} × ${pts.b}. Aposta de ${fmt(bet)} devolvida.`;
+    } else {
+      note = `A Banca venceu ${pts.b} × ${pts.p}. Aposta de ${fmt(bet)} perdida.`;
+    }
+    activeBet = 0;
+    renderHud();
+    try { await persist(); } catch (_) {}
+
+    const title = result === 'player' ? 'JOGADOR VENCEU' : result === 'bank' ? 'BANCA VENCEU' : 'EMPATE';
+    setStatus(`<span class="best">${title}</span><span class="note">${note}</span>`);
+    busy = false;
+    updateActionButtons();
+  }
+
+  function forceOutcome(want, ps, bs, pts) {
+    // Minimally bump escovas of desired winner so points flip
+    if (want === 'player') {
+      while (pts.p <= pts.b) {
+        playerEscovas += 1;
+        ps = pileStats(playerPile, playerEscovas);
+        pts = computePoints(ps, bs);
+      }
+      return { ps, bs, pts, result: 'player' };
+    }
+    while (pts.b <= pts.p) {
+      bankEscovas += 1;
+      bs = pileStats(bankPile, bankEscovas);
+      pts = computePoints(ps, bs);
+    }
+    return { ps, bs, pts, result: 'bank' };
+  }
+
+  async function persist() {
+    if (window.clubWallet) {
+      await clubWallet.set(credits);
+      credits = Number(clubWallet.credits || credits);
+    }
+    renderHud();
+  }
+
+  async function confirmBet() {
+    if (phase !== 'bet' || busy) return;
+    const check = clubBets.validate($('aposta').value);
+    if (!check.ok) {
+      setStatus(check.message);
+      return;
+    }
+    const v = check.value;
+    $('aposta').value = v;
+    if (credits < v) {
+      setStatus('Créditos insuficientes.');
+      return;
+    }
+    busy = true;
+    credits -= v;
+    activeBet = v;
+    round += 1;
+    renderHud();
+    try { await persist(); } catch (_) {}
+
+    roundForce = null;
+    try { roundForce = window.clubHouse ? await clubHouse.nextOutcome('escova') : null; } catch (_) { roundForce = null; }
+
+    // Reset state
+    deck = makeDeck();
+    table = [];
+    playerHand = [];
+    bankHand = [];
+    playerPile = [];
+    bankPile = [];
+    playerEscovas = 0;
+    bankEscovas = 0;
+    lastCapture = null;
+    lastActor = null;
+    selectedHandIdx = -1;
+    selectedCombo = null;
+    combos = [];
+    dealIndex = 0;
+
+    // Initial deal: 3 each + 4 table
+    phase = 'deal';
+    updateActionButtons();
+    setStatus('Aposta confirmada. Abrindo a mesa…');
+    await sleep(300);
+    for (let i = 0; i < 4; i++) table.push(deck.shift());
+    for (let i = 0; i < 3; i++) {
+      playerHand.push(deck.shift());
+      bankHand.push(deck.shift());
+    }
+    renderTable();
+    await sleep(500);
+    busy = false;
+    phase = 'player';
+    setStatus('Sua vez. Toque em uma carta da sua mão para jogar.');
+    renderTable();
+  }
+
+  function resetToBet() {
+    if (phase !== 'end') return;
+    phase = 'bet';
+    deck = [];
+    table = [];
+    playerHand = [];
+    bankHand = [];
+    playerPile = [];
+    bankPile = [];
+    playerEscovas = 0;
+    bankEscovas = 0;
+    lastCapture = null;
+    lastActor = null;
+    selectedHandIdx = -1;
+    selectedCombo = null;
+    combos = [];
+    activeBet = 0;
+    roundForce = null;
+    renderHud();
+    renderTable();
+    setStatus('Defina a aposta (2 a 200) e toque em <b>CONFIRMAR</b> para começar.');
+    updateActionButtons();
+  }
+
+  // Wire UI
+  document.querySelectorAll('[data-bet]').forEach((btn) => {
+    btn.onclick = () => { $('aposta').value = clubBets.clamp(btn.dataset.bet); };
+  });
+  $('btnConfirmar').onclick = () => confirmBet();
+  $('btnCapturar').onclick = () => playerCapture();
+  $('btnDescartar').onclick = () => playerDiscard();
+  $('btnNova').onclick = () => resetToBet();
+
+  $('playerHand').addEventListener('click', (e) => {
+    if (phase !== 'player' || busy) return;
+    const el = e.target.closest('.pcard');
+    if (!el || !el.classList.contains('selectable')) return;
+    const cards = [...$('playerHand').querySelectorAll('.pcard')];
+    const i = cards.indexOf(el);
+    if (i >= 0) selectHandCard(i);
+  });
+  $('tableCards').addEventListener('click', (e) => {
+    if (phase !== 'player' || busy || selectedHandIdx < 0) return;
+    const el = e.target.closest('.pcard');
+    if (!el || !el.classList.contains('target')) return;
+    toggleTableCard(el.dataset.id);
+  });
+
+  const hm = $('helpModal');
+  $('openHelp').onclick = () => { hm.style.display = 'block'; };
+  $('closeHelp').onclick = () => { hm.style.display = 'none'; };
+  hm.addEventListener('click', (e) => { if (e.target === hm) hm.style.display = 'none'; });
+
+  renderHud();
+  renderTable();
+  updateActionButtons();
+
+  window.clubWalletReady.then((w) => {
+    if (!w || w.sealed) return;
+    credits = Number(w.credits || 0);
+    renderHud();
+  });
+
+  // Hooks para debug/QA apenas em ?preview=1
+  if (new URLSearchParams(location.search).has('preview')) {
+    window.__escova = {
+      getState: () => ({ phase, busy, selectedHandIdx, combos: combos.length, activeBet, credits, table: table.length, playerHand: playerHand.length, bankHand: bankHand.length }),
+      select: (i) => selectHandCard(i),
+      capture: () => playerCapture(),
+      discard: () => playerDiscard(),
+      confirm: () => confirmBet(),
+      newRound: () => resetToBet(),
+    };
+  }
+})();
+</script>
+</body>
+</html>

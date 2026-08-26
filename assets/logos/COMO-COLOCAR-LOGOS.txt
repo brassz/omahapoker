@@ -10,6 +10,7 @@ Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
   roleta.png     → logo da Roleta
   flyx.png       → logo do FLYX
   bagatela.png   → (mesmo jogo) pode usar bacatela.png
+  escova.png     → logo da Escova
   ronda.png      → logo da Ronda
   caipira.png    → logo do Caipira
 

@@ -31,6 +31,7 @@ export function gameLabel(id: string | null | undefined) {
     roleta: 'ROLETA',
     flyx: 'PONTO MAIOR',
     bacbo: 'PONTO MAIOR',
+    escova: 'ESCOVA',
     ronda: 'RONDA',
     caipira: 'CAIPIRA',
     '21': '21',
