@@ -347,6 +347,7 @@
         trinca: 'TRINCA CAIPIRA',
         baccarat: 'BACCARAT',
         bacara: 'BACCARAT',
+        caribbean: 'CARIBBEAN',
       };
       const key = String(id || '').toLowerCase();
       return map[key] || (key ? key.toUpperCase() : '—');
@@ -444,7 +445,7 @@
 
     GAME_IDS: [
       'omaha', 'crep', 'bolaquente', 'roleta',
-      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira', 'baccarat',
+      'bacbo', 'ronda', 'caipira', '21', 'trincacaipira', 'baccarat', 'caribbean',
     ],
 
     normalizeGameId(id) {
@@ -454,6 +455,7 @@
       if (key === 'trinca' || key === 'trinca-caipira') return 'trincacaipira';
       if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
       if (key === 'bacara' || key === 'bakara') return 'baccarat';
+      if (key === 'caribbeanstud' || key === 'caribbean-stud' || key === 'caribe') return 'caribbean';
       return key;
     },
 

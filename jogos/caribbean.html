@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Caribbean Stud — NextPlay Club</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
+.app{max-width:760px;margin:0 auto}
+.top{
+  background:#0a0614;border:2px solid #17c8ff;border-radius:16px;padding:12px;text-align:center;
+  box-shadow:0 0 16px #17c8ff55;animation:clubNeonGlow 1.8s ease-in-out infinite
+}
+h1{margin:0;font-size:clamp(22px,5vw,34px)}
+.sub{font-size:12px;color:#8899aa;margin-top:4px;font-weight:800}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.score div{background:#060912;border:1px solid #17c8ff66;border-radius:10px;padding:8px}
+.score b{display:block;color:#5cff1a;font-size:20px;text-shadow:0 0 10px #5cff1a66}
+.score span{font-size:11px;color:#8899aa;font-weight:800}
+.table{
+  margin-top:12px;background:#0a0614;border:2px solid #ff4fd8;border-radius:22px;padding:12px;
+  box-shadow:0 0 18px #ff4fd855,inset 0 0 40px #0008;animation:clubNeonGlow 1.6s ease-in-out infinite
+}
+.area{background:#060912;border:1px solid #17c8ff44;border-radius:16px;padding:10px;margin:8px 0}
+.label{text-align:center;font-weight:900;color:#ffd91a;letter-spacing:.7px;margin-bottom:8px}
+.handname{text-align:center;font-size:12px;color:#b8c9e0;min-height:16px;margin-top:6px;font-weight:700}
+.cards{display:flex;justify-content:center;gap:6px;flex-wrap:nowrap}
+.playing-card{
+  position:relative;width:58px;height:82px;border-radius:7px;overflow:hidden;padding:0;
+  background:#fff!important;color:#111!important;border:1.5px solid #c8c8c8!important;
+  box-shadow:0 4px 10px #0005!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  animation:none!important
+}
+.playing-card .corner{position:absolute;top:4px;left:5px;font-size:13px;line-height:1;text-align:center;z-index:2}
+.playing-card .corner.br{top:auto;left:auto;right:5px;bottom:4px;transform:rotate(180deg)}
+.playing-card .corner .pip{display:block;font-size:11px;margin-top:1px}
+.playing-card .center-suit{position:absolute;inset:0;display:grid;place-items:center;font-size:26px}
+.playing-card.black{color:#111!important}
+.playing-card.red{color:#d40000!important}
+.playing-card.back{
+  background:repeating-linear-gradient(45deg,#1a3a6e 0 6px,#24508f 6px 12px)!important;
+  border-color:#0f274d!important;color:transparent!important
+}
+.playing-card.back::after{
+  content:'';position:absolute;inset:5px;border:2px solid #6ea0d8;border-radius:5px;
+  background:radial-gradient(circle at 50% 50%,#2c5fa0 0,#163a6e 70%)
+}
+.betpanel{background:#060912;border:1px solid #17c8ff44;border-radius:12px;padding:10px;margin-top:10px}
+.betrow{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.betrow label{font-size:12px;font-weight:900;color:#ffd91a}
+.betrow input{
+  width:100%;border:1px solid #445;background:#090614;color:#fff;border-radius:10px;
+  padding:10px 8px;font-size:16px;font-weight:800;text-align:center
+}
+.betnote{text-align:center;color:#8899aa;font-size:11px;margin-top:6px;font-weight:700}
+.message{
+  text-align:center;min-height:48px;padding:10px 8px;background:#060912;border:1px solid #17c8ff44;
+  border-radius:12px;margin-top:10px;font-size:14px;font-weight:800;
+  display:flex;align-items:center;justify-content:center
+}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+button{border:0;border-radius:12px;padding:12px 8px;font-weight:900;font-size:14px;cursor:pointer;color:#120018}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8
+}
+.secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
+.danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
+.rules{font-size:12px;color:#d8e7ff;line-height:1.45;background:#060912;border:1px solid #17c8ff44;border-radius:12px;padding:10px;margin-top:10px;font-weight:700}
+.rules b{color:#ffd91a}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+@media(max-width:460px){
+  .playing-card{width:50px;height:72px}
+  .playing-card .center-suit{font-size:22px}
+  .buttons button{font-size:12px;padding:11px 4px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
+  <div class="top">
+    <h1 class="club-rainbow">CARIBBEAN STUD</h1>
+    <div class="sub">Jogador × Banca · aposta 2 a 200 · disputa 2×</div>
+    <div class="score">
+      <div><b id="playerCredits">0</b><span>SALDO</span></div>
+      <div><b id="round">0</b><span>RODADAS</span></div>
+    </div>
+  </div>
+
+  <div class="table">
+    <div class="area">
+      <div class="label">BANCA</div>
+      <div id="bankCards" class="cards"></div>
+      <div id="bankHand" class="handname"></div>
+    </div>
+
+    <div class="betpanel">
+      <div class="betrow">
+        <label for="bet">APOSTA</label>
+        <input id="bet" type="number" min="2" max="200" value="10" inputmode="numeric">
+      </div>
+      <div class="betnote">Aposta inicial 2–200. Para disputar, a segunda aposta é automaticamente o dobro.</div>
+    </div>
+
+    <div class="message" id="message">Defina a aposta e toque em NOVA RODADA.</div>
+
+    <div class="area">
+      <div class="label">JOGADOR</div>
+      <div id="playerCards" class="cards"></div>
+      <div id="playerHand" class="handname"></div>
+    </div>
+
+    <div class="buttons">
+      <button id="newBtn" class="primary" type="button">NOVA RODADA</button>
+      <button id="continueBtn" class="secondary" type="button" disabled>DISPUTAR 2×</button>
+      <button id="foldBtn" class="danger" type="button" disabled>DESISTIR</button>
+    </div>
+
+    <div class="rules">
+      <b>Regras:</b> ante 2–200. Banca mostra 1 carta. DISPUTAR = 2× ante. Desistir perde o ante.
+      Banca precisa de Ás-Rei ou melhor. Se não qualificar: raise devolvido e ante paga 1×.
+      Se qualificar: Par 1× · Dois Pares 2× · Trinca 3× · Seq 4× · Flush 5× · Full 7× · Quadra 20× · SF 30× · Royal 50× (sobre o raise). Ante paga 1× se vencer.
+    </div>
+  </div>
+</div>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — CARIBBEAN STUD</h2>
+<ul>
+  <li>Defina a aposta (2 a 200) e toque em <b>NOVA RODADA</b>.</li>
+  <li>Você recebe 5 cartas; a banca mostra só 1.</li>
+  <li><b>DISPUTAR 2×</b> coloca o dobro do ante e revela a banca.</li>
+  <li><b>DESISTIR</b> perde só o ante.</li>
+  <li>Banca precisa de Ás-Rei ou melhor para se qualificar.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script>
+const suits=['♠','♥','♦','♣'];
+const ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const rv={2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
+let player=[], bank=[], state='idle', playerCredits=0, round=0, currentBet=0, secondBet=0, roundForce=null;
+const $=id=>document.getElementById(id);
+function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
+function deck(){
+  const d=[];
+  for(const s of suits) for(const r of ranks) d.push({r,s});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
+  return d;
+}
+function cardEl(c,back=false){
+  const d=document.createElement('div');
+  if(back){ d.className='playing-card back'; return d; }
+  const red=['♥','♦'].includes(c.s);
+  d.className='playing-card '+(red?'red':'black');
+  d.innerHTML=`<div class="corner"><span>${c.r}</span><span class="pip">${c.s}</span></div>
+    <div class="center-suit">${c.s}</div>
+    <div class="corner br"><span>${c.r}</span><span class="pip">${c.s}</span></div>`;
+  return d;
+}
+function render(reveal=false){
+  $('playerCards').innerHTML='';
+  player.forEach(c=>$('playerCards').appendChild(cardEl(c)));
+  $('bankCards').innerHTML='';
+  bank.forEach((c,i)=>$('bankCards').appendChild(cardEl(c,!reveal&&i>0)));
+  $('playerHand').textContent=player.length?evalHand(player).name:'';
+  $('bankHand').textContent=reveal&&bank.length?evalHand(bank).name:'';
+}
+function evalHand(cards){
+  let vals=cards.map(c=>rv[c.r]).sort((a,b)=>b-a);
+  let counts={}; vals.forEach(v=>counts[v]=(counts[v]||0)+1);
+  let flush=cards.every(c=>c.s===cards[0].s);
+  let uniq=[...new Set(vals)];
+  if(uniq.join(',')==='14,5,4,3,2') uniq=[5,4,3,2,1];
+  let straight=uniq.length===5&&uniq[0]-uniq[4]===4;
+  let groups=Object.entries(counts).map(([v,n])=>({v:+v,n})).sort((a,b)=>b.n-a.n||b.v-a.v);
+  let rank,name,tie=[];
+  if(straight&&flush&&uniq[0]===14){rank=9;name='Royal Straight Flush';tie=[14]}
+  else if(straight&&flush){rank=8;name='Straight Flush';tie=[uniq[0]]}
+  else if(groups[0].n===4){rank=7;name='Quadra';tie=[groups[0].v,groups[1].v]}
+  else if(groups[0].n===3&&groups[1].n===2){rank=6;name='Full House';tie=[groups[0].v,groups[1].v]}
+  else if(flush){rank=5;name='Flush';tie=vals}
+  else if(straight){rank=4;name='Sequência';tie=[uniq[0]]}
+  else if(groups[0].n===3){rank=3;name='Trinca';tie=[groups[0].v,...groups.filter(g=>g.n===1).map(g=>g.v).sort((a,b)=>b-a)]}
+  else if(groups[0].n===2&&groups[1].n===2){rank=2;name='Dois Pares';let ps=[groups[0].v,groups[1].v].sort((a,b)=>b-a);tie=[...ps,groups.find(g=>g.n===1).v]}
+  else if(groups[0].n===2){rank=1;name='Par';tie=[groups[0].v,...groups.filter(g=>g.n===1).map(g=>g.v).sort((a,b)=>b-a)]}
+  else {rank=0;name='Carta Alta';tie=vals}
+  return{rank,name,tie};
+}
+function cmp(a,b){
+  const A=evalHand(a),B=evalHand(b);
+  if(A.rank!==B.rank) return A.rank>B.rank?1:-1;
+  for(let i=0;i<Math.max(A.tie.length,B.tie.length);i++){
+    const x=A.tie[i]||0,y=B.tie[i]||0;
+    if(x!==y) return x>y?1:-1;
+  }
+  return 0;
+}
+function bankQualifies(hand){
+  const h=evalHand(hand||bank);
+  if(h.rank>=1) return true;
+  return h.tie[0]===14&&h.tie[1]>=13;
+}
+function settleSide(p,b){
+  if(!bankQualifies(b)) return 'player';
+  const r=cmp(p,b);
+  if(r>0) return 'player';
+  if(r<0) return 'bank';
+  return 'tie';
+}
+function dealForForce(force){
+  for(let t=0;t<120;t++){
+    const d=deck();
+    const p=d.splice(0,5), b=d.splice(0,5);
+    const side=settleSide(p,b);
+    if(!force) return {p,b};
+    if(force==='player' && side==='player') return {p,b};
+    if(force==='bank' && side==='bank') return {p,b};
+  }
+  const d=deck();
+  return {p:d.splice(0,5), b:d.splice(0,5)};
+}
+function payoutMultiplier(hand){
+  const map={
+    'Par':1,'Dois Pares':2,'Trinca':3,'Sequência':4,'Flush':5,
+    'Full House':7,'Quadra':20,'Straight Flush':30,'Royal Straight Flush':50
+  };
+  return map[hand.name]||1;
+}
+function updatePanel(){
+  $('round').textContent=round;
+  $('playerCredits').textContent=fmt(playerCredits);
+}
+async function persist(){
+  if(window.clubWallet){
+    await clubWallet.set(playerCredits);
+    playerCredits=Number(clubWallet.credits||playerCredits);
+  }
+  updatePanel();
+}
+function finishRound(){
+  round++;
+  updatePanel();
+  $('continueBtn').disabled=true;
+  $('foldBtn').disabled=true;
+  $('newBtn').disabled=false;
+  state='idle';
+  roundForce=null;
+}
+
+$('newBtn').onclick=async()=>{
+  if(state==='decision') return;
+  if(!window.clubWallet){$('message').textContent='Carregando carteira...';return}
+  const check=clubBets.validate($('bet').value);
+  if(!check.ok){$('message').textContent=check.message;return}
+  const v=check.value;
+  $('bet').value=v;
+  if(v>playerCredits){$('message').textContent='Saldo insuficiente para a primeira aposta.';return}
+
+  currentBet=v;
+  secondBet=v*2;
+  playerCredits-=currentBet;
+  await persist();
+
+  roundForce=null;
+  try{ roundForce=window.clubHouse?await clubHouse.nextOutcome('caribbean'):null; }catch(_){ roundForce=null; }
+
+  const dealt=dealForForce(roundForce);
+  player=dealt.p; bank=dealt.b;
+  state='decision';
+  render(false);
+  $('message').innerHTML=`Primeira aposta: <b>${fmt(currentBet)}</b>. Para disputar, a segunda será <b>${fmt(secondBet)}</b>.`;
+  $('continueBtn').disabled=false;
+  $('foldBtn').disabled=false;
+  $('newBtn').disabled=true;
+  $('bankHand').textContent='';
+};
+
+$('continueBtn').onclick=async()=>{
+  if(state!=='decision') return;
+  if(secondBet>playerCredits){
+    $('message').innerHTML=`Você precisa de <b>${fmt(secondBet)}</b> para disputar.`;
+    return;
+  }
+  state='done';
+  playerCredits-=secondBet;
+  await persist();
+  render(true);
+
+  const q=bankQualifies();
+  if(!q){
+    playerCredits+=secondBet;
+    const anteReturn=currentBet*2;
+    playerCredits+=anteReturn;
+    $('message').innerHTML=`Banca não se qualificou. Raise devolvido e ante paga 1×. Recebeu <b>${fmt(secondBet+anteReturn)}</b>.`;
+    await persist();
+    finishRound();
+    return;
+  }
+  const r=cmp(player,bank);
+  if(r>0){
+    const h=evalHand(player);
+    const mult=payoutMultiplier(h);
+    const prize=currentBet+(secondBet*mult);
+    playerCredits+=prize;
+    $('message').innerHTML=`Você venceu com <b>${h.name}</b>. Pagamento: ${fmt(currentBet)} + (${fmt(secondBet)} × ${mult}) = <b>${fmt(prize)}</b>.`;
+  } else if(r<0){
+    $('message').innerHTML=`Banca qualificou e venceu. Perdeu <b>${fmt(currentBet+secondBet)}</b>.`;
+  } else {
+    playerCredits+=currentBet+secondBet;
+    $('message').innerHTML=`Empate. Apostas devolvidas: <b>${fmt(currentBet+secondBet)}</b>.`;
+  }
+  await persist();
+  finishRound();
+};
+
+$('foldBtn').onclick=async()=>{
+  if(state!=='decision') return;
+  state='done';
+  render(true);
+  $('message').innerHTML=`Você desistiu. Perdeu o ante de <b>${fmt(currentBet)}</b>.`;
+  finishRound();
+};
+
+updatePanel();
+render(false);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=11"></script>
+<script src="../js/auth.js?v=29"></script>
+<script src="../js/house.js?v=4"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=16"></script>
+<script>
+window.clubWalletReady.then((w)=>{
+  if(!w||w.sealed) return;
+  playerCredits=Number(w.credits||0);
+  updatePanel();
+});
+const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
+if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};
+if(ch&&hm) ch.onclick=()=>{hm.style.display='none'};
+if(hm) hm.addEventListener('click',(e)=>{ if(e.target===hm) hm.style.display='none'; });
+</script>
+</body>
+</html>
