@@ -8,6 +8,7 @@ export const GAME_IDS = [
   'bacatela',
   'roleta',
   'bacbo',
+  'escova',
   'ronda',
   'caipira',
   '21',

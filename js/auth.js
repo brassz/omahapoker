@@ -339,6 +339,7 @@
         roleta: 'ROLETA',
         flyx: 'PONTO MAIOR',
         bacbo: 'PONTO MAIOR',
+        escova: 'ESCOVA',
         ronda: 'RONDA',
         caipira: 'CAIPIRA',
         '21': '21',
@@ -439,7 +440,7 @@
 
     GAME_IDS: [
       'omaha', 'crep', 'bacatela', 'roleta',
-      'bacbo', 'ronda', 'caipira', '21',
+      'bacbo', 'escova', 'ronda', 'caipira', '21',
     ],
 
     normalizeGameId(id) {
