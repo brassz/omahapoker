@@ -331,7 +331,7 @@ body{display:flex;flex-direction:column}
     <p>Dois dados para o Jogador 1 (azul) e dois para o Jogador 2 (vermelho). Quem tiver a pontuação mais alta vence.</p>
     <h3>Pontuação</h3>
     <ul>
-      <li>A pontuação é o último dígito da soma dos dois dados (ex.: 4+6=10 → pontuação 0; 5+6=11 → pontuação 1).</li>
+      <li>A pontuação é a <b>soma</b> dos dois dados (ex.: 4+6=10; 5+6=11). Quem tiver o ponto maior vence.</li>
     </ul>
     <h3>Apostas</h3>
     <ul>
@@ -404,19 +404,24 @@ function setDie(el, n){
 }
 ['pDie1','pDie2','bDie1','bDie2'].forEach(id => setDie(document.getElementById(id), 1));
 
-function score(d1, d2){ return (d1 + d2) % 10; }
+/** Soma direta dos dados (Ponto Maior). Não usa % 10 — 4+6 = 10, não 0. */
+function score(d1, d2){ return Number(d1) + Number(d2); }
+
+/** Única fonte de verdade: placar e vencedor saem sempre dos 4 dados. */
+function resolveOutcome(p1, p2, b1, b2){
+  const ps = score(p1, p2);
+  const bs = score(b1, b2);
+  const winner = ps > bs ? 'player' : ps < bs ? 'banker' : 'tie';
+  return { p1, p2, b1, b2, ps, bs, winner };
+}
 
 const ALL_OUTCOMES = (() => {
   const list = [];
   for (let p1 = 1; p1 <= 6; p1++)
     for (let p2 = 1; p2 <= 6; p2++)
       for (let b1 = 1; b1 <= 6; b1++)
-        for (let b2 = 1; b2 <= 6; b2++) {
-          const ps = score(p1, p2);
-          const bs = score(b1, b2);
-          const winner = ps > bs ? 'player' : ps < bs ? 'banker' : 'tie';
-          list.push({ p1, p2, b1, b2, ps, bs, winner });
-        }
+        for (let b2 = 1; b2 <= 6; b2++)
+          list.push(resolveOutcome(p1, p2, b1, b2));
   return list;
 })();
 
@@ -425,6 +430,11 @@ function betReturn(bet, winner){
   if (winner === 'tie') return bet.amount;
   if (bet.type === winner) return bet.amount * PAYOUT[bet.type];
   return 0;
+}
+
+/** Lucro real da aposta sob o resultado de mesa (vencedor pelos dados). */
+function betProfit(bet, winner){
+  return betReturn(bet, winner) - bet.amount;
 }
 
 function pendingTotal(){
@@ -485,19 +495,31 @@ function addBet(type){
 }
 
 async function pickOutcome(){
+  // Manipulação só escolhe entre jogadas reais (dados 1–6).
+  // force 'player'/'bank' = resultado da aposta do usuário, não o lado da mesa.
   let pool = ALL_OUTCOMES;
   let force = null;
   try { if (window.clubHouse) force = await clubHouse.nextOutcome(); } catch (_) {}
 
   if (force === 'bank' && pendingBets.length){
-    const losers = pool.filter(o => pendingBets.every(b => betReturn(b, o.winner) === 0));
+    // Casa: usuário perde de verdade (sem empate/devolução).
+    const losers = pool.filter(o => {
+      const real = resolveOutcome(o.p1, o.p2, o.b1, o.b2);
+      return pendingBets.every(b => betReturn(b, real.winner) === 0);
+    });
     if (losers.length) pool = losers;
   } else if (force === 'player' && pendingBets.length){
-    const winners = pool.filter(o => pendingBets.some(b => betReturn(b, o.winner) > b.amount));
+    // Usuário: precisa haver lucro real numa aposta (vitória de mesa no lado apostado).
+    const winners = pool.filter(o => {
+      const real = resolveOutcome(o.p1, o.p2, o.b1, o.b2);
+      return pendingBets.some(b => betProfit(b, real.winner) > 0);
+    });
     if (winners.length) pool = winners;
   }
 
-  return pool[Math.floor(Math.random() * pool.length)];
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  // Recalcula no momento do sorteio — placar/vencedor sempre batem com os dados.
+  return resolveOutcome(picked.p1, picked.p2, picked.b1, picked.b2);
 }
 
 function animateDice(outcome, done){
@@ -572,9 +594,11 @@ async function playRound(){
   document.getElementById('sidePlayer').classList.remove('winner');
   document.getElementById('sideBanker').classList.remove('winner');
 
-  const outcome = await pickOutcome();
+  const picked = await pickOutcome();
 
-  animateDice(outcome, async () => {
+  animateDice(picked, async () => {
+    // Dados na tela são a verdade: placar e vitória recalculados deles.
+    const outcome = resolveOutcome(picked.p1, picked.p2, picked.b1, picked.b2);
     document.getElementById('playerScore').textContent = outcome.ps;
     document.getElementById('bankerScore').textContent = outcome.bs;
     highlightWinner(outcome.winner);
