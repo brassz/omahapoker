@@ -605,15 +605,6 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.3)}
     $('playerHandCount').textContent = `${playerHand.length} carta${playerHand.length === 1 ? '' : 's'}`;
     $('tableCount').textContent = `${table.length} carta${table.length === 1 ? '' : 's'}`;
 
-    // Bind hand clicks
-    if (phase === 'player' && !busy) {
-      $('playerHand').querySelectorAll('.pcard').forEach((el, i) => {
-        el.onclick = () => selectHandCard(i);
-      });
-      $('tableCards').querySelectorAll('.pcard.target').forEach((el) => {
-        el.onclick = () => toggleTableCard(el.dataset.id);
-      });
-    }
     renderScore();
     renderComboBar();
     updateActionButtons();
@@ -1053,6 +1044,21 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.3)}
   $('btnCapturar').onclick = () => playerCapture();
   $('btnDescartar').onclick = () => playerDiscard();
   $('btnNova').onclick = () => resetToBet();
+
+  $('playerHand').addEventListener('click', (e) => {
+    if (phase !== 'player' || busy) return;
+    const el = e.target.closest('.pcard');
+    if (!el || !el.classList.contains('selectable')) return;
+    const cards = [...$('playerHand').querySelectorAll('.pcard')];
+    const i = cards.indexOf(el);
+    if (i >= 0) selectHandCard(i);
+  });
+  $('tableCards').addEventListener('click', (e) => {
+    if (phase !== 'player' || busy || selectedHandIdx < 0) return;
+    const el = e.target.closest('.pcard');
+    if (!el || !el.classList.contains('target')) return;
+    toggleTableCard(el.dataset.id);
+  });
 
   const hm = $('helpModal');
   $('openHelp').onclick = () => { hm.style.display = 'block'; };
