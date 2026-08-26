@@ -1074,6 +1074,18 @@ button:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.3)}
     credits = Number(w.credits || 0);
     renderHud();
   });
+
+  // Hooks para debug/QA apenas em ?preview=1
+  if (new URLSearchParams(location.search).has('preview')) {
+    window.__escova = {
+      getState: () => ({ phase, busy, selectedHandIdx, combos: combos.length, activeBet, credits, table: table.length, playerHand: playerHand.length, bankHand: bankHand.length }),
+      select: (i) => selectHandCard(i),
+      capture: () => playerCapture(),
+      discard: () => playerDiscard(),
+      confirm: () => confirmBet(),
+      newRound: () => resetToBet(),
+    };
+  }
 })();
 </script>
 </body>
