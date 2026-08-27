@@ -60,7 +60,7 @@ h1{font-size:clamp(22px,5vw,36px);margin:0}
 .playing-card.black{color:#111!important}
 .playing-card.red{color:#d40000!important}
 @keyframes deal{from{transform:translateY(-16px) scale(.86);opacity:0}to{transform:none;opacity:1}}
-.apostas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.apostas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .aposta{
   border:2px solid #fff4;border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;
   color:#120018;font-weight:1000;transition:.2s
@@ -69,7 +69,6 @@ h1{font-size:clamp(22px,5vw,36px);margin:0}
 .aposta.sel{outline:3px solid #ffd91a;box-shadow:0 0 18px #ffd91a88}
 .aposta.player{background:linear-gradient(180deg,#0b3a66,#1565c0);color:#e8f7ff;border-color:#7dd3fc}
 .aposta.banker{background:linear-gradient(180deg,#7a1048,#ff4fd8);color:#fff;border-color:#ff9de0}
-.aposta.tie{background:linear-gradient(180deg,#1f7a00,#58df00);color:#041;border-color:#9dff76}
 .aposta small{display:block;font-weight:700;opacity:.9;margin-top:4px;font-size:11px}
 .controles{
   margin-top:12px;background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:14px
@@ -124,7 +123,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="top">
     <div>
       <h1 class="club-rainbow">♠ BACCARAT ♦</h1>
-      <div class="sub">Jogador · Banca · Empate · aposta 2 a 200</div>
+      <div class="sub">Jogador · Banca · aposta 2 a 200</div>
     </div>
     <div class="credito">
       <div class="label">SALDO</div>
@@ -133,7 +132,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
 
   <div class="mesa">
-    <div class="status" id="status">Escolha Jogador, Banca ou Empate e defina a aposta.</div>
+    <div class="status" id="status">Escolha Jogador ou Banca e defina a aposta.</div>
     <div class="lados">
       <div class="lado jogador">
         <h2>🔵 JOGADOR</h2>
@@ -150,7 +149,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="apostas">
       <div class="aposta player" data-tipo="player">JOGADOR<small>Paga 1:1</small></div>
       <div class="aposta banker" data-tipo="banker">BANCA<small>Paga 0,95:1</small></div>
-      <div class="aposta tie" data-tipo="tie">EMPATE<small>Paga 8:1</small></div>
     </div>
   </div>
 
@@ -178,7 +176,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
     <div class="box regras">
       <h3>Regras</h3>
-      Ás=1 · 2–9 face · 10/J/Q/K=0. Soma só o último dígito. Natural 8/9 encerra. Terceira carta segue a tabela clássica.
+      Ás=1 · 2–9 face · 10/J/Q/K=0. Soma só o último dígito. Natural 8/9 encerra. Terceira carta segue a tabela clássica. <b>Empate = derrota</b> (aposta perdida).
     </div>
   </div>
 </div>
@@ -186,10 +184,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div id="helpModal" class="helpModal"><div class="helpCard">
 <h2>❓ COMO JOGAR — BACCARAT</h2>
 <ul>
-  <li>Escolha <b>Jogador</b>, <b>Banca</b> ou <b>Empate</b>.</li>
+  <li>Escolha <b>Jogador</b> ou <b>Banca</b>.</li>
   <li>Aposte de <b>2 a 200</b> e toque em DISTRIBUIR CARTAS.</li>
   <li>Ganha quem chegar mais perto de 9 pontos.</li>
-  <li>Pagamentos: Jogador 1:1 · Banca 0,95:1 · Empate 8:1.</li>
+  <li>Pagamentos: Jogador 1:1 · Banca 0,95:1.</li>
+  <li><b>Empate = derrota</b> — a aposta é perdida.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
@@ -246,8 +245,9 @@ function resolveRound(force){
   let target=null;
   if(force==='player') target=tipo;
   else if(force==='bank'){
-    const opts=['player','banker','tie'].filter(x=>x!==tipo);
-    target=opts[Math.floor(Math.random()*opts.length)];
+    /* empate também é derrota para o jogador */
+    target=tipo==='player'?'banker':'player';
+    if(Math.random()<0.35) target='tie';
   }
   for(let t=0;t<80;t++){
     const r=playRound(deck());
@@ -272,7 +272,7 @@ document.querySelectorAll('.aposta').forEach(el=>{
     document.querySelectorAll('.aposta').forEach(x=>x.classList.remove('sel'));
     el.classList.add('sel');
     tipo=el.dataset.tipo;
-    msg(`Selecionado: ${tipo==='player'?'Jogador':tipo==='banker'?'Banca':'Empate'}.`);
+    msg(`Selecionado: ${tipo==='player'?'Jogador':'Banca'}.`);
   };
 });
 document.querySelectorAll('.chip[data-v]').forEach(b=>{
@@ -288,7 +288,7 @@ $('nova').onclick=()=>{
 };
 $('jogar').onclick=async()=>{
   if(rodada) return;
-  if(!tipo){msg('Escolha Jogador, Banca ou Empate.');return}
+  if(!tipo){msg('Escolha Jogador ou Banca.');return}
   if(!window.clubWallet){msg('Carregando carteira...');return}
   const check=clubBets.validate($('valor').value);
   if(!check.ok){msg(check.message);return}
@@ -326,16 +326,18 @@ $('jogar').onclick=async()=>{
     }
   }
 
-  const vencedor=full.vencedor;
+  const pjFinal=pontos(j), pbFinal=pontos(b);
+  const vencedor=pjFinal>pbFinal?'player':pbFinal>pjFinal?'banker':'tie';
   let ganho=0;
-  if(tipo===vencedor){
+  if(vencedor==='tie'){
+    msg(`EMPATE (${pjFinal} × ${pbFinal}). Sua aposta foi perdida.`);
+  } else if(tipo===vencedor){
     if(vencedor==='player') ganho=Math.round(aposta*2);
-    else if(vencedor==='banker') ganho=Math.round(aposta*1.95);
-    else ganho=Math.round(aposta*9);
+    else ganho=Math.round(aposta*1.95);
     saldo+=ganho;
-    msg(`${vencedor==='player'?'JOGADOR':vencedor==='banker'?'BANCA':'EMPATE'} venceu. Você acertou e recebeu ${fmt(ganho)}.`);
+    msg(`${vencedor==='player'?'JOGADOR':'BANCA'} venceu. Você acertou e recebeu ${fmt(ganho)}.`);
   } else {
-    msg(`Resultado: ${vencedor==='player'?'JOGADOR':vencedor==='banker'?'BANCA':'EMPATE'} venceu. Sem prêmio nesta rodada.`);
+    msg(`Resultado: ${vencedor==='player'?'JOGADOR':'BANCA'} venceu. Sem prêmio nesta rodada.`);
   }
   await persist();
   hist.unshift(vencedor);
