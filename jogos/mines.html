@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MINES — NextPlay Club</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<link rel="stylesheet" href="../css/mobile-fit.css">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
+.app{max-width:720px;margin:auto}
+h1{text-align:center;margin:6px 0 4px;font-size:clamp(26px,7vw,42px)}
+.sub{text-align:center;margin-bottom:10px;font-weight:900;color:#b8c9e0}
+.panel{
+  background:#0a0614;border:2px solid #17c8ff;border-radius:16px;
+  padding:12px;margin-bottom:12px;box-shadow:0 0 14px #17c8ff55;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.saldos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.box{
+  background:#060912;border:1px solid #17c8ff66;border-radius:12px;
+  padding:10px;text-align:center
+}
+.box small{display:block;color:#8899aa;font-weight:800;margin-bottom:4px;font-size:10px}
+.box strong{font-size:clamp(18px,5vw,24px);color:#ffd91a;text-shadow:0 0 10px #ffd91a}
+.box.mult strong{color:#5cff1a;text-shadow:0 0 10px #5cff1a}
+label{display:block;font-weight:800;margin:10px 0 4px;color:#d8e7ff;font-size:13px}
+input,select{
+  width:100%;padding:12px;border-radius:12px;border:1px solid #445;
+  background:#090614;color:#fff;font-size:16px;font-weight:800
+}
+.mineOpts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:6px}
+.mineBtn{
+  border:2px solid #17c8ff66;border-radius:10px;padding:10px 4px;
+  background:#060912;color:#d8e7ff;font-weight:900;font-size:13px;cursor:pointer;
+  transition:all .15s
+}
+.mineBtn.active,.mineBtn:hover{border-color:#ff4fd8;background:#1a0a28;color:#fff;box-shadow:0 0 10px #ff4fd855}
+.gridWrap{display:flex;justify-content:center;margin:12px 0}
+.grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  width:min(100%,340px);aspect-ratio:1
+}
+.tile{
+  border:0;border-radius:12px;cursor:pointer;font-size:clamp(20px,6vw,32px);
+  font-weight:900;background:linear-gradient(145deg,#12102a,#0a0614);
+  border:2px solid #17c8ff88;color:#17c8ff;box-shadow:0 0 8px #17c8ff33 inset;
+  transition:transform .12s,box-shadow .12s;user-select:none;-webkit-tap-highlight-color:transparent
+}
+.tile:not(:disabled):hover{transform:scale(1.04);box-shadow:0 0 14px #17c8ff66}
+.tile:disabled{cursor:default}
+.tile.hidden{background:linear-gradient(145deg,#12102a,#0a0614)}
+.tile.gem{
+  background:linear-gradient(145deg,#0a2a0a,#061806);
+  border-color:#5cff1a;color:#5cff1a;box-shadow:0 0 16px #5cff1a66;
+  animation:gemPop .25s ease
+}
+.tile.mine{
+  background:linear-gradient(145deg,#3a0a0a,#1a0404);
+  border-color:#ff3434;color:#ff3434;box-shadow:0 0 16px #ff343466;
+  animation:mineShake .35s ease
+}
+.tile.peek{background:#060912;border-color:#445;color:#445}
+@keyframes gemPop{0%{transform:scale(.7)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes mineShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button.btn{
+  border:0;border-radius:12px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;color:#120018
+}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8;grid-column:1/-1}
+.cashout{background:linear-gradient(180deg,#1a5c1a,#2e7d32);border:2px solid #5cff1a;color:#e8ffe8}
+.secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
+.status{text-align:center;color:#7af0ff;font-weight:800;min-height:20px;margin-top:8px;font-size:13px}
+.history-item{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:8px 0;border-bottom:1px solid #17c8ff33;font-size:13px;font-weight:700
+}
+.muted{color:#8899aa}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard h3{color:#ffd91a;margin:12px 0 4px}.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+@media(max-width:520px){.saldos{grid-template-columns:1fr 1fr}.saldos .box:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1 class="club-rainbow">MINES</h1>
+  <div class="sub">Campo 5×5 · Gemas ou minas · Retire a qualquer momento</div>
+  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
+
+  <section class="panel" id="setupPanel">
+    <div class="saldos">
+      <div class="box">
+        <small>SALDO</small>
+        <strong id="playerBalance">0</strong>
+      </div>
+      <div class="box">
+        <small>APOSTA</small>
+        <strong id="betShow">10</strong>
+      </div>
+      <div class="box mult">
+        <small>MULTIPLICADOR</small>
+        <strong id="multShow">1,00×</strong>
+      </div>
+    </div>
+    <label for="betAmount">Valor da rodada (2 a 200)</label>
+    <input id="betAmount" type="number" min="2" max="200" step="1" value="10">
+    <label>Quantidade de minas</label>
+    <div class="mineOpts" id="mineOpts">
+      <button type="button" class="mineBtn" data-mines="3">3</button>
+      <button type="button" class="mineBtn" data-mines="5">5</button>
+      <button type="button" class="mineBtn active" data-mines="10">10</button>
+      <button type="button" class="mineBtn" data-mines="15">15</button>
+      <button type="button" class="mineBtn" data-mines="20">20</button>
+    </div>
+    <div class="status" id="status">Defina aposta e minas, depois inicie a rodada.</div>
+    <div class="buttons">
+      <button class="btn primary" id="startBtn" type="button">💎 INICIAR RODADA</button>
+    </div>
+  </section>
+
+  <section class="panel" id="gamePanel" style="display:none">
+    <div class="gridWrap">
+      <div class="grid" id="grid"></div>
+    </div>
+    <div class="status" id="gameStatus">Clique nas casas para revelar gemas.</div>
+    <div class="buttons">
+      <button class="btn cashout" id="cashoutBtn" type="button" disabled>💰 RETIRAR GANHO</button>
+      <button class="btn secondary" id="newBtn" type="button">🔄 NOVA RODADA</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <b>Histórico</b>
+    <div id="history"><p id="emptyHistory" class="muted">Nenhuma rodada ainda.</p></div>
+  </section>
+</main>
+
+<div id="helpModal" class="helpModal"><div class="helpCard">
+<h2>❓ COMO JOGAR — MINES</h2>
+<ul>
+  <li>Aposte de <b>2 a 200</b> e escolha quantas minas (3 a 20) estarão escondidas no campo 5×5.</li>
+  <li>Ao iniciar, a aposta é debitada do saldo.</li>
+  <li>Clique nas casas: <b style="color:#5cff1a">gema</b> aumenta o multiplicador; <b style="color:#ff3434">mina</b> encerra a rodada e você perde a aposta.</li>
+  <li>Use <b>RETIRAR GANHO</b> a qualquer momento para receber aposta × multiplicador.</li>
+  <li>Quanto mais minas, maior o risco — e maior o prêmio por gema revelada.</li>
+</ul>
+<button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
+</div></div>
+
+<script>
+const GRID_SIZE = 5;
+const TOTAL = GRID_SIZE * GRID_SIZE;
+const HOUSE_EDGE = 0.97;
+const MINE_OPTIONS = [3, 5, 10, 15, 20];
+
+const playerBalanceEl = document.getElementById('playerBalance');
+const betAmountEl = document.getElementById('betAmount');
+const betShow = document.getElementById('betShow');
+const multShow = document.getElementById('multShow');
+const statusEl = document.getElementById('status');
+const gameStatusEl = document.getElementById('gameStatus');
+const startBtn = document.getElementById('startBtn');
+const cashoutBtn = document.getElementById('cashoutBtn');
+const newBtn = document.getElementById('newBtn');
+const setupPanel = document.getElementById('setupPanel');
+const gamePanel = document.getElementById('gamePanel');
+const gridEl = document.getElementById('grid');
+const historyEl = document.getElementById('history');
+const mineOptsEl = document.getElementById('mineOpts');
+
+let playerBalance = 0;
+let mineCount = 10;
+let betAmount = 0;
+let multiplier = 1;
+let reveals = 0;
+let mines = new Set();
+let revealed = new Set();
+let roundActive = false;
+let busy = false;
+let tiles = [];
+
+function fmt(n) { return Number(n || 0).toLocaleString('pt-BR'); }
+function fmtMult(m) { return (Math.floor(m * 100) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '×'; }
+
+async function persist() {
+  if (window.clubWallet) {
+    await clubWallet.set(playerBalance);
+    playerBalance = Number(clubWallet.credits || playerBalance);
+  }
+  render();
+}
+
+function render() {
+  playerBalanceEl.textContent = fmt(playerBalance);
+  const v = Math.floor(Number(betAmountEl.value) || 0);
+  betShow.textContent = fmt(v > 0 ? v : 0);
+  multShow.textContent = fmtMult(multiplier);
+}
+
+function addHistory(text, amount) {
+  const empty = document.getElementById('emptyHistory');
+  if (empty) empty.remove();
+  const row = document.createElement('div');
+  row.className = 'history-item';
+  row.innerHTML = `<span>${text}</span><strong>${amount}</strong>`;
+  historyEl.prepend(row);
+}
+
+function calcMultiplier(total, minesN, picks) {
+  if (picks <= 0) return 1;
+  let m = 1;
+  for (let i = 0; i < picks; i++) {
+    m *= (total - i) / (total - minesN - i);
+  }
+  return m * HOUSE_EDGE;
+}
+
+function clickPriority(index) {
+  const col = index % GRID_SIZE;
+  const row = Math.floor(index / GRID_SIZE);
+  const cx = (GRID_SIZE - 1) / 2;
+  const cy = (GRID_SIZE - 1) / 2;
+  const dist = Math.hypot(col - cx, row - cy);
+  return dist + Math.random() * 0.45;
+}
+
+function generateMines(count, outcome) {
+  const indices = Array.from({ length: TOTAL }, (_, i) => i);
+  let ordered;
+  if (outcome === 'bank') {
+    ordered = indices.slice().sort((a, b) => clickPriority(a) - clickPriority(b));
+  } else if (outcome === 'player') {
+    ordered = indices.slice().sort((a, b) => clickPriority(b) - clickPriority(a));
+  } else {
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    ordered = indices;
+  }
+  return new Set(ordered.slice(0, count));
+}
+
+function buildGrid() {
+  gridEl.innerHTML = '';
+  tiles = [];
+  for (let i = 0; i < TOTAL; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tile hidden';
+    btn.textContent = '💎';
+    btn.dataset.index = String(i);
+    btn.addEventListener('click', () => onTileClick(i));
+    gridEl.appendChild(btn);
+    tiles.push(btn);
+  }
+}
+
+function setSetupEnabled(on) {
+  betAmountEl.disabled = !on;
+  mineOptsEl.querySelectorAll('.mineBtn').forEach((b) => { b.disabled = !on; });
+  startBtn.disabled = !on;
+}
+
+function showSetup() {
+  roundActive = false;
+  multiplier = 1;
+  reveals = 0;
+  mines = new Set();
+  revealed = new Set();
+  setupPanel.style.display = '';
+  gamePanel.style.display = 'none';
+  setSetupEnabled(true);
+  statusEl.textContent = 'Defina aposta e minas, depois inicie a rodada.';
+  render();
+}
+
+async function startRound() {
+  if (busy || roundActive) return;
+  if (!window.clubWallet) { statusEl.textContent = 'Carregando carteira...'; return; }
+  const check = clubBets.validate(betAmountEl.value);
+  if (!check.ok) { statusEl.textContent = check.message; return; }
+  const amount = check.value;
+  betAmountEl.value = amount;
+  if (amount > playerBalance) { statusEl.textContent = 'Saldo insuficiente.'; return; }
+
+  busy = true;
+  startBtn.disabled = true;
+  statusEl.textContent = 'Preparando campo...';
+
+  let force = null;
+  try { force = window.clubHouse ? await clubHouse.nextOutcome('mines') : null; } catch (_) { force = null; }
+
+  playerBalance -= amount;
+  betAmount = amount;
+  mineCount = Number(mineOptsEl.querySelector('.mineBtn.active')?.dataset.mines || 10);
+  mines = generateMines(mineCount, force);
+  revealed = new Set();
+  reveals = 0;
+  multiplier = 1;
+  roundActive = true;
+
+  buildGrid();
+  setupPanel.style.display = 'none';
+  gamePanel.style.display = '';
+  setSetupEnabled(false);
+  cashoutBtn.disabled = true;
+  gameStatusEl.textContent = `Campo ativo · ${mineCount} minas · revele gemas com cuidado!`;
+  await persist();
+  busy = false;
+}
+
+async function onTileClick(index) {
+  if (!roundActive || busy || revealed.has(index)) return;
+  busy = true;
+  const tile = tiles[index];
+  tile.disabled = true;
+  revealed.add(index);
+
+  if (mines.has(index)) {
+    tile.className = 'tile mine';
+    tile.textContent = '💣';
+    await endRoundLoss(true);
+    busy = false;
+    return;
+  }
+
+  reveals++;
+  multiplier = calcMultiplier(TOTAL, mineCount, reveals);
+  tile.className = 'tile gem';
+  tile.textContent = '💎';
+  cashoutBtn.disabled = false;
+  gameStatusEl.textContent = `${reveals} gema(s) · multiplicador ${fmtMult(multiplier)} · retirar ou continuar?`;
+  render();
+
+  const safeLeft = TOTAL - mineCount - reveals;
+  if (safeLeft <= 0) {
+    await endRoundWin(true);
+  }
+  busy = false;
+}
+
+async function endRoundWin(auto) {
+  const payout = Math.floor(betAmount * multiplier);
+  playerBalance += payout;
+  roundActive = false;
+  tiles.forEach((t, i) => {
+    t.disabled = true;
+    if (!revealed.has(i)) {
+      if (mines.has(i)) {
+        t.className = 'tile peek';
+        t.textContent = '💣';
+      } else {
+        t.className = 'tile peek';
+        t.textContent = '💎';
+      }
+    }
+  });
+  const label = auto ? '🎉 CAMPO LIMPO!' : '💰 GANHO RETIRADO';
+  gameStatusEl.textContent = `${label} Recebeu ${fmt(payout)} (${fmtMult(multiplier)}).`;
+  addHistory(`💎 ${reveals} gemas · ${mineCount} minas`, `+${fmt(payout)}`);
+  cashoutBtn.disabled = true;
+  await persist();
+}
+
+async function endRoundLoss(showAll) {
+  roundActive = false;
+  if (showAll) {
+    tiles.forEach((t, i) => {
+      t.disabled = true;
+      if (mines.has(i)) {
+        t.className = 'tile mine';
+        t.textContent = '💣';
+      } else if (!revealed.has(i)) {
+        t.className = 'tile peek';
+        t.textContent = '💎';
+      }
+    });
+  }
+  gameStatusEl.textContent = `💣 Mina! Perdeu ${fmt(betAmount)}.`;
+  addHistory(`💣 Mina na ${reveals + 1}ª casa · ${mineCount} minas`, `-${fmt(betAmount)}`);
+  cashoutBtn.disabled = true;
+  await persist();
+}
+
+async function cashOut() {
+  if (!roundActive || busy || reveals <= 0) return;
+  busy = true;
+  await endRoundWin(false);
+  busy = false;
+}
+
+mineOptsEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mineBtn');
+  if (!btn || btn.disabled) return;
+  mineOptsEl.querySelectorAll('.mineBtn').forEach((b) => b.classList.remove('active'));
+  btn.classList.add('active');
+  mineCount = Number(btn.dataset.mines);
+});
+
+betAmountEl.addEventListener('input', render);
+startBtn.addEventListener('click', () => startRound());
+cashoutBtn.addEventListener('click', () => cashOut());
+newBtn.addEventListener('click', () => { if (!busy) showSetup(); });
+render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=9"></script>
+<script src="../js/auth.js?v=29"></script>
+<script src="../js/house.js?v=4"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=15"></script>
+<script>
+window.clubWalletReady.then((w) => {
+  if (!w || w.sealed) return;
+  playerBalance = Number(w.credits || 0);
+  render();
+});
+const hm = document.getElementById('helpModal');
+const oh = document.getElementById('openHelp');
+const ch = document.getElementById('closeHelp');
+if (oh && hm) oh.onclick = () => { hm.style.display = 'block'; };
+if (ch && hm) ch.onclick = () => { hm.style.display = 'none'; };
+if (hm) hm.addEventListener('click', (e) => { if (e.target === hm) hm.style.display = 'none'; });
+</script>
+</body>
+</html>
