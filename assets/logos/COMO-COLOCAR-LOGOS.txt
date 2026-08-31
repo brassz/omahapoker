@@ -17,6 +17,7 @@ Coloque aqui as imagens PNG (recomendado) ou JPG/WebP com estes nomes:
   trincacaipira.png → logo da Trinca Caipira
   baccarat.png   → logo do Baccarat
   caribbean.png  → logo do Caribbean Stud
+  mines.png      → logo do MINES
   bacbo.png      → logo do Ponto Maior
 
 Tamanho sugerido:
