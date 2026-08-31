@@ -316,25 +316,38 @@ function circularDistance(a,b){
   const d=Math.abs(a-b);
   return Math.min(d,20-d);
 }
-function pickDrawn(force){
-  if(force==='player' && chosen){
-    const roll=Math.random();
-    if(roll<0.55) return chosen;
-    if(roll<0.85){
-      const opts=[chosen-1,chosen+1].map(n=>((n-1+20)%20)+1).filter(n=>n!==chosen);
-      return opts[Math.floor(Math.random()*opts.length)];
-    }
+function pickFromRing(chosen, tier){
+  if(tier==='exact') return chosen;
+  if(tier==='near1'){
+    const opts=[chosen-1,chosen+1].map(n=>((n-1+20)%20)+1);
+    return opts[Math.floor(Math.random()*opts.length)];
+  }
+  if(tier==='near2'){
     const opts=[chosen-2,chosen+2].map(n=>((n-1+20)%20)+1);
     return opts[Math.floor(Math.random()*opts.length)];
   }
-  if(force==='bank' && chosen){
-    for(let t=0;t<40;t++){
-      const n=Math.floor(Math.random()*20)+1;
-      if(circularDistance(chosen,n)>2) return n;
-    }
-    return ((chosen+10-1)%20)+1;
+  for(let t=0;t<50;t++){
+    const n=Math.floor(Math.random()*20)+1;
+    if(circularDistance(chosen,n)>2) return n;
   }
-  return Math.floor(Math.random()*20)+1;
+  return ((chosen+10-1)%20)+1;
+}
+function pickDrawn(force){
+  if(!chosen) return Math.floor(Math.random()*20)+1;
+  const roll=Math.random();
+  if(force==='player'){
+    /* RTP a favor: acerto exato bem raro */
+    if(roll<0.02) return pickFromRing(chosen,'exact');
+    if(roll<0.22) return pickFromRing(chosen,'near1');
+    if(roll<0.42) return pickFromRing(chosen,'near2');
+    return pickFromRing(chosen,'loss');
+  }
+  if(force==='bank') return pickFromRing(chosen,'loss');
+  /* natural: exato ~2,5% (1 em 40), não 5% uniforme */
+  if(roll<0.025) return pickFromRing(chosen,'exact');
+  if(roll<0.10) return pickFromRing(chosen,'near1');
+  if(roll<0.19) return pickFromRing(chosen,'near2');
+  return pickFromRing(chosen,'loss');
 }
 
 async function play(){
