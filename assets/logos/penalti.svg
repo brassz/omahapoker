@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0a0614"/>
+  <rect x="96" y="80" width="320" height="200" rx="12" fill="#1b5e20" stroke="#5cff1a" stroke-width="8"/>
+  <rect x="140" y="80" width="232" height="120" fill="none" stroke="#fff" stroke-width="10"/>
+  <line x1="96" y1="280" x2="416" y2="280" stroke="#fff" stroke-width="6" opacity=".7"/>
+  <circle cx="256" cy="400" r="36" fill="#f5f5f5" stroke="#fff" stroke-width="6"/>
+  <path d="M236 400 Q256 360 276 400" fill="none" stroke="#bdbdbd" stroke-width="3"/>
+  <circle cx="256" cy="170" r="28" fill="#ffd91a" stroke="#fff" stroke-width="4"/>
+  <rect x="236" y="196" width="40" height="48" rx="8" fill="#e65100" stroke="#fff" stroke-width="4"/>
+  <text x="256" y="460" text-anchor="middle" font-family="Trebuchet MS,Arial" font-size="40" font-weight="900" fill="#ffd91a">PÊNALTI</text>
+</svg>

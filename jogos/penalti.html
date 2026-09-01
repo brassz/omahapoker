@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Pênalti Caipira — NextPlay Club</title>
+<link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column}
+.game{
+  flex:1;min-height:0;width:min(720px,100%);margin:0 auto;
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;overflow:hidden;gap:6px;
+}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto}
+.title{font-size:clamp(16px,4.2vw,26px);font-weight:1000;line-height:1}
+.credits{
+  background:#0a0614;border:2px solid #17c8ff;border-radius:10px;
+  padding:5px 10px;font-weight:900;text-align:right;
+  animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.credits small{display:block;color:#7af0ff;font-size:9px;letter-spacing:.5px}
+.credits b{font-size:16px;color:#ffd91a}
+.last-results{display:flex;gap:5px;justify-content:center;flex-wrap:nowrap;overflow:hidden;flex:0 0 auto}
+.last-chip{
+  min-width:28px;height:28px;padding:0 6px;display:grid;place-items:center;
+  border-radius:6px;font-size:10px;font-weight:900;color:#fff;flex:0 0 auto;
+}
+.last-chip.goal{background:#2e7d32!important}
+.last-chip.miss{background:#c62828!important}
+.card{
+  flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  background:#0a0614;border:2px solid #17c8ff;border-radius:14px;padding:8px;
+  box-shadow:0 0 14px #17c8ff55;animation:clubNeonGlow 1.6s ease-in-out infinite;
+}
+.result-banner{
+  text-align:center;font-size:clamp(13px,3.2vw,17px);font-weight:1000;
+  min-height:22px;color:#ffd91a;margin-bottom:4px;flex:0 0 auto;
+}
+.result-banner.win{color:#5cff1a}
+.result-banner.lose{color:#ff6b64}
+.pitch{
+  position:relative;flex:1;min-height:140px;max-height:min(42vh,280px);
+  margin:0 auto;width:100%;max-width:420px;border-radius:12px;overflow:hidden;
+  background:linear-gradient(180deg,#1b5e20 0%,#2e7d32 38%,#388e3c 62%,#1b5e20 100%);
+  border:3px solid #fff6;box-shadow:inset 0 0 40px #0006;
+}
+.pitch::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 49px,#ffffff12 49px 50px),
+    repeating-linear-gradient(0deg,transparent 0 39px,#ffffff0a 39px 40px);
+}
+.penalty-line{
+  position:absolute;left:8%;right:8%;bottom:18%;height:3px;background:#fff9;
+}
+.goal{
+  position:absolute;top:4%;left:50%;transform:translateX(-50%);
+  width:78%;height:42%;border:4px solid #fff;border-bottom:none;
+  border-radius:8px 8px 0 0;background:#0003;
+  box-shadow:0 0 0 2px #ffffff44 inset;
+}
+.goal-net{
+  position:absolute;inset:6px;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,#fff3 0 8px,transparent 8px 16px),
+    repeating-linear-gradient(0deg,#fff3 0 8px,transparent 8px 16px);
+  opacity:.45;
+}
+.zone{
+  position:absolute;top:6%;width:26%;height:38%;border:2px dashed #ffffff44;
+  border-radius:6px;transition:background .2s,box-shadow .2s;
+}
+.zone.left{left:8%}
+.zone.center{left:37%}
+.zone.right{right:8%}
+.zone.hot{background:#ffd91a33;box-shadow:0 0 16px #ffd91a88;border-color:#ffd91a}
+.zone.goal-flash{background:#5cff1a55;box-shadow:0 0 20px #5cff1a}
+.zone.save-flash{background:#ff343455;box-shadow:0 0 20px #ff3434}
+.keeper{
+  position:absolute;top:22%;left:50%;transform:translateX(-50%);
+  width:44px;height:56px;z-index:4;transition:left .35s ease-out,top .35s ease-out,transform .35s;
+}
+.keeper .body{
+  width:36px;height:40px;margin:0 auto;border-radius:10px 10px 6px 6px;
+  background:linear-gradient(180deg,#ffd91a,#e65100);border:2px solid #fff;
+  box-shadow:0 4px 8px #0006;
+}
+.keeper .head{
+  width:22px;height:22px;margin:-4px auto 0;border-radius:50%;
+  background:#ffcc80;border:2px solid #fff;
+}
+.keeper.dive-left{left:22%;top:28%;transform:translateX(-50%) rotate(-28deg)}
+.keeper.dive-center{left:50%;top:30%;transform:translateX(-50%) scale(1.05)}
+.keeper.dive-right{left:78%;top:28%;transform:translateX(-50%) rotate(28deg)}
+.ball{
+  position:absolute;bottom:8%;left:50%;width:28px;height:28px;
+  transform:translateX(-50%);border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 30% 25%,#fff,#f5f5f5 40%,#bdbdbd 100%);
+  border:2px solid #fff;box-shadow:0 4px 10px #0008;
+  transition:left .45s cubic-bezier(.2,.8,.3,1),bottom .45s cubic-bezier(.2,.8,.3,1),transform .45s;
+}
+.ball.fly-left{left:22%;bottom:72%;transform:translateX(-50%) scale(.85)}
+.ball.fly-center{left:50%;bottom:74%;transform:translateX(-50%) scale(.85)}
+.ball.fly-right{left:78%;bottom:72%;transform:translateX(-50%) scale(.85)}
+.ball.kick-windup{transform:translateX(-50%) scale(1.12)}
+.amount-row{
+  display:grid;grid-template-columns:minmax(100px,160px) 1fr;gap:6px;align-items:end;
+  padding:6px 0;border-top:1px solid #334;flex:0 0 auto;
+}
+.label{display:block;color:#7af0ff;font-size:10px;font-weight:900;margin-bottom:3px;letter-spacing:.4px}
+.amount-box{
+  height:34px;background:#060912;border:2px solid #17c8ff;border-radius:8px;
+  display:flex;align-items:center;padding:0 8px;gap:6px;
+}
+.coin{
+  width:20px;height:20px;border-radius:50%;background:#ffd91a;color:#3b3210;
+  display:grid;place-items:center;font-size:9px;font-weight:900;flex:0 0 auto;
+}
+.amount-box input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:#fff;font-size:14px;font-weight:800;
+}
+.quick{display:flex;flex-wrap:nowrap;gap:3px;overflow:hidden}
+.quick button{
+  height:34px;flex:1;min-width:0;padding:0 3px;background:#12101c!important;
+  border:1px solid #556!important;border-radius:8px;color:#d8e7ff!important;
+  cursor:pointer;font-weight:800;font-size:10px;
+  background-image:none!important;animation:none!important;box-shadow:none!important;
+}
+.bets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:6px;flex:0 0 auto}
+.bet-card{
+  border:2px solid #334;border-radius:10px;overflow:hidden;background:#060912;
+  display:flex;flex-direction:column;
+}
+.bet-card.tone-left{border-color:#1565c0}
+.bet-card.tone-center{border-color:#ffd91a}
+.bet-card.tone-right{border-color:#c62828}
+.bet-head{
+  padding:5px 6px;display:flex;justify-content:space-between;align-items:center;gap:4px;
+  border-bottom:1px solid #334;
+}
+.bet-card.tone-left .bet-head{background:#1565c0;color:#fff}
+.bet-card.tone-center .bet-head{background:#b8860b;color:#fff}
+.bet-card.tone-right .bet-head{background:#c62828;color:#fff}
+.bet-name{font-size:10px;font-weight:1000}
+.multiplier{color:#041;font-size:9px;font-weight:900;padding:2px 5px;border-radius:4px;background:#ffd91a}
+.bet-content{padding:5px;display:flex;flex-direction:column;gap:4px}
+.place{
+  width:100%;height:30px;border:2px solid #fff4!important;border-radius:7px;
+  color:#fff!important;font-size:9px;font-weight:900;cursor:pointer;
+  background-image:none!important;animation:none!important;box-shadow:none!important;
+}
+.place.left{background:#1565c0!important}
+.place.center{background:#b8860b!important}
+.place.right{background:#c62828!important}
+.place:disabled{opacity:.4;cursor:not-allowed}
+.bet-status{font-size:8px;color:#a4adb7;font-weight:700;text-align:center;line-height:1.25}
+.bet-status strong{color:#ffd91a}
+.active-bets{
+  margin-top:5px;background:#060912;border:1px solid #334;border-radius:8px;
+  padding:5px 6px;display:flex;justify-content:space-between;gap:6px;align-items:center;
+  flex:0 0 auto;
+}
+.active-text{font-size:11px;color:#d8e7ff;font-weight:700;min-width:0}
+.play{
+  min-width:120px;height:38px;border:0;border-radius:10px;
+  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;color:#120018;font-weight:1000;
+  cursor:pointer;border:2px solid #fff8;padding:0 10px;font-size:13px;
+}
+.play:disabled{cursor:not-allowed;opacity:.5;animation:none}
+.message{
+  margin-top:5px;padding:5px 7px;border-radius:8px;background:#060912;border:1px solid #334;
+  color:#d8e7ff;font-size:11px;font-weight:700;flex:0 0 auto;line-height:1.35;
+}
+.helpBtn{
+  width:auto;margin:0;padding:7px 10px;border-radius:10px;font-weight:900;cursor:pointer;
+  color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;
+  font-size:11px;white-space:nowrap;
+}
+.helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
+.helpCard{
+  max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;
+  border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700;
+}
+.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}
+.helpCard h3{color:#81c784;margin:10px 0 4px}
+.helpCard li{margin:4px 0}
+.closeHelp{
+  width:100%;background:#d32f2f!important;color:#fff!important;border:0;border-radius:10px;
+  padding:12px;font-weight:900;cursor:pointer;margin-top:12px;
+  background-image:none!important;animation:none!important;
+}
+@media(max-width:500px){
+  .amount-row{grid-template-columns:1fr}
+  .pitch{min-height:120px}
+}
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="topbar">
+    <div class="title club-rainbow">⚽ PÊNALTI CAIPIRA</div>
+    <button type="button" class="helpBtn" id="openHelp">❓ REGRAS</button>
+    <div class="credits"><small>CRÉDITOS</small><b id="credits">0</b></div>
+  </div>
+
+  <div class="last-results" id="lastResults"></div>
+
+  <div class="card">
+    <div class="result-banner" id="resultBanner">Escolha a direção e toque em Chutar.</div>
+
+    <div class="pitch" id="pitch">
+      <div class="goal"><div class="goal-net"></div></div>
+      <div class="zone left" id="zoneLeft"></div>
+      <div class="zone center" id="zoneCenter"></div>
+      <div class="zone right" id="zoneRight"></div>
+      <div class="penalty-line"></div>
+      <div class="keeper" id="keeper"><div class="head"></div><div class="body"></div></div>
+      <div class="ball" id="ball"></div>
+    </div>
+
+    <div class="amount-row">
+      <div>
+        <label class="label">VALOR DA APOSTA</label>
+        <div class="amount-box">
+          <div class="coin">$</div>
+          <input id="amount" type="number" min="2" max="200" value="10">
+        </div>
+      </div>
+      <div>
+        <label class="label">ATALHOS</label>
+        <div class="quick">
+          <button data-add="2">+2</button>
+          <button data-add="10">+10</button>
+          <button data-add="50">+50</button>
+          <button id="half">½</button>
+          <button id="double">2×</button>
+          <button id="max">MAX</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bets">
+      <div class="bet-card tone-left">
+        <div class="bet-head"><span class="bet-name">ESQUERDA</span><span class="multiplier">2.85×</span></div>
+        <div class="bet-content">
+          <button class="place left" data-bet="left">APOSTAR ⬅</button>
+          <div class="bet-status" id="statusLeft">Nenhuma aposta</div>
+        </div>
+      </div>
+      <div class="bet-card tone-center">
+        <div class="bet-head"><span class="bet-name">CENTRO</span><span class="multiplier">2.85×</span></div>
+        <div class="bet-content">
+          <button class="place center" data-bet="center">APOSTAR ⬆</button>
+          <div class="bet-status" id="statusCenter">Nenhuma aposta</div>
+        </div>
+      </div>
+      <div class="bet-card tone-right">
+        <div class="bet-head"><span class="bet-name">DIREITA</span><span class="multiplier">2.85×</span></div>
+        <div class="bet-content">
+          <button class="place right" data-bet="right">APOSTAR ➡</button>
+          <div class="bet-status" id="statusRight">Nenhuma aposta</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="active-bets">
+      <div class="active-text" id="activeText">Nenhuma aposta adicionada.</div>
+      <button class="play" id="playBtn">⚽ CHUTAR</button>
+    </div>
+
+    <div class="message" id="message">Aposte na direção do chute. Se o goleiro não defender, você ganha 2,85×.</div>
+  </div>
+</div>
+
+<div class="helpModal" id="helpModal">
+  <div class="helpCard">
+    <h2>❓ COMO JOGAR — PÊNALTI CAIPIRA</h2>
+    <h3>Objetivo</h3>
+    <p>Escolha para onde a bola vai (esquerda, centro ou direita). O goleiro tenta adivinhar e defender.</p>
+    <h3>Apostas</h3>
+    <ul>
+      <li><b>Esquerda / Centro / Direita:</b> paga <b>2,85×</b> se a bola for na direção apostada e o goleiro <b>não</b> defender.</li>
+      <li>Você pode apostar em mais de uma direção na mesma cobrança.</li>
+      <li>Aposta mínima 2 e máxima 200 créditos. Total máximo por rodada: 200.</li>
+    </ul>
+    <h3>Resultado</h3>
+    <ul>
+      <li><b>GOL:</b> bola na direção apostada e goleiro defendeu outro lado.</li>
+      <li><b>DEFESA:</b> goleiro acertou a direção — perde a aposta daquela direção.</li>
+    </ul>
+    <button class="closeHelp" id="closeHelp" type="button">FECHAR REGRAS</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/config.js?v=9"></script>
+<script src="../js/auth.js?v=23"></script>
+<script src="../js/house.js?v=3"></script>
+<script src="../js/bets.js?v=2"></script>
+<script src="../js/gate.js?v=17"></script>
+<script>
+const BET_MAX = 200;
+const PAYOUT = 2.85;
+const DIRS = ['left', 'center', 'right'];
+const NAMES = { left: 'Esquerda', center: 'Centro', right: 'Direita' };
+const ZONE_IDS = { left: 'zoneLeft', center: 'zoneCenter', right: 'zoneRight' };
+
+const ALL_OUTCOMES = [];
+for (const shot of DIRS) {
+  for (const keeper of DIRS) {
+    ALL_OUTCOMES.push({ shot, keeper, goal: shot !== keeper });
+  }
+}
+
+let credits = 0;
+let pendingBets = [];
+let history = [];
+let playing = false;
+
+const amountEl = document.getElementById('amount');
+const creditsEl = document.getElementById('credits');
+const messageEl = document.getElementById('message');
+const resultBanner = document.getElementById('resultBanner');
+const playBtn = document.getElementById('playBtn');
+const activeText = document.getElementById('activeText');
+const lastResults = document.getElementById('lastResults');
+const ballEl = document.getElementById('ball');
+const keeperEl = document.getElementById('keeper');
+
+function money(n){ return Number(n).toLocaleString('pt-BR'); }
+function readAmount(){
+  const v = Number(amountEl.value);
+  return Number.isFinite(v) ? Math.floor(v) : 0;
+}
+function setAmount(v){
+  const cap = window.clubBets ? clubBets.MAX : BET_MAX;
+  amountEl.value = Math.max(2, Math.min(cap, Math.floor(v) || 2));
+}
+
+function betReturn(bet, outcome){
+  if (bet.type === outcome.shot && outcome.goal) {
+    return Math.floor(bet.amount * PAYOUT);
+  }
+  return 0;
+}
+
+function pendingTotal(){
+  return pendingBets.reduce((a, b) => a + b.amount, 0);
+}
+
+async function persist(){
+  if (window.clubWallet) await clubWallet.set(credits);
+}
+
+function renderCredits(){
+  creditsEl.textContent = money(credits);
+}
+
+function renderBetStatus(){
+  const totals = { left: 0, center: 0, right: 0 };
+  pendingBets.forEach(b => { totals[b.type] += b.amount; });
+  DIRS.forEach(dir => {
+    const el = document.getElementById('status' + dir.charAt(0).toUpperCase() + dir.slice(1));
+    el.innerHTML = totals[dir]
+      ? `<strong>${money(totals[dir])}</strong> créditos`
+      : 'Nenhuma aposta';
+  });
+}
+
+function updatePending(){
+  if (!pendingBets.length){
+    activeText.textContent = 'Nenhuma aposta adicionada.';
+    return;
+  }
+  activeText.innerHTML = `<strong>${pendingBets.length}</strong> aposta(s) • Total: <strong>${money(pendingTotal())}</strong>`;
+}
+
+function renderLast(){
+  lastResults.innerHTML = history.slice(0, 12).map(h =>
+    `<div class="last-chip ${h.goal ? 'goal' : 'miss'}" title="${NAMES[h.shot]}">${h.goal ? '⚽' : '✋'}</div>`
+  ).join('');
+}
+
+function resetPitch(){
+  ballEl.className = 'ball';
+  keeperEl.className = 'keeper';
+  DIRS.forEach(dir => {
+    const z = document.getElementById(ZONE_IDS[dir]);
+    z.classList.remove('hot', 'goal-flash', 'save-flash');
+  });
+}
+
+function highlightZones(outcome){
+  const shotZone = document.getElementById(ZONE_IDS[outcome.shot]);
+  if (!shotZone) return;
+  shotZone.classList.add(outcome.goal ? 'goal-flash' : 'save-flash');
+}
+
+function animateKick(outcome, done){
+  resetPitch();
+  pendingBets.forEach(b => {
+    const z = document.getElementById(ZONE_IDS[b.type]);
+    if (z) z.classList.add('hot');
+  });
+
+  ballEl.classList.add('kick-windup');
+  setTimeout(() => {
+    ballEl.classList.remove('kick-windup');
+    ballEl.classList.add('fly-' + outcome.shot);
+    keeperEl.classList.add('dive-' + outcome.keeper);
+    setTimeout(() => {
+      highlightZones(outcome);
+      done();
+    }, 480);
+  }, 220);
+}
+
+async function pickOutcome(){
+  let pool = ALL_OUTCOMES.slice();
+  let force = null;
+  try {
+    if (window.clubHouse) force = await clubHouse.nextOutcome('penalti');
+  } catch (_) {}
+
+  if (force === 'bank' && pendingBets.length) {
+    const losers = pool.filter(o => pendingBets.every(b => betReturn(b, o) === 0));
+    if (losers.length) pool = losers;
+  } else if (force === 'player' && pendingBets.length) {
+    const winners = pool.filter(o => pendingBets.some(b => betReturn(b, o) > b.amount));
+    if (winners.length) pool = winners;
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function addBet(type){
+  if (playing) return;
+  if (!DIRS.includes(type)) return;
+  const check = clubBets.validate(amountEl.value);
+  if (!check.ok){ messageEl.textContent = check.message; return; }
+  const value = check.value;
+  if (pendingTotal() + value > BET_MAX){
+    messageEl.textContent = 'O total das apostas nesta rodada não pode passar de 200.';
+    return;
+  }
+  pendingBets.push({ type, amount: value });
+  messageEl.textContent = `Aposta adicionada: ${NAMES[type]} — ${money(value)}.`;
+  renderBetStatus();
+  updatePending();
+}
+
+async function playRound(){
+  if (playing) return;
+  if (!window.clubWallet){
+    messageEl.textContent = 'Carregando carteira da plataforma...';
+    return;
+  }
+  if (!pendingBets.length){
+    messageEl.textContent = 'Adicione pelo menos uma aposta antes de chutar.';
+    return;
+  }
+  const total = pendingTotal();
+  if (total > BET_MAX){
+    messageEl.textContent = 'O total das apostas nesta rodada não pode passar de 200.';
+    return;
+  }
+  credits = Number(clubWallet.credits || credits || 0);
+  renderCredits();
+  if (total > credits){
+    messageEl.textContent = 'Saldo insuficiente para o total das apostas.';
+    return;
+  }
+
+  playing = true;
+  playBtn.disabled = true;
+  document.querySelectorAll('.place').forEach(b => b.disabled = true);
+  credits -= total;
+  renderCredits();
+  await persist();
+
+  resultBanner.textContent = 'Preparando a cobrança...';
+  resultBanner.className = 'result-banner';
+  messageEl.textContent = 'O jogador está na marca do pênalti...';
+
+  const outcome = await pickOutcome();
+
+  animateKick(outcome, async () => {
+    history.unshift(outcome);
+    history = history.slice(0, 12);
+    renderLast();
+
+    let returned = 0;
+    const notes = [];
+    pendingBets.forEach(b => {
+      const back = betReturn(b, outcome);
+      if (back > 0){
+        returned += back;
+        notes.push(`${NAMES[b.type]} +${money(back - b.amount)}`);
+      }
+    });
+
+    const keeperName = NAMES[outcome.keeper];
+    const shotName = NAMES[outcome.shot];
+
+    if (returned > 0){
+      credits += returned;
+      renderCredits();
+      await persist();
+      const profit = returned - total;
+      resultBanner.textContent = `⚽ GOL! +${money(profit)}`;
+      resultBanner.className = 'result-banner win';
+      messageEl.innerHTML = `Chute no <strong>${shotName}</strong> • Goleiro foi no <strong>${keeperName}</strong> • Prêmio: <strong>${money(returned)}</strong> (${notes.join(', ')})`;
+    } else {
+      resultBanner.textContent = '✋ DEFESA DO GOLEIRO';
+      resultBanner.className = 'result-banner lose';
+      messageEl.innerHTML = `Chute no <strong>${shotName}</strong> • Goleiro defendeu no <strong>${keeperName}</strong> • Perdeu ${money(total)}.`;
+    }
+
+    pendingBets = [];
+    renderBetStatus();
+    updatePending();
+    playing = false;
+    playBtn.disabled = false;
+    document.querySelectorAll('.place').forEach(b => b.disabled = false);
+
+    setTimeout(resetPitch, 1800);
+  });
+}
+
+document.querySelectorAll('[data-bet]').forEach(btn => {
+  btn.onclick = () => addBet(btn.dataset.bet);
+});
+document.querySelectorAll('[data-add]').forEach(btn => {
+  btn.onclick = () => setAmount((readAmount() || 0) + Number(btn.dataset.add));
+});
+document.getElementById('half').onclick = () => setAmount(Math.floor((readAmount() || 2) / 2));
+document.getElementById('double').onclick = () => setAmount((readAmount() || 2) * 2);
+document.getElementById('max').onclick = () => {
+  const cap = window.clubBets ? clubBets.MAX : BET_MAX;
+  setAmount(Math.min(cap, Math.floor(credits) || cap));
+};
+amountEl.addEventListener('change', () => { if (readAmount() > 0) setAmount(readAmount()); });
+playBtn.onclick = playRound;
+
+const hm = document.getElementById('helpModal');
+document.getElementById('openHelp').onclick = () => { hm.style.display = 'block'; };
+document.getElementById('closeHelp').onclick = () => { hm.style.display = 'none'; };
+hm.addEventListener('click', e => { if (e.target === hm) hm.style.display = 'none'; });
+
+renderLast();
+renderBetStatus();
+updatePending();
+renderCredits();
+
+window.clubWalletReady.then(w => {
+  if (!w) return;
+  if (w.sealed) return;
+  credits = Number(w.credits || 0);
+  renderCredits();
+});
+</script>
+</body>
+</html>

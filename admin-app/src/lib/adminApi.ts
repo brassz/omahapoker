@@ -22,6 +22,7 @@ function normalizeGameId(id: string | null | undefined) {
   if (key === 'bacara' || key === 'bakara') return 'baccarat';
   if (key === 'caribbeanstud' || key === 'caribbean-stud' || key === 'caribe') return 'caribbean';
   if (key === 'flyx' || key === 'ponto-maior' || key === 'pontomaior') return 'bacbo';
+  if (key === 'penalti-caipira' || key === 'penalty') return 'penalti';
   return key;
 }
 
@@ -43,6 +44,7 @@ export function gameLabel(id: string | null | undefined) {
     baccarat: 'BACCARAT',
     bacara: 'BACCARAT',
     caribbean: 'CARIBBEAN',
+    penalti: 'PÊNALTI CAIPIRA',
   };
   const key = normalizeGameId(id);
   return map[key] || (key ? key.toUpperCase() : '—');
