@@ -142,6 +142,70 @@ button#river{
 .playing-card.winPlayer{outline:3px solid #ff1f1f!important;outline-offset:1px!important;box-shadow:0 0 0 2px #ff6b6b,0 0 14px #ff1f1f!important;}
 .playing-card.winBoard{outline:3px solid #0066ff!important;outline-offset:1px!important;box-shadow:0 0 0 2px #00a8ff,0 0 14px #0066ff!important;}
 .playing-card.winBank{outline:3px solid #00b84a!important;outline-offset:1px!important;box-shadow:0 0 0 2px #63e68f,0 0 14px #00b84a!important;}
+/* ══ Virada 3D turn/river ══
+   Usa perspective no container e rotateY no wrapper.
+   A carta da frente e a de trás ficam empilhadas;
+   no meio da rotação (scaleX≈0) um JS swap troca qual está visível. */
+.flipSlot{position:relative;z-index:10;perspective:800px}
+.flipSlot .flipWrap{
+  position:relative;border-radius:8px;
+  transform-style:preserve-3d;
+  transform-origin:center center;
+  height:78px;
+}
+@media(max-width:560px){.flipSlot .flipWrap{height:62px}}
+.flipSlot .flipWrap .playing-card{animation:none!important}
+.flipSlot .flipFace{position:absolute;inset:0;border-radius:8px}
+.flipSlot .flipFace .playing-card{height:100%;min-height:0;width:100%}
+.flipSlot .flipFace.hidden{visibility:hidden}
+
+/* -- Turn: levanta, gira, pousa -- */
+.flipSlot.turn .flipWrap{animation:omTurn 2.5s ease-in-out both}
+.flipSlot.turn::after{
+  content:'';position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  animation:omGlow .7s ease-out 2.1s both;
+}
+/* -- River: treme, suspense, levanta mais, gira lento, pousa -- */
+.flipSlot.river .flipWrap{animation:omRiver 4s ease-in-out both}
+.flipSlot.river::after{
+  content:'';position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  animation:omGlow .8s ease-out 3.5s both;
+}
+
+@keyframes omTurn{
+  0%   {transform:translateY(0) rotateY(0) scale(1)}
+  15%  {transform:translateY(-24px) rotateY(0) scale(1.2)}
+  35%  {transform:translateY(-24px) rotateY(80deg) scale(1.2)}
+  50%  {transform:translateY(-24px) rotateY(90deg) scale(1.22)}
+  65%  {transform:translateY(-24px) rotateY(100deg) scale(1.2)}
+  85%  {transform:translateY(-6px) rotateY(175deg) scale(1.04)}
+  92%  {transform:translateY(-2px) rotateY(183deg) scale(1.01)}
+  100% {transform:translateY(0) rotateY(180deg) scale(1)}
+}
+@keyframes omRiver{
+  0%   {transform:translateY(0) rotateY(0) scale(1)}
+  5%   {transform:translateY(-4px) rotateY(0) rotateZ(5deg) scale(1.06)}
+  10%  {transform:translateY(-4px) rotateY(0) rotateZ(-5deg) scale(1.06)}
+  15%  {transform:translateY(-3px) rotateY(0) rotateZ(4deg) scale(1.04)}
+  20%  {transform:translateY(-3px) rotateY(0) rotateZ(-4deg) scale(1.04)}
+  25%  {transform:translateY(0) rotateY(0) rotateZ(0) scale(1)}
+  35%  {transform:translateY(-32px) rotateY(0) scale(1.3)}
+  50%  {transform:translateY(-32px) rotateY(75deg) scale(1.3)}
+  60%  {transform:translateY(-32px) rotateY(90deg) scale(1.32)}
+  70%  {transform:translateY(-32px) rotateY(105deg) scale(1.3)}
+  85%  {transform:translateY(-8px) rotateY(174deg) scale(1.06)}
+  93%  {transform:translateY(-2px) rotateY(183deg) scale(1.01)}
+  100% {transform:translateY(0) rotateY(180deg) scale(1)}
+}
+@keyframes omGlow{
+  0%  {box-shadow:0 0 0 0 #ffd65a00}
+  50% {box-shadow:0 0 0 4px #ffd65a,0 0 30px 10px #ffd65acc,0 0 60px 20px #ffd65a44}
+  100%{box-shadow:0 0 0 0 #ffd65a00}
+}
+@media(prefers-reduced-motion:reduce){
+  .flipSlot .flipWrap{animation:none!important;transform:rotateY(180deg)!important}
+  .flipSlot::after{animation:none!important}
+}
 </style>
 </head>
 <body><main class="app">
@@ -378,12 +442,17 @@ function render(){
     const winningBoardCards=lastResults.filter(x=>x.winner).flatMap(x=>x.score.cards.filter(c=>board.some(b=>sameCard(b,c))));
     $('board').innerHTML=[0,1,2,3,4].map(i=>{
       const win=showHands&&winningBoardCards.some(c=>sameCard(c,board[i]));
+      if(i===flipIndex && board[i]){
+        return `<div class="flipSlot ${flipKind}" data-flip="${i}"><div class="flipWrap"><div class="flipFace flipFaceBack">${cardHtml(null,true)}</div><div class="flipFace flipFaceFront hidden">${cardHtml(board[i])}</div></div></div>`;
+      }
+      /* Posições ainda sem carta: espaço vazio (não mostra costas) */
+      if(!board[i]) return '<div class="playing-card" style="visibility:hidden" aria-hidden="true"></div>';
       return cardHtml(board[i],false,win,'winBoard');
     }).join('');
   }
   $('flop').disabled=stage!==1 || activeBet<=0 || roundOver;
-  $('turn').disabled=stage!==2 || decision!=='continue' || roundOver;
-  $('river').disabled=stage!==3 || decision!=='continue' || roundOver;
+  $('turn').disabled=stage!==2 || decision!=='continue' || roundOver || revealing;
+  $('river').disabled=stage!==3 || decision!=='continue' || roundOver || revealing;
   /* Nova rodada só depois do resultado ou da desistência */
   $('new').disabled=!roundOver;
   $('decisionBox').style.display=(stage===2 && decision===null && !roundOver)?'block':'none';
@@ -436,12 +505,41 @@ function foldHand(){
   persistHand('fold',{betAmount:fold.bet,foldFee:fold.fee});
   render();
 }
+/* Virada animada de uma carta comunitária (turn/river). Bloqueia os botões até terminar. */
+let flipIndex=-1,flipKind='',revealing=false;
+const reduceMotion=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+function flipReveal(index,kind,done){
+  flipIndex=index;flipKind=kind;revealing=true;
+  render();
+  flipIndex=-1;
+  /* No meio da rotação (quando a carta fica de lado, scaleX≈0) troca face de trás→frente */
+  const swapDelay=kind==='river'?2400:1250; /* momento em que rotateY≈90° */
+  const totalDelay=kind==='river'?4300:2800;
+  const slot=document.querySelector(`.flipSlot[data-flip="${index}"]`);
+  if(slot && !reduceMotion){
+    setTimeout(()=>{
+      const back=slot.querySelector('.flipFaceBack');
+      const front=slot.querySelector('.flipFaceFront');
+      if(back) back.classList.add('hidden');
+      if(front) front.classList.remove('hidden');
+    },swapDelay);
+  } else if(slot){
+    const back=slot.querySelector('.flipFaceBack');
+    const front=slot.querySelector('.flipFaceFront');
+    if(back) back.classList.add('hidden');
+    if(front) front.classList.remove('hidden');
+  }
+  setTimeout(()=>{revealing=false;done();},reduceMotion?0:totalDelay);
+}
 function openTurn(){
-  if(stage!==2||decision!=='continue'||roundOver)return;
+  if(stage!==2||decision!=='continue'||roundOver||revealing)return;
   board.push(deck.shift());
   stage=3;
-  $('status').textContent='Turn aberto. Agora abra o river.';
-  render();
+  $('status').textContent='Virando o turn...';
+  flipReveal(3,'turn',()=>{
+    $('status').textContent='Turn aberto. Agora abra o river.';
+    render();
+  });
 }
 function winnerWithBoard(testBoard){
   const saved=board;
@@ -471,19 +569,25 @@ function takeRiverCard(force){
   return deck.splice(i,1)[0];
 }
 async function openRiver(){
-  if(stage!==3||decision!=='continue'||roundOver)return;
+  if(stage!==3||decision!=='continue'||roundOver||revealing)return;
+  revealing=true; // trava cliques repetidos enquanto consulta a banca e vira a carta
+  $('river').disabled=true;
   let force=null;
   if(activeBet>0){
     try{ force=window.clubHouse?await clubHouse.nextOutcome():null; }catch(_){ force=null; }
   }
   const river=takeRiverCard(force);
-  if(!river) return;
+  if(!river){revealing=false;render();return;}
   board.push(river);
   stage=4;
-  roundOver=true;
-  showHands=true;
-  $('status').textContent='River aberto. As cartas foram reveladas e o vencedor foi calculado.';
-  render();
+  $('status').textContent='Virando o river...';
+  // As mãos e o resultado só aparecem depois que a carta termina de virar
+  flipReveal(4,'river',()=>{
+    roundOver=true;
+    showHands=true;
+    $('status').textContent='River aberto. As cartas foram reveladas e o vencedor foi calculado.';
+    render();
+  });
 }
 function comb(arr,k){
   const out=[];
