@@ -25,8 +25,8 @@ body{margin:0;min-height:100vh}
 .userbar{
   display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;
   margin:14px 0 16px;padding:12px;border-radius:16px;
-  background:#0a0614;border:2px solid #17c8ff;
-  box-shadow:0 0 14px #17c8ff88;
+  background:#120008;border:2px solid #ff0040;
+  box-shadow:0 0 14px #ff004088;
   animation:clubNeonGlow 1.6s ease-in-out infinite;
 }
 .userbar .user-meta{
@@ -35,22 +35,23 @@ body{margin:0;min-height:100vh}
 .userbar small{display:block;color:var(--muted);font-weight:800;font-size:12px;line-height:1.2}
 .userbar strong{display:block;font-size:16px;line-height:1.2;font-weight:1000}
 .userbar .saldo-line{
-  color:#ffd91a;text-shadow:0 0 10px #ffd91a;font-weight:1000;font-size:13px
+  color:#ffd91a;text-shadow:0 0 10px #ffd91a88;font-weight:1000;font-size:13px
 }
 .userbar .actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .userbar button{
   border:0;border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;
-  box-shadow:0 0 12px #ff343455;animation:none!important;
+  background:linear-gradient(180deg,#660018,#990022);border:2px solid #ff4d6d;
+  box-shadow:0 0 12px #ff004055;animation:none!important;
 }
 .userbar button.wallet{
-  color:#120018;
-  background:linear-gradient(90deg,#17c8ff,#ffd91a,#5cff1a);
-  border:2px solid #fff8;
+  color:#fff;
+  background:linear-gradient(90deg,#ff0040,#ff1744,#cc0033);
+  border:2px solid #ff4d6d;
+  box-shadow:0 0 14px #ff004066;
 }
 .section-title{
   text-align:center;margin:0 0 12px;font-size:14px;font-weight:1000;
-  letter-spacing:3px;color:#ff4fd8;
+  letter-spacing:3px;color:#ff0040;
   animation:clubNeonBlink 2.4s ease-in-out infinite;
 }
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -58,8 +59,8 @@ body{margin:0;min-height:100vh}
 .game{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;min-height:180px;padding:16px 12px;text-decoration:none;color:#fff;
-  border-radius:16px;border:2px solid #17c8ff;
-  background:#0a0614;box-shadow:0 0 18px #17c8ff66;
+  border-radius:16px;border:2px solid #ff0040;
+  background:#120008;box-shadow:0 0 18px #ff004066;
   transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   animation:rise .45s ease both, clubNeonGlow 1.6s ease-in-out infinite;
 }
@@ -70,13 +71,13 @@ body{margin:0;min-height:100vh}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .game:hover,.game:focus-visible{
   transform:translateY(-4px) scale(1.03);
-  border-color:#7af0ff;box-shadow:0 0 28px #17c8ff,0 0 40px #00eaff;
+  border-color:#ff4d6d;box-shadow:0 0 28px #ff0040,0 0 40px #ff1744;
   outline:none;
 }
 .game img{
   width:96px;height:96px;object-fit:contain;border-radius:16px;
-  background:#080512;border:2px solid #17c8ff44;
-  box-shadow:0 0 16px #17c8ff44;
+  background:#0d0006;border:2px solid #ff004044;
+  box-shadow:0 0 16px #ff004044;
 }
 .game .game-label{
   display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -87,22 +88,22 @@ body{margin:0;min-height:100vh}
 }
 .game .launch-tag{
   font-size:11px;font-weight:1000;letter-spacing:3px;
-  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
+  background:linear-gradient(90deg,#ff0040,#ff1744,#ff4d6d,#ff0040,#cc0033,#ff4d6d,#ff0040);
   background-size:300% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;
   animation:clubRainbowShift 2s linear infinite;
-  filter:drop-shadow(0 0 8px #ff4fd888);
+  filter:drop-shadow(0 0 8px #ff004088);
 }
 .foot{
   margin-top:16px;text-align:center;font-size:11px;font-weight:800;
-  color:#7af0ff;border-top:2px solid #17c8ff;padding-top:10px;
-  text-shadow:0 0 10px #17c8ff88;
+  color:#ff4d6d;border-top:2px solid #ff0040;padding-top:10px;
+  text-shadow:0 0 10px #ff004088;
 }
-.loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff4fd8;animation:clubNeonBlink 2.4s ease-in-out infinite}
+.loading{text-align:center;padding:40px 10px;font-weight:900;color:#ff0040;animation:clubNeonBlink 2.4s ease-in-out infinite}
 .maint-banner{
   display:none;margin:0 0 14px;padding:14px 12px;text-align:center;font-weight:1000;
-  color:#fff;background:#3b0218;border:2px solid #ff3434;border-radius:14px;
-  box-shadow:0 0 18px #ff343488;letter-spacing:.4px;line-height:1.4;
+  color:#fff;background:#2a0008;border:2px solid #ff0040;border-radius:14px;
+  box-shadow:0 0 18px #ff004088;letter-spacing:.4px;line-height:1.4;
 }
 .maint-banner.show{display:block}
 .game.closed{
@@ -118,63 +119,63 @@ body{margin:0;min-height:100vh}
 }
 .modal.open{display:flex}
 .modal-card{
-  width:min(420px,100%);background:#0a0614;border:2px solid #17c8ff;border-radius:18px;
-  padding:18px 16px;box-shadow:0 0 28px #17c8ff88;animation:clubNeonGlow 1.6s ease-in-out infinite;
+  width:min(420px,100%);background:#120008;border:2px solid #ff0040;border-radius:18px;
+  padding:18px 16px;box-shadow:0 0 28px #ff004088;animation:clubNeonGlow 1.6s ease-in-out infinite;
 }
 .modal-card h2{margin:0 0 6px;text-align:center;font-size:22px}
 .modal-card .balance{
   text-align:center;font-size:28px;font-weight:1000;color:#ffd91a;
   text-shadow:0 0 12px #ffd91a;margin:8px 0 14px;
 }
-.modal-card label{display:block;font-size:12px;font-weight:900;color:#d8e7ff;margin:10px 0 4px}
+.modal-card label{display:block;font-size:12px;font-weight:900;color:#ffd6dd;margin:10px 0 4px}
 .modal-card input{
-  width:100%;padding:12px;border-radius:10px;border:1px solid #445;
-  background:#090614;color:#fff;font-weight:800;font-size:15px;
+  width:100%;padding:12px;border-radius:10px;border:1px solid #ff004044;
+  background:#0d0006;color:#fff;font-weight:800;font-size:15px;
 }
 .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 .modal-actions button{
   border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;color:#fff;
 }
 .modal-actions .primary{
-  color:#120018;background:linear-gradient(90deg,#17c8ff,#5cff1a);border:2px solid #fff8;
+  color:#fff;background:linear-gradient(90deg,#ff0040,#cc0033);border:2px solid #ff4d6d;
 }
-.modal-actions .ghost{background:#1a2233;border:2px solid #445}
-.modal-msg{min-height:40px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.4}
-.modal-msg.ok{color:#5cff1a}.modal-msg.err{color:#ff6262}
-.wd-list{margin-top:12px;max-height:140px;overflow:auto;font-size:12px;color:#d8e7ff}
-.wd-item{padding:6px 0;border-bottom:1px solid #263042;font-weight:700}
+.modal-actions .ghost{background:#1a0008;border:2px solid #ff004044}
+.modal-msg{min-height:40px;margin-top:10px;text-align:center;font-size:13px;font-weight:800;color:#ffd6dd;line-height:1.4}
+.modal-msg.ok{color:#ffd91a}.modal-msg.err{color:#ff4d6d}
+.wd-list{margin-top:12px;max-height:140px;overflow:auto;font-size:12px;color:#ffd6dd}
+.wd-item{padding:6px 0;border-bottom:1px solid #ff004022;font-weight:700}
 .wd-item b{color:#ffd91a}
 .wallet-btns{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:4px}
 .wallet-btns button{
   width:100%;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;
 }
 .wallet-btns .add{
-  color:#041;background:linear-gradient(90deg,#1f7a00,#58df00);border:2px solid #9dff76;
+  color:#fff;background:linear-gradient(90deg,#cc0033,#ff0040);border:2px solid #ff4d6d;
 }
 .wallet-btns .out{
-  color:#120018;background:linear-gradient(90deg,#17c8ff,#ffd91a);border:2px solid #fff8;
+  color:#fff;background:linear-gradient(90deg,#ff1744,#cc0033);border:2px solid #ff4d6d88;
 }
 .pix-box{
-  margin:12px 0;padding:12px;border-radius:12px;background:#060912;border:1px solid #334;
+  margin:12px 0;padding:12px;border-radius:12px;background:#0d0006;border:1px solid #ff004044;
   text-align:center;
 }
-.pix-box .pix-label{font-size:11px;font-weight:900;color:#7af0ff;letter-spacing:1px}
+.pix-box .pix-label{font-size:11px;font-weight:900;color:#ff4d6d;letter-spacing:1px}
 .pix-box .pix-key{
   margin:8px 0 4px;font-size:18px;font-weight:1000;color:#ffd91a;
   text-shadow:0 0 10px #ffd91a66;word-break:break-all;
 }
-.pix-box .pix-company{font-size:13px;font-weight:800;color:#d8e7ff;line-height:1.35}
+.pix-box .pix-company{font-size:13px;font-weight:800;color:#ffd6dd;line-height:1.35}
 .pix-box .pix-qr{
   display:block;margin:10px auto 12px;width:min(220px,100%);height:auto;
   border-radius:12px;background:#fff;padding:8px;
 }
 .pix-box .pix-copy{
   margin-top:4px;width:100%;border:0;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;
-  color:#00131b;background:linear-gradient(180deg,#0284c7,#17c8ff);border:2px solid #7dd3fc;
+  color:#fff;background:linear-gradient(180deg,#cc0033,#ff0040);border:2px solid #ff4d6d;
 }
   width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;color:#fff;
-  background:linear-gradient(180deg,#128C7E,#25D366);border:2px solid #8ef0b5;
-  box-shadow:0 0 14px #25D36655;font-size:14px;
+  background:linear-gradient(180deg,#cc0033,#ff0040);border:2px solid #ff4d6d;
+  box-shadow:0 0 14px #ff004055;font-size:14px;
 }
 .deposit-hint{font-size:12px;font-weight:700;color:#a9b7c6;text-align:center;line-height:1.4;margin:10px 0}
 </style>
@@ -232,7 +233,7 @@ body{margin:0;min-height:100vh}
 
       <div class="modal-msg" id="walletMsg"></div>
       <div class="wd-list" id="wdHistory"></div>
-      <button type="button" id="walletClose" style="width:100%;margin-top:10px;border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer;color:#fff;background:#334;border:2px solid #556">FECHAR</button>
+      <button type="button" id="walletClose" style="width:100%;margin-top:10px;border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer;color:#fff;background:#1a0008;border:2px solid #ff004044">FECHAR</button>
     </div>
   </div>
 
@@ -400,7 +401,7 @@ body{margin:0;min-height:100vh}
     currentCredits = Number(profile?.player_credits || 0);
     const credits = fmt(currentCredits);
     const adminBtn = omahaAuth.isAdmin(profile)
-      ? `<button type="button" id="adminBtn" style="background:linear-gradient(180deg,#6726d9,#331173);border:2px solid #a65eff">ADMIN</button>`
+      ? `<button type="button" id="adminBtn" style="background:linear-gradient(180deg,#880022,#cc0033);border:2px solid #ff4d6d;color:#fff">ADMIN</button>`
       : '';
 
     document.getElementById('app').innerHTML = `

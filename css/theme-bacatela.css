@@ -1,73 +1,63 @@
-/* Tema oficial do clube — neon multicolor (principal) */
+/* Tema oficial do clube — VERMELHO NEON */
 :root{
-  --bg:#06040f;
-  --blue:#17c8ff;
-  --neon:#17c8ff;
-  --neon-soft:#7af0ff;
-  --red:#ff3434;
+  --bg:#0a0008;
+  --blue:#ff0040;
+  --neon:#ff0040;
+  --neon-soft:#ff4d6d;
+  --red:#ff0040;
   --gold:#ffd91a;
-  --green:#5cff1a;
-  --pink:#ff4fd8;
-  --violet:#a78bfa;
-  --orange:#ff8c15;
-  --panel:#0a0614;
-  --panel2:#080512;
-  --muted:#e8e0ff;
-  --rainbow:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff);
+  --green:#ff2d2d;
+  --pink:#ff0040;
+  --violet:#ff3366;
+  --orange:#ff1a1a;
+  --panel:#120008;
+  --panel2:#0d0006;
+  --muted:#ffd6dd;
+  --rainbow:linear-gradient(90deg,#ff0040,#ff1744,#ff3366,#ff0040,#cc0033,#ff4d6d,#ff0040);
 }
 
 html,body{
   background:
-    radial-gradient(circle at 20% 0,#3a0066 0%,transparent 42%),
-    radial-gradient(circle at 80% 10%,#003a66 0%,transparent 40%),
-    radial-gradient(circle at 50% 100%,#3a2200 0%,transparent 45%),
-    #06040f!important;
+    radial-gradient(circle at 20% 0,#4a0010 0%,transparent 42%),
+    radial-gradient(circle at 80% 10%,#3a0008 0%,transparent 40%),
+    radial-gradient(circle at 50% 100%,#2a0005 0%,transparent 45%),
+    #0a0008!important;
   color:#fff!important;
   font-family:Arial,Helvetica,sans-serif!important;
 }
 
 @keyframes clubNeonBlink{
   0%,100%{
-    color:#17c8ff;
-    text-shadow:0 0 6px #17c8ff,0 0 16px #00eaff,0 0 32px #0099ffaa;
+    color:#ff0040;
+    text-shadow:0 0 6px #ff0040,0 0 16px #ff1744,0 0 32px #ff004088;
     filter:brightness(1.05);
   }
-  16%{
-    color:#ff4fd8;
-    text-shadow:0 0 8px #ff4fd8,0 0 20px #ff2eb6,0 0 36px #ff4fd888;
+  25%{
+    color:#ff4d6d;
+    text-shadow:0 0 8px #ff4d6d,0 0 20px #ff0040,0 0 36px #ff174488;
     filter:brightness(1.2);
-  }
-  33%{
-    color:#ffd91a;
-    text-shadow:0 0 8px #ffd91a,0 0 20px #ffb800,0 0 36px #ffd91a88;
-    filter:brightness(1.25);
   }
   50%{
-    color:#5cff1a;
-    text-shadow:0 0 8px #5cff1a,0 0 20px #39ff14,0 0 36px #5cff1a88;
+    color:#ff1744;
+    text-shadow:0 0 8px #ff1744,0 0 20px #cc0033,0 0 36px #ff004088;
     filter:brightness(1.3);
   }
-  66%{
-    color:#ff8c15;
-    text-shadow:0 0 8px #ff8c15,0 0 20px #ff6a00,0 0 36px #ff8c1588;
+  75%{
+    color:#ff3366;
+    text-shadow:0 0 8px #ff3366,0 0 20px #ff0040,0 0 36px #ff336688;
     filter:brightness(1.2);
-  }
-  83%{
-    color:#a78bfa;
-    text-shadow:0 0 8px #a78bfa,0 0 20px #8b5cf6,0 0 36px #a78bfa88;
-    filter:brightness(1.25);
   }
 }
 
-/* Bordas de boxes — azul neon piscando */
+/* Bordas de boxes — vermelho neon piscando */
 @keyframes clubNeonGlow{
   0%,100%{
-    box-shadow:0 0 10px #17c8ff55,0 0 22px #00eaff33;
-    border-color:#17c8ff;
+    box-shadow:0 0 10px #ff004055,0 0 22px #ff174433;
+    border-color:#ff0040;
   }
   50%{
-    box-shadow:0 0 18px #17c8ffcc,0 0 36px #00eaff88,0 0 50px #0099ff44;
-    border-color:#7af0ff;
+    box-shadow:0 0 18px #ff0040cc,0 0 36px #ff174488,0 0 50px #cc003344;
+    border-color:#ff4d6d;
   }
 }
 
@@ -78,14 +68,13 @@ html,body{
 }
 
 @keyframes clubLogoNeon{
-  0%,100%{filter:drop-shadow(0 0 12px #17c8ff88) drop-shadow(0 0 22px #ff4fd855)}
-  20%{filter:drop-shadow(0 0 16px #ff4fd8) drop-shadow(0 0 28px #ffd91a66)}
-  40%{filter:drop-shadow(0 0 16px #ffd91a) drop-shadow(0 0 28px #5cff1a66)}
-  60%{filter:drop-shadow(0 0 16px #5cff1a) drop-shadow(0 0 28px #ff8c1566)}
-  80%{filter:drop-shadow(0 0 16px #a78bfa) drop-shadow(0 0 28px #17c8ff66)}
+  0%,100%{filter:drop-shadow(0 0 12px #ff004088) drop-shadow(0 0 22px #ff174455)}
+  25%{filter:drop-shadow(0 0 16px #ff1744) drop-shadow(0 0 28px #ff004066)}
+  50%{filter:drop-shadow(0 0 16px #ff4d6d) drop-shadow(0 0 28px #ff174466)}
+  75%{filter:drop-shadow(0 0 16px #cc0033) drop-shadow(0 0 28px #ff004066)}
 }
 
-/* Títulos / marca — neon multicolor */
+/* Títulos / marca — neon vermelho */
 .club-rainbow,
 h1.brand,
 .brand .title,
@@ -94,7 +83,7 @@ main.app > h1{
   background:none!important;
   -webkit-background-clip:initial!important;
   background-clip:initial!important;
-  color:#ff4fd8!important;
+  color:#ff0040!important;
   animation:clubNeonBlink 2.4s ease-in-out infinite!important;
   font-weight:1000!important;
   letter-spacing:2px!important;
@@ -102,32 +91,32 @@ main.app > h1{
 
 .sub,.tagline,.tag{
   color:#fff!important;
-  text-shadow:0 0 12px #ff4fd888!important;
+  text-shadow:0 0 12px #ff004088!important;
   font-weight:1000!important;
   animation:clubNeonBlink 3.2s ease-in-out infinite!important;
 }
 
-/* Painéis / cards — borda azul neon */
+/* Painéis / cards — borda vermelha neon */
 .panel,.card,.side,.betPanel,.historyPanel,
 .playerBox,.result,.note{
-  background:#0a0614!important;
-  border:2px solid #17c8ff!important;
-  box-shadow:0 0 14px #17c8ff55!important;
+  background:#120008!important;
+  border:2px solid #ff0040!important;
+  box-shadow:0 0 14px #ff004055!important;
   color:#fff!important;
   animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 
-/* Botões padrão — gradiente multicolor */
+/* Botões padrão — gradiente vermelho neon */
 button,.big,.helpBtn,.playBtn,.addBtn,.teamBtn{
   border-radius:9px!important;
-  color:#120018!important;
+  color:#fff!important;
   font-weight:900!important;
   cursor:pointer!important;
-  border:2px solid #fff8!important;
-  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa)!important;
+  border:2px solid #ff4d6d88!important;
+  background:linear-gradient(90deg,#ff0040,#ff1744,#ff3366,#cc0033,#ff0040)!important;
   background-size:220% 100%!important;
   animation:clubRainbowShift 3.5s ease infinite!important;
-  box-shadow:0 0 14px #ff4fd866!important;
+  box-shadow:0 0 14px #ff004066!important;
 }
 button:disabled{opacity:.45!important}
 button.big,
@@ -136,75 +125,75 @@ button#new,
 .play,
 #confirmBet,
 #continueHand{
-  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a,#5cff1a,#ff8c15,#a78bfa,#17c8ff)!important;
+  background:linear-gradient(90deg,#ff0040,#ff1744,#ff4d6d,#cc0033,#ff0040)!important;
   background-size:240% 100%!important;
   animation:clubRainbowShift 2.8s linear infinite!important;
-  border:2px solid #fff!important;
-  box-shadow:0 0 18px #ffd91a88!important;
-  color:#120018!important;
+  border:2px solid #ff4d6d!important;
+  box-shadow:0 0 18px #ff004088!important;
+  color:#fff!important;
 }
 #foldHand,
 #logoutBtn,
 button.out{
-  background:linear-gradient(180deg,#b40000,#ff3434)!important;
+  background:linear-gradient(180deg,#660018,#990022)!important;
   background-size:auto!important;
   animation:none!important;
-  border:2px solid #ff8a8a!important;
-  box-shadow:0 0 12px #ff343455!important;
+  border:2px solid #ff4d6d!important;
+  box-shadow:0 0 12px #ff004055!important;
   color:#fff!important;
 }
 #lobbyBtn,
 #clubBackLobby,
 #flop{
-  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#a78bfa)!important;
+  background:linear-gradient(90deg,#ff0040,#ff1744,#ff3366)!important;
   background-size:200% 100%!important;
   animation:clubRainbowShift 3s ease infinite!important;
-  border:2px solid #fff8!important;
-  color:#120018!important;
+  border:2px solid #ff4d6d88!important;
+  color:#fff!important;
 }
 #turn{
-  background:linear-gradient(90deg,#ffd91a,#ff8c15,#ff4fd8)!important;
+  background:linear-gradient(90deg,#ff1744,#cc0033,#ff0040)!important;
   background-size:200% 100%!important;
   animation:clubRainbowShift 3s ease infinite!important;
-  border-color:#fff8!important;
-  color:#120018!important;
+  border-color:#ff4d6d88!important;
+  color:#fff!important;
 }
 #river{
-  background:linear-gradient(90deg,#5cff1a,#17c8ff,#a78bfa)!important;
+  background:linear-gradient(90deg,#ff3366,#ff0040,#cc0033)!important;
   background-size:200% 100%!important;
   animation:clubRainbowShift 3s ease infinite!important;
-  border-color:#fff8!important;
-  color:#120018!important;
+  border-color:#ff4d6d88!important;
+  color:#fff!important;
 }
 
 /* Inputs */
 input,select,textarea{
-  background:#090614!important;
+  background:#0d0006!important;
   color:#fff!important;
-  border:1px solid #554!important;
+  border:1px solid #ff004044!important;
   border-radius:8px!important;
 }
 input:focus,select:focus,textarea:focus{
   outline:none!important;
-  border-color:#17c8ff!important;
-  box-shadow:0 0 0 2px #17c8ff55!important;
+  border-color:#ff0040!important;
+  box-shadow:0 0 0 2px #ff004055!important;
 }
 
 /* Status / mensagens */
 .status,.msg,.result{
-  background:#0a0614!important;
-  border:1px solid #17c8ff66!important;
+  background:#120008!important;
+  border:1px solid #ff004066!important;
   color:#fff!important;
   animation:clubNeonGlow 1.8s ease-in-out infinite!important;
 }
 
 .footer{
-  color:#7af0ff!important;
+  color:#ff4d6d!important;
   font-weight:900!important;
   letter-spacing:2px!important;
-  border-top:2px solid #17c8ff!important;
+  border-top:2px solid #ff0040!important;
   padding-top:7px!important;
-  text-shadow:0 0 10px #17c8ff88!important;
+  text-shadow:0 0 10px #ff004088!important;
 }
 
 /* Créditos */
@@ -217,14 +206,14 @@ input:focus,select:focus,textarea:focus{
 /* Barra do clube nos jogos */
 #clubGateBar,
 #userBar{
-  background:#0a0614!important;
-  border:2px solid #17c8ff!important;
-  box-shadow:0 0 14px #17c8ff66!important;
+  background:#120008!important;
+  border:2px solid #ff0040!important;
+  box-shadow:0 0 14px #ff004066!important;
   color:#fff!important;
   animation:clubNeonGlow 1.6s ease-in-out infinite!important;
 }
 #clubGateBar .club-name,
 #userBar .club-name{
-  color:#ff4fd8!important;
+  color:#ff0040!important;
   animation:clubNeonBlink 2.4s ease-in-out infinite!important;
 }

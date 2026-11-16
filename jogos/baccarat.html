@@ -7,40 +7,40 @@
 <link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px;background:#0a0008;color:#fff}
 .app{max-width:1050px;margin:auto}
 .top{
   display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;
-  background:#0a0614;border:2px solid #17c8ff;border-radius:18px;padding:12px 14px;
-  box-shadow:0 0 16px #17c8ff55;animation:clubNeonGlow 1.8s ease-in-out infinite;
+  background:#120008;border:2px solid #ff0040;border-radius:18px;padding:12px 14px;
+  box-shadow:0 0 16px #ff004055;animation:clubNeonGlow 1.8s ease-in-out infinite;
 }
 h1{font-size:clamp(22px,5vw,36px);margin:0}
 .sub{font-size:12px;color:#8899aa;margin-top:4px;font-weight:800}
 .credito{
-  min-width:140px;text-align:right;background:#060912;border:1px solid #17c8ff66;
+  min-width:140px;text-align:right;background:#0d0006;border:1px solid #ff004066;
   border-radius:12px;padding:8px 10px;font-weight:800
 }
-.credito .label{font-size:10px;color:#8899aa}
-.credito b{font-size:22px;color:#5cff1a;text-shadow:0 0 10px #5cff1a88}
+.credito .label{font-size:10px;color:#ff9aaa}
+.credito b{font-size:22px;color:#ffd91a;text-shadow:0 0 10px #ffd91a88}
 .mesa{
-  margin-top:12px;background:#0a0614;border:2px solid #ff4fd8;border-radius:24px;padding:14px;
-  box-shadow:0 0 18px #ff4fd855,inset 0 0 40px #0008;animation:clubNeonGlow 1.6s ease-in-out infinite;
+  margin-top:12px;background:#120008;border:2px solid #ff0040;border-radius:24px;padding:14px;
+  box-shadow:0 0 18px #ff004055,inset 0 0 40px #0008;animation:clubNeonGlow 1.6s ease-in-out infinite;
 }
 .status{
   text-align:center;min-height:44px;padding:10px;font-weight:900;color:#fff;
-  background:#060912;border:1px solid #17c8ff44;border-radius:12px;margin-bottom:12px
+  background:#0d0006;border:1px solid #ff004044;border-radius:12px;margin-bottom:12px
 }
 .lados{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .lado{
-  background:#060912;border:1px solid #17c8ff66;border-radius:16px;padding:10px;
+  background:#0d0006;border:1px solid #ff004066;border-radius:16px;padding:10px;
   min-height:150px;display:flex;flex-direction:column;align-items:center
 }
 .lado h2{width:100%;text-align:center;margin:0 0 6px;font-size:18px;letter-spacing:1px}
-.jogador h2{color:#7af0ff;text-shadow:0 0 10px #17c8ff66}
-.banca h2{color:#ff8ab8;text-shadow:0 0 10px #ff4fd866}
+.jogador h2{color:#ff4d6d;text-shadow:0 0 10px #ff004066}
+.banca h2{color:#ff1744;text-shadow:0 0 10px #ff004066}
 .pontos{
   text-align:center;font-size:15px;color:#ffd91a;font-weight:900;
-  background:#0a0614;border:1px solid #ffd91a55;border-radius:999px;padding:4px 12px;min-width:96px
+  background:#120008;border:1px solid #ffd91a55;border-radius:999px;padding:4px 12px;min-width:96px
 }
 .cartas{width:100%;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;min-height:96px}
 .playing-card{
@@ -66,18 +66,18 @@ h1{font-size:clamp(22px,5vw,36px);margin:0}
   color:#120018;font-weight:1000;transition:.2s
 }
 .aposta:hover{transform:translateY(-2px)}
-.aposta.sel{outline:3px solid #ffd91a;box-shadow:0 0 18px #ffd91a88}
-.aposta.player{background:linear-gradient(180deg,#0b3a66,#1565c0);color:#e8f7ff;border-color:#7dd3fc}
-.aposta.banker{background:linear-gradient(180deg,#7a1048,#ff4fd8);color:#fff;border-color:#ff9de0}
-.aposta.tie{background:linear-gradient(180deg,#145a3a,#24764f);color:#e8ffd8;border-color:#5cff1a88}
+.aposta.sel{outline:3px solid #ffd91a;box-shadow:0 0 18px #ffd91a88,0 0 30px #ff004066}
+.aposta.player{background:linear-gradient(180deg,#3a0010,#cc0033);color:#ffd6dd;border-color:#ff4d6d}
+.aposta.banker{background:linear-gradient(180deg,#4a0015,#ff0040);color:#fff;border-color:#ff4d6d}
+.aposta.tie{background:linear-gradient(180deg,#2a0008,#880022);color:#ffd6dd;border-color:#ff4d6d88}
 .aposta small{display:block;font-weight:700;opacity:.9;margin-top:4px;font-size:11px}
 .controles{
-  margin-top:12px;background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:14px
+  margin-top:12px;background:#120008;border:2px solid #ff004066;border-radius:16px;padding:14px
 }
 .linha{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.linha label{font-weight:800;color:#d8e7ff}
+.linha label{font-weight:800;color:#ffd6dd}
 .valor{
-  flex:1;min-width:110px;background:#090614;color:#fff;border:1px solid #445;
+  flex:1;min-width:110px;background:#0d0006;color:#fff;border:1px solid #ff004044;
   border-radius:12px;padding:12px;font-size:16px;font-weight:800
 }
 button{
@@ -85,30 +85,30 @@ button{
 }
 button:disabled{opacity:.45;cursor:not-allowed}
 .btn-primary{
-  background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;
-  animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8
+  background:linear-gradient(90deg,#ff0040,#ff1744,#cc0033);background-size:200% 100%;
+  animation:clubRainbowShift 2.8s linear infinite;border:2px solid #ff4d6d88;color:#fff
 }
-.btn-secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
-.btn-danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
+.btn-secondary{background:linear-gradient(180deg,#3a0010,#cc0033);border:2px solid #ff4d6d;color:#ffd6dd}
+.btn-danger{background:linear-gradient(180deg,#660018,#990022);border:2px solid #ff4d6d;color:#fff}
 .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .chip{
-  border:1px solid #17c8ff66;background:#120a22;color:#fff;border-radius:999px;
+  border:1px solid #ff004066;background:#1a0008;color:#fff;border-radius:999px;
   padding:8px 12px;cursor:pointer;font-weight:800
 }
 .info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .box{
-  background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:13px
+  background:#120008;border:2px solid #ff004066;border-radius:16px;padding:13px
 }
-.box h3{margin:0 0 8px;color:#ffd91a}
+.box h3{margin:0 0 8px;color:#ff4d6d}
 .historico{display:flex;gap:7px;flex-wrap:wrap}
 .bola{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900}
-.bp{background:#1565c0}.bb{background:#ff4fd8}.bt{background:#2d8c5d}
-.regras{font-size:13px;line-height:1.45;color:#d8e7ff;font-weight:700}
-.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
+.bp{background:#cc0033}.bb{background:#ff0040}.bt{background:#880022}
+.regras{font-size:13px;line-height:1.45;color:#ffd6dd;font-weight:700}
+.helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3a0010,#cc0033);border:2px solid #ff4d6d}
 .helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
-.helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
-.helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard li{margin:5px 0}
-.closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
+.helpCard{max-width:560px;margin:20px auto;background:#120008;color:#fff;border:2px solid #ff0040;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
+.helpCard h2{color:#ff4d6d;text-align:center;margin:0 0 10px}.helpCard li{margin:5px 0}
+.closeHelp{width:100%;background:#cc0033;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
 @media(max-width:700px){
   .lados,.info{grid-template-columns:1fr}
   .lado{min-height:128px}
