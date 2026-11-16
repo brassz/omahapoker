@@ -342,7 +342,7 @@
         bacbo: 'PONTO MAIOR',
         ronda: 'RONDA',
         caipira: 'CAIPIRA',
-        '21': '21 CAIPIRA',
+        '21': 'BLACKJACK 21',
         trincacaipira: 'TRINCA CAIPIRA',
         trinca: 'TRINCA CAIPIRA',
         baccarat: 'BACCARAT',

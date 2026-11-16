@@ -60,7 +60,7 @@ h1{font-size:clamp(22px,5vw,36px);margin:0}
 .playing-card.black{color:#111!important}
 .playing-card.red{color:#d40000!important}
 @keyframes deal{from{transform:translateY(-16px) scale(.86);opacity:0}to{transform:none;opacity:1}}
-.apostas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.apostas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
 .aposta{
   border:2px solid #fff4;border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;
   color:#120018;font-weight:1000;transition:.2s
@@ -69,6 +69,7 @@ h1{font-size:clamp(22px,5vw,36px);margin:0}
 .aposta.sel{outline:3px solid #ffd91a;box-shadow:0 0 18px #ffd91a88}
 .aposta.player{background:linear-gradient(180deg,#0b3a66,#1565c0);color:#e8f7ff;border-color:#7dd3fc}
 .aposta.banker{background:linear-gradient(180deg,#7a1048,#ff4fd8);color:#fff;border-color:#ff9de0}
+.aposta.tie{background:linear-gradient(180deg,#145a3a,#24764f);color:#e8ffd8;border-color:#5cff1a88}
 .aposta small{display:block;font-weight:700;opacity:.9;margin-top:4px;font-size:11px}
 .controles{
   margin-top:12px;background:#0a0614;border:2px solid #17c8ff66;border-radius:16px;padding:14px
@@ -88,6 +89,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8
 }
 .btn-secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
+.btn-danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
 .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .chip{
   border:1px solid #17c8ff66;background:#120a22;color:#fff;border-radius:999px;
@@ -123,7 +125,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="top">
     <div>
       <h1 class="club-rainbow">♠ BACCARAT ♦</h1>
-      <div class="sub">Jogador · Banca · aposta 2 a 200</div>
+      <div class="sub">Jogador · Banca · Empate · aposta 2 a 200</div>
     </div>
     <div class="credito">
       <div class="label">SALDO</div>
@@ -132,7 +134,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
 
   <div class="mesa">
-    <div class="status" id="status">Escolha Jogador ou Banca e defina a aposta.</div>
+    <div class="status" id="status">Escolha Jogador, Banca ou Empate e defina a aposta.</div>
     <div class="lados">
       <div class="lado jogador">
         <h2>🔵 JOGADOR</h2>
@@ -147,8 +149,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
     </div>
 
     <div class="apostas">
-      <div class="aposta player" data-tipo="player">JOGADOR<small>Paga 1:1</small></div>
-      <div class="aposta banker" data-tipo="banker">BANCA<small>Paga 0,95:1</small></div>
+      <button type="button" class="aposta player" data-tipo="player" aria-pressed="false">JOGADOR<small>Paga 1:1</small></button>
+      <button type="button" class="aposta banker" data-tipo="banker" aria-pressed="false">BANCA<small>Paga 0,95:1</small></button>
+      <button type="button" class="aposta tie" data-tipo="tie" aria-pressed="false">EMPATE<small>Paga 8:1</small></button>
     </div>
   </div>
 
@@ -173,10 +176,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="box">
       <h3>Histórico</h3>
       <div class="historico" id="hist"></div>
+      <p id="stats" class="regras">Rodadas: 0</p>
+      <p id="shoeInfo" class="regras"></p>
     </div>
     <div class="box regras">
       <h3>Regras</h3>
-      Ás=1 · 2–9 face · 10/J/Q/K=0. Soma só o último dígito. Natural 8/9 encerra. Terceira carta segue a tabela clássica. <b>Empate = derrota</b> (aposta perdida).
+      Ás=1 · 2–9 face · 10/J/Q/K=0. Soma só o último dígito. Natural 8/9 encerra. Terceira carta segue a tabela clássica. Pagamentos: Jogador 1:1, Banca 0,95:1 (comissão 5%), Empate 8:1. No empate, apostas em Jogador/Banca são devolvidas. São usados oito baralhos, com redistribuição automática.
     </div>
   </div>
 </div>
@@ -184,28 +189,26 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div id="helpModal" class="helpModal"><div class="helpCard">
 <h2>❓ COMO JOGAR — BACCARAT</h2>
 <ul>
-  <li>Escolha <b>Jogador</b> ou <b>Banca</b>.</li>
+  <li>Escolha <b>Jogador</b>, <b>Banca</b> ou <b>Empate</b>.</li>
   <li>Aposte de <b>2 a 200</b> e toque em DISTRIBUIR CARTAS.</li>
   <li>Ganha quem chegar mais perto de 9 pontos.</li>
-  <li>Pagamentos: Jogador 1:1 · Banca 0,95:1.</li>
-  <li><b>Empate = derrota</b> — a aposta é perdida.</li>
+  <li>Pagamentos: Jogador 1:1 · Banca 0,95:1 · Empate 8:1.</li>
+  <li>No empate, apostas em Jogador/Banca são devolvidas.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
 
 <script>
+'use strict';
 const naipes=['♠','♥','♦','♣'], ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-let saldo=0, tipo=null, rodada=false, hist=[];
 const $=id=>document.getElementById(id);
-function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
-function valorCarta(r){if(r==='A')return 1;if(['10','J','Q','K'].includes(r))return 0;return Number(r)}
-function deck(){
-  const d=[];
-  for(let x=0;x<8;x++) for(const n of naipes) for(const r of ranks) d.push({r,n,v:valorCarta(r)});
-  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
-  return d;
-}
+const money=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+let saldo=0,tipo=null,rodada=false,hist=[],shoe=[],rounds=0,results={player:0,banker:0,tie:0};
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function valorCarta(r){return r==='A'?1:['10','J','Q','K'].includes(r)?0:Number(r)}
+function deck(){const d=[];for(let x=0;x<8;x++)for(const n of naipes)for(const r of ranks)d.push({r,n,v:valorCarta(r)});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
 function pontos(mao){return mao.reduce((s,c)=>s+c.v,0)%10}
+function bankerDraw(total,third){if(third==null)return total<=5;if(total<=2)return true;if(total===3)return third!==8;if(total===4)return third>=2&&third<=7;if(total===5)return third>=4&&third<=7;if(total===6)return third===6||third===7;return false}
 function cartaHTML(c){
   const red=c.n==='♥'||c.n==='♦';
   return `<div class="playing-card ${red?'red':'black'}">
@@ -214,49 +217,9 @@ function cartaHTML(c){
     <div class="corner br"><span>${c.r}</span><span class="pip">${c.n}</span></div>
   </div>`;
 }
-function render(maoJ,maoB){
-  $('cj').innerHTML=maoJ.map(cartaHTML).join('');
-  $('cb').innerHTML=maoB.map(cartaHTML).join('');
-  $('pj').textContent=pontos(maoJ);
-  $('pb').textContent=pontos(maoB);
-}
-function bankerDraw(total, third){
-  if(third==null) return total<=5;
-  if(total<=2) return true;
-  if(total===3) return third!==8;
-  if(total===4) return third>=2&&third<=7;
-  if(total===5) return third>=4&&third<=7;
-  if(total===6) return third===6||third===7;
-  return false;
-}
-function playRound(d){
-  const j=[d.pop(),d.pop()], b=[d.pop(),d.pop()];
-  let third=null;
-  const pj0=pontos(j), pb0=pontos(b);
-  if(!(pj0>=8||pb0>=8)){
-    if(pj0<=5){ j.push(d.pop()); third=j[2].v; }
-    if(bankerDraw(pb0, third)) b.push(d.pop());
-  }
-  const pj=pontos(j), pb=pontos(b);
-  const vencedor=pj>pb?'player':pb>pj?'banker':'tie';
-  return {j,b,vencedor,steps:{needPlayer3:pj0<=5&&!(pj0>=8||pb0>=8), needBanker3:false}};
-}
-function resolveRound(force){
-  let target=null;
-  if(force==='player') target=tipo;
-  else if(force==='bank'){
-    /* empate também é derrota para o jogador */
-    target=tipo==='player'?'banker':'player';
-    if(Math.random()<0.35) target='tie';
-  }
-  for(let t=0;t<80;t++){
-    const r=playRound(deck());
-    if(!target || r.vencedor===target) return r;
-  }
-  return playRound(deck());
-}
+function render(j,b){$('cj').innerHTML=j.map(cartaHTML).join('');$('cb').innerHTML=b.map(cartaHTML).join('');$('pj').textContent=pontos(j);$('pb').textContent=pontos(b)}
 function msg(t){$('status').textContent=t}
-function setSaldo(){$('saldo').textContent=fmt(saldo)}
+function setSaldo(){$('saldo').textContent=money(saldo)}
 async function persist(){
   if(window.clubWallet){
     await clubWallet.set(saldo);
@@ -264,89 +227,47 @@ async function persist(){
   }
   setSaldo();
 }
-function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
-
-document.querySelectorAll('.aposta').forEach(el=>{
-  el.onclick=()=>{
-    if(rodada) return;
-    document.querySelectorAll('.aposta').forEach(x=>x.classList.remove('sel'));
-    el.classList.add('sel');
-    tipo=el.dataset.tipo;
-    msg(`Selecionado: ${tipo==='player'?'Jogador':'Banca'}.`);
-  };
-});
-document.querySelectorAll('.chip[data-v]').forEach(b=>{
-  b.onclick=()=>{$('valor').value=b.dataset.v};
-});
-$('nova').onclick=()=>{
-  if(rodada) return;
-  tipo=null;
-  document.querySelectorAll('.aposta').forEach(x=>x.classList.remove('sel'));
-  $('cj').innerHTML='';$('cb').innerHTML='';
-  $('pj').textContent='0';$('pb').textContent='0';
-  msg('Nova rodada pronta. Escolha uma opção.');
-};
-$('jogar').onclick=async()=>{
-  if(rodada) return;
-  if(!tipo){msg('Escolha Jogador ou Banca.');return}
-  if(!window.clubWallet){msg('Carregando carteira...');return}
-  const check=clubBets.validate($('valor').value);
-  if(!check.ok){msg(check.message);return}
-  const aposta=check.value;
-  $('valor').value=aposta;
-  if(aposta>saldo){msg('Saldo insuficiente.');return}
-
-  rodada=true;
-  $('jogar').disabled=true;
-  saldo-=aposta;
+function setLocked(v){rodada=v;$('jogar').disabled=v;$('nova').disabled=v;$('valor').disabled=v;document.querySelectorAll('.aposta,.chip[data-v]').forEach(el=>el.disabled=v)}
+function updateStats(){$('stats').textContent=`Rodadas: ${rounds} · Jogador: ${results.player} · Banca: ${results.banker} · Empates: ${results.tie}`;$('shoeInfo').textContent=`Cartas restantes no sapato: ${shoe.length} de 416`;$('hist').innerHTML=hist.map(x=>`<div class="bola ${x==='player'?'bp':x==='banker'?'bb':'bt'}" title="${x==='player'?'Jogador':x==='banker'?'Banca':'Empate'}">${x==='player'?'J':x==='banker'?'B':'E'}</div>`).join('')}
+function select(t){if(rodada)return;tipo=t;document.querySelectorAll('.aposta').forEach(el=>{const active=el.dataset.tipo===t;el.classList.toggle('sel',active);el.setAttribute('aria-pressed',String(active))});msg(`Selecionado: ${t==='player'?'Jogador':t==='banker'?'Banca':'Empate'}.`)}
+document.querySelectorAll('.aposta').forEach(el=>el.addEventListener('click',()=>select(el.dataset.tipo)));
+document.querySelectorAll('.chip[data-v]').forEach(el=>el.addEventListener('click',()=>{$('valor').value=el.dataset.v}));
+$('nova').addEventListener('click',()=>{if(rodada)return;tipo=null;document.querySelectorAll('.aposta').forEach(el=>{el.classList.remove('sel');el.setAttribute('aria-pressed','false')});render([],[]);msg('Nova rodada pronta. Escolha uma opção.')});
+$('jogar').addEventListener('click',async()=>{
+ if(rodada)return;
+ if(!tipo){msg('Escolha Jogador, Banca ou Empate.');return}
+ if(!window.clubWallet){msg('Carregando carteira...');return}
+ const check=clubBets.validate($('valor').value);
+ if(!check.ok){msg(check.message);return}
+ const aposta=check.value;
+ $('valor').value=aposta;
+ if(aposta>saldo){msg('Saldo insuficiente.');return}
+ setLocked(true);
+ try{
+  if(shoe.length<16){shoe=deck();msg('Novo sapato de oito baralhos embaralhado.');await delay(350)}
+  saldo=Math.round((saldo-aposta)*100)/100;
   await persist();
-
-  let force=null;
-  try{ force=window.clubHouse?await clubHouse.nextOutcome('baccarat'):null; }catch(_){ force=null; }
-
-  const full=resolveRound(force);
-  const j=full.j.slice(0,2), b=full.b.slice(0,2);
-  render(j,b);
-  msg('Cartas iniciais distribuídas...');
-  await sleep(700);
-
-  let pj=pontos(j), pb=pontos(b);
-  if(!(pj>=8||pb>=8)){
-    if(full.j.length>2){
-      j.push(full.j[2]);
-      render(j,b);
-      msg('Jogador recebe a terceira carta.');
-      await sleep(650);
-    }
-    if(full.b.length>2){
-      b.push(full.b[2]);
-      render(j,b);
-      msg('Banca recebe a terceira carta.');
-      await sleep(650);
-    }
+  const j=[shoe.pop()],b=[shoe.pop()];j.push(shoe.pop());b.push(shoe.pop());
+  render(j,b);msg('Cartas iniciais distribuídas...');await delay(650);
+  const initialJ=pontos(j),initialB=pontos(b);let third=null;
+  if(initialJ<8&&initialB<8){
+   if(initialJ<=5){j.push(shoe.pop());third=j[2].v;render(j,b);msg('Jogador recebe a terceira carta.');await delay(550)}
+   if(bankerDraw(initialB,third)){b.push(shoe.pop());render(j,b);msg('Banca recebe a terceira carta.');await delay(550)}
   }
-
-  const pjFinal=pontos(j), pbFinal=pontos(b);
-  const vencedor=pjFinal>pbFinal?'player':pbFinal>pjFinal?'banker':'tie';
-  let ganho=0;
-  if(vencedor==='tie'){
-    msg(`EMPATE (${pjFinal} × ${pbFinal}). Sua aposta foi perdida.`);
-  } else if(tipo===vencedor){
-    if(vencedor==='player') ganho=Math.round(aposta*2);
-    else ganho=Math.round(aposta*1.95);
-    saldo+=ganho;
-    msg(`${vencedor==='player'?'JOGADOR':'BANCA'} venceu. Você acertou e recebeu ${fmt(ganho)}.`);
-  } else {
-    msg(`Resultado: ${vencedor==='player'?'JOGADOR':'BANCA'} venceu. Sem prêmio nesta rodada.`);
-  }
+  const pj=pontos(j),pb=pontos(b),winner=pj>pb?'player':pb>pj?'banker':'tie';
+  let retorno=0;
+  if(winner==='tie'&&tipo!=='tie')retorno=aposta;
+  else if(winner===tipo)retorno=aposta*(winner==='player'?2:winner==='banker'?1.95:9);
+  saldo=Math.round((saldo+retorno)*100)/100;
+  const nome=winner==='player'?'JOGADOR':winner==='banker'?'BANCA':'EMPATE';
+  const detail=winner==='tie'&&tipo!=='tie'?`Aposta devolvida: ${money(aposta)}.`:winner===tipo?`Vitória! Retorno: ${money(retorno)} (inclui aposta).`:'Aposta perdida.';
+  msg(`${nome} · ${pj} × ${pb}. ${detail}`);
+  rounds++;results[winner]++;hist.unshift(winner);hist=hist.slice(0,30);
   await persist();
-  hist.unshift(vencedor);
-  hist=hist.slice(0,20);
-  $('hist').innerHTML=hist.map(x=>`<div class="bola ${x==='player'?'bp':x==='banker'?'bb':'bt'}">${x==='player'?'J':x==='banker'?'B':'E'}</div>`).join('');
-  rodada=false;
-  $('jogar').disabled=false;
-};
-setSaldo();
+  updateStats();
+ }catch(err){console.error(err);msg('Ocorreu um erro inesperado na rodada.')}finally{setLocked(false)}
+});
+shoe=deck();setSaldo();updateStats();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/config.js?v=10"></script>
@@ -359,6 +280,7 @@ window.clubWalletReady.then((w)=>{
   if(!w||w.sealed) return;
   saldo=Number(w.credits||0);
   setSaldo();
+  updateStats();
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};

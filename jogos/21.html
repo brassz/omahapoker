@@ -1,62 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>21 Caipira — NextPlay Club</title>
+<title>Blackjack 21 — NextPlay Club</title>
 <link rel="stylesheet" href="../css/theme-bacatela.css?v=11">
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:10px}
-.app{max-width:900px;margin:auto}
-h1{text-align:center;margin:6px 0 4px;font-size:clamp(26px,7vw,44px)}
-.sub{text-align:center;margin-bottom:10px;font-weight:900}
-.panel{
-  background:#0a0614;border:2px solid #17c8ff;border-radius:16px;
-  padding:12px;margin-bottom:12px;box-shadow:0 0 14px #17c8ff55;
-  animation:clubNeonGlow 1.6s ease-in-out infinite;
+.app{max-width:1140px;margin:auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:2px;margin:0}
+h1 small{display:block;font-size:11px;letter-spacing:4px;color:#d8e7ff}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{padding:10px 14px;background:#060912;border:1px solid #17c8ff66;border-radius:12px;min-width:110px}
+.stat small{display:block;color:#8899aa;font-size:11px}
+.stat strong{color:#ffd91a;font-size:20px}
+.table{
+  position:relative;border:6px solid #855f25;
+  box-shadow:0 15px 45px #0009,inset 0 0 0 3px #b18a4c;
+  border-radius:45% 45% 24% 24%/26% 26% 17% 17%;min-height:475px;
+  background:radial-gradient(ellipse at 50% 48%,#0a2e44,#0a0614 60%);
+  padding:28px 20px 22px;display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between;overflow:hidden;
+  animation:clubNeonGlow 1.8s ease-in-out infinite;
+  border-color:#17c8ff;
 }
-.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
-.side{background:#060912;border:1px solid #17c8ff66;border-radius:12px;padding:10px;text-align:center}
-.side h3{margin:0 0 6px;color:#ffd91a;font-size:16px}
-.scoreline{font-size:13px;color:#b8c9e0;margin:4px 0}
-.scoreline b{color:#fff;font-size:20px;margin-left:4px}
-.versus{align-self:center;font-weight:900;color:#ffd91a;font-size:20px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.between{justify-content:space-between}
-label{font-weight:800;font-size:13px;color:#d8e7ff}
-input{
-  width:100px;font-size:16px;padding:10px;border-radius:10px;outline:none;
-  background:#090614;color:#fff;border:1px solid #445;font-weight:800
-}
-button{
-  border:0;border-radius:12px;padding:11px 12px;font-weight:900;font-size:14px;cursor:pointer;color:#120018
-}
-button:disabled{opacity:.45;cursor:not-allowed}
-.primary{background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;border:2px solid #fff8}
-.secondary{background:linear-gradient(180deg,#0b3a66,#1565c0);border:2px solid #7dd3fc;color:#e8f7ff}
-.danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
-.green{background:linear-gradient(180deg,#1f7a00,#58df00);border:2px solid #9dff76;color:#041}
-.cards{display:flex;gap:6px;flex-wrap:wrap;min-height:78px;margin:6px 0}
+.table:before{content:'';position:absolute;inset:27px 35px;border:2px solid #17c8ff33;border-radius:44% 44% 25% 25%/25% 25% 20% 20%;pointer-events:none}
+.table>*{position:relative;z-index:1}
+.dealer,.player{text-align:center;width:100%}
+.label{color:#ffd91a;font-size:13px;font-weight:800;letter-spacing:2px}
+.cards{display:flex;justify-content:center;gap:5px;min-height:106px;margin:9px 0;flex-wrap:wrap}
 .playing-card{
-  position:relative;width:52px;height:76px;border-radius:8px;padding:0;overflow:hidden;
-  background:#fff!important;color:#111!important;
-  border:1.5px solid #c8c8c8!important;box-shadow:0 3px 8px #0007!important;
-  font-family:Georgia,'Times New Roman',serif;font-weight:700;
-  animation:none!important;
+  position:relative;height:103px;width:72px;border-radius:9px;overflow:hidden;padding:0;
+  background:#fff!important;color:#111!important;border:1.5px solid #c8c8c8!important;
+  box-shadow:0 5px 11px #0008!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  animation:deal .28s ease,none!important;
+  display:flex;flex-direction:column;justify-content:space-between;
 }
 .playing-card .corner{
-  position:absolute;top:3px;left:4px;display:flex;flex-direction:column;align-items:center;
-  line-height:1;z-index:1;
+  position:absolute;top:4px;left:5px;z-index:2;width:20px;text-align:center;line-height:.85;font-size:17px
 }
-.playing-card .corner.br{
-  top:auto;left:auto;bottom:3px;right:4px;transform:rotate(180deg);
-}
-.playing-card .corner .rank{font-size:13px;font-weight:800;color:inherit}
-.playing-card .corner .pip{font-size:12px;color:inherit;margin-top:1px}
+.playing-card .corner.br{top:auto;left:auto;bottom:4px;right:5px;transform:rotate(180deg)}
+.playing-card .corner .pip{display:block;font-size:12px;margin-top:1px}
 .playing-card .center-suit{
-  position:absolute;inset:0;display:grid;place-items:center;
-  font-size:26px;line-height:1;color:inherit;
+  position:absolute;inset:0;display:grid;place-items:center;font-size:30px;line-height:1
 }
 .playing-card.black{color:#111!important}
 .playing-card.red{color:#d40000!important}
@@ -68,371 +56,241 @@ button:disabled{opacity:.45;cursor:not-allowed}
   content:'';position:absolute;inset:5px;border:2px solid #6ea0d8;border-radius:5px;
   background:radial-gradient(circle at 50% 50%,#2c5fa0 0,#163a6e 70%);
 }
-@media(max-width:560px){
-  .playing-card{width:44px;height:64px}
-  .playing-card .corner .rank{font-size:11px}
-  .playing-card .corner .pip{font-size:10px}
-  .playing-card .center-suit{font-size:20px}
+@keyframes deal{from{transform:translateY(-16px) scale(.86);opacity:0}to{transform:none;opacity:1}}
+.score{display:inline-block;padding:4px 12px;border-radius:999px;background:#060912;color:#fff;font-size:13px;border:1px solid #17c8ff44}
+.arc{font-size:clamp(14px,2.2vw,23px);letter-spacing:3px;font-weight:900;color:#ffd91a;text-align:center;text-shadow:0 0 14px #ffd91a88}
+.message{background:#060912;border:1px solid #17c8ff44;border-radius:12px;padding:10px 16px;text-align:center;max-width:660px;font-weight:650;font-size:14px;animation:clubNeonGlow 1.8s ease-in-out infinite}
+.hands{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.hand{min-width:150px;padding:8px;border:2px solid transparent;border-radius:15px;background:#060912}
+.hand.active{border-color:#ffd91a;background:#ffffff12}
+.hand-title{font-size:12px;color:#d8e7ff}
+.hand .cards{min-height:88px}
+.hand .playing-card{width:60px;height:86px;font-size:16px}
+.hand .playing-card .center-suit{font-size:24px}
+.hand .playing-card .corner{font-size:14px}
+.hand-result{font-size:12px;color:#ffd91a;min-height:16px}
+.controls{margin-top:14px;background:#0a0614;border:2px solid #17c8ff66;border-radius:18px;padding:18px;animation:clubNeonGlow 1.6s ease-in-out infinite}
+.chips-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.chip{
+  width:64px;height:64px;border-radius:50%;border:5px dashed #fff9;
+  box-shadow:0 4px 12px #0008,inset 0 0 0 3px #ffffff65;font-weight:900;color:#fff;
+  text-shadow:0 1px 3px #000;cursor:pointer;font-size:14px;
 }
-.hand{border:1px dashed #17c8ff66;border-radius:10px;padding:8px;margin-top:6px;background:#060912}
-.hand.active{outline:2px solid #ffd91a}
-.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#1a3a55;color:#e9ffd8;font-weight:800;font-size:12px;margin:3px}
-.msg{padding:10px;border-radius:10px;background:#060912;border:1px solid #17c8ff44;min-height:48px;font-weight:800;text-align:center}
-.tiny{font-size:12px;color:#8899aa}
+.chip:nth-child(1){background:#1565c0}
+.chip:nth-child(2){background:#c83a37}
+.chip:nth-child(3){background:#198254}
+.chip:nth-child(4){background:#3d354f}
+.chip:nth-child(5){background:#ac842c}
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:1000;cursor:pointer;color:#120018;min-height:44px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn{border:1px solid #17c8ff44;background:#0a2e44;color:#fff;padding:12px 18px;border-radius:11px;font-weight:800}
+.btn.primary{background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;color:#120018;border:2px solid #fff8}
+.btn.warn{background:linear-gradient(180deg,#7a3000,#ff8c15);border:2px solid #ffb866;color:#fff}
+.btn.danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
+.btn:hover:not(:disabled){filter:brightness(1.14)}
+.betline{text-align:center;color:#d8e7ff;font-size:14px}.betline strong{color:#ffd91a}
+.settings{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:#8899aa}
+select{background:#090614;border:1px solid #445;border-radius:8px;padding:8px;color:#fff}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.panel{background:#0a0614;border:2px solid #17c8ff66;border-radius:15px;padding:16px;animation:clubNeonGlow 1.6s ease-in-out infinite}
+.panel h2{font-size:16px;margin:0 0 9px;color:#ffd91a}
+.panel p,.panel li{color:#d8e7ff;font-size:13px;line-height:1.6}
+.history{list-style:none;padding:0;margin:0;max-height:180px;overflow:auto}
+.history li{border-bottom:1px solid #17c8ff22;padding:6px 0;color:#d8e7ff;font-size:13px}
 .helpBtn{width:100%;margin:0 0 10px;padding:11px;border-radius:12px;font-weight:900;cursor:pointer;color:#e8f7ff;background:linear-gradient(135deg,#0b3a66,#1565c0);border:2px solid #7dd3fc}
 .helpModal{display:none;position:fixed;inset:0;background:#000b;z-index:9999;padding:14px;overflow:auto}
 .helpCard{max-width:560px;margin:20px auto;background:#0a0614;color:#fff;border:2px solid #17c8ff;border-radius:16px;padding:16px;line-height:1.5;font-size:13px;font-weight:700}
 .helpCard h2{color:#7af0ff;text-align:center;margin:0 0 10px}.helpCard h3{color:#ffd91a;margin:12px 0 4px}.helpCard li{margin:5px 0}
 .closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
-@media(max-width:560px){
-  .scoreboard{grid-template-columns:1fr}
-  .versus{text-align:center}
-  input{flex:1;min-width:90px}
+@media(max-width:650px){
+  .top{justify-content:center}
+  .table{border-width:5px;min-height:440px;padding:20px 6px;border-radius:34% 34% 15% 15%/12% 12% 8% 8%}
+  .table:before{inset:15px 12px}
+  .playing-card{width:57px;height:82px;font-size:16px}
+  .playing-card .center-suit{font-size:24px}
+  .hand .playing-card{width:43px;height:68px;font-size:13px;padding:4px}
+  .hand .playing-card .center-suit{font-size:18px}
+  .hand{min-width:125px;padding:5px}
+  .arc{font-size:13px;letter-spacing:1px}
+  .bottom-grid{grid-template-columns:1fr}
+  .chip{width:54px;height:54px;font-size:13px}
+  .btn{padding:10px 12px;font-size:13px}
+  .stats{justify-content:center}
+  .stat{min-width:100px}
 }
 </style>
 </head>
 <body>
-<div class="app">
-  <h1 class="club-rainbow">21 CAIPIRA</h1>
-  <div class="sub">Jogador × Banca · Double · eSplit</div>
-  <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
-
-  <div class="panel">
-    <div class="scoreboard">
-      <div class="side">
-        <h3>JOGADOR</h3>
-        <div class="scoreline">Vitórias: <b id="playerScore">0</b></div>
-        <div class="scoreline">Saldo: <b id="playerCredits">0</b></div>
-      </div>
-      <div class="versus">×</div>
-      <div class="side">
-        <h3>BANCA</h3>
-        <div class="scoreline">Vitórias: <b id="dealerScore">0</b></div>
-        <div class="scoreline">Rodadas: <b id="rounds">0</b></div>
-      </div>
-    </div>
+<main class="app">
+<button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
+<header class="top">
+  <div><h1 class="club-rainbow">BLACKJACK <span style="color:#fff">21</span><small>MESA DE CARTAS</small></h1></div>
+  <div class="stats">
+    <div class="stat"><small>SALDO</small><strong id="balance">0</strong></div>
+    <div class="stat"><small>APOSTA TOTAL</small><strong id="betTotal">0</strong></div>
+    <div class="stat"><small>RODADAS</small><strong id="rounds">0</strong></div>
   </div>
+</header>
 
-  <div class="panel">
-    <h3 style="margin:0 0 6px;color:#7af0ff">Conquistas da rodada</h3>
-    <div id="badges"><span class="tiny">Nenhuma ainda.</span></div>
-  </div>
+<section class="table" aria-label="Mesa de blackjack">
+  <div class="dealer"><div class="label">BANCA</div><div id="dealerCards" class="cards"></div><div id="dealerScore" class="score">Aguardando</div></div>
+  <div class="arc">BLACKJACK PAYS 3 TO 2</div>
+  <div id="message" class="message" role="status" aria-live="polite">Selecione suas fichas e clique em DISTRIBUIR.</div>
+  <div class="player"><div class="label">JOGADOR</div><div id="hands" class="hands"><div class="hand"><div class="cards"></div><span class="score">Aguardando</span></div></div></div>
+</section>
 
-  <div class="panel" id="mesa" style="display:none">
-    <h2 style="margin:0 0 6px;color:#7af0ff;font-size:18px">Banca</h2>
-    <div class="cards" id="dealerCards"></div>
-    <div style="font-weight:800">Total: <b id="dealerTotal">?</b></div>
-    <div class="row between" style="margin-top:12px"><h2 style="margin:0;color:#7af0ff;font-size:18px">Jogador</h2><span id="handIndicator" class="tiny"></span></div>
-    <div id="hands"></div>
+<section class="controls">
+  <div class="betline">Aposta preparada: <strong id="pendingBet">0</strong> créditos · Selecione fichas</div>
+  <div class="chips-row" aria-label="Fichas de aposta">
+    <button class="chip" data-chip="5">5</button>
+    <button class="chip" data-chip="25">25</button>
+    <button class="chip" data-chip="50">50</button>
+    <button class="chip" data-chip="100">100</button>
+    <button class="chip" data-chip="500">500</button>
   </div>
+  <div class="actions">
+    <button id="clear" class="btn">Limpar aposta</button>
+    <button id="deal" class="btn primary">Distribuir</button>
+    <button id="hit" class="btn" disabled>Pedir</button>
+    <button id="stand" class="btn" disabled>Parar</button>
+    <button id="double" class="btn" disabled>Dobrar</button>
+    <button id="split" class="btn" disabled>Dividir</button>
+    <button id="insurance" class="btn warn" disabled>Seguro</button>
+    <button id="declineInsurance" class="btn" disabled>Sem seguro</button>
+    <button id="reset" class="btn danger">Reiniciar</button>
+  </div>
+  <div class="settings">
+    <label for="decks">Baralhos</label>
+    <select id="decks">
+      <option value="6">6 baralhos</option>
+      <option value="1">1 baralho</option>
+      <option value="2">2 baralhos</option>
+      <option value="8">8 baralhos</option>
+    </select>
+    <span>· Banca para em 17 suave (S17) · Sem rendição</span>
+  </div>
+</section>
 
-  <div class="panel">
-    <div class="row" style="margin-bottom:8px">
-      <label for="challengeValue">Aposta (2 a 200)</label>
-      <input id="challengeValue" type="number" inputmode="numeric" min="2" max="200" step="1" value="10">
-      <button class="secondary" id="challengeBtn" type="button">Definir</button>
-      <span id="challengeStatus" class="badge">Aposta: 10</span>
-    </div>
-    <div class="row">
-      <button class="primary" id="newBtn">Nova rodada</button>
-      <button class="secondary" id="hitBtn" disabled>Pedir carta</button>
-      <button class="secondary" id="standBtn" disabled>Parar</button>
-      <button class="green" id="doubleBtn" disabled>Double</button>
-      <button class="secondary" id="splitBtn" disabled>eSplit</button>
-      <button class="secondary" id="nextHandBtn" disabled>Próxima mão</button>
-      <button class="danger" id="resetBtn" type="button">Zerar placar</button>
-    </div>
-    <div class="msg" id="msg" style="margin-top:10px">Defina a aposta e toque em “Nova rodada”.</div>
-  </div>
+<div class="bottom-grid">
+  <section class="panel"><h2>Regras da mesa</h2><p>Blackjack natural (Ás + carta de valor 10 nas duas cartas iniciais) paga 3:2. Vitória comum paga 1:1. Empate devolve a aposta. Banca compra até 16 e para em qualquer 17. Jogador pode parar com qualquer pontuação. Dobrar somente nas duas primeiras cartas de cada mão; recebe uma carta e para. Divisão permitida uma vez para pares de mesmo valor, incluindo figuras de valor 10; Áses divididos recebem somente uma carta cada. 21 após divisão não é blackjack natural. Seguro custa metade da aposta original e paga 2:1 quando a banca tem blackjack. A banca verifica blackjack antes das ações do jogador.</p></section>
+  <section class="panel"><h2>Histórico de rodadas</h2><ul id="history" class="history"><li>Nenhuma rodada concluída.</li></ul></section>
 </div>
+</main>
 
 <div id="helpModal" class="helpModal"><div class="helpCard">
-<h2>❓ COMO JOGAR — 21 CAIPIRA</h2>
+<h2>❓ COMO JOGAR — BLACKJACK 21</h2>
 <ul>
-  <li>Aposta de <b>2 a 200</b> por mão. Vitória paga 1 a 1 (recebe o dobro).</li>
-  <li><b>eSplit:</b> quando as 2 cartas têm o mesmo valor (10/J/Q/K = 10). AA: cada mão recebe 1 carta e encerra.</li>
-  <li><b>Double:</b> só com total inicial 8, 9, 10 ou 11 — dobra a aposta da mão, recebe 1 carta e encerra.</li>
-  <li>Banca compra até 16 e para em 17+. Empate favorece a banca.</li>
-  <li>21 natural da banca (Ás + 10/J/Q/K) vence todas as mãos automaticamente.</li>
+  <li>Selecione fichas para definir sua aposta.</li>
+  <li>Clique em <b>Distribuir</b> para iniciar a rodada.</li>
+  <li><b>Pedir:</b> receba mais uma carta.</li>
+  <li><b>Parar:</b> encerre sua mão.</li>
+  <li><b>Dobrar:</b> dobra a aposta, recebe uma carta e encerra.</li>
+  <li><b>Dividir:</b> separa um par em duas mãos (aposta igual para a segunda).</li>
+  <li><b>Seguro:</b> quando a banca mostra Ás — custa metade da aposta e paga 2:1 se houver blackjack.</li>
+  <li>Blackjack natural paga <b>3:2</b>.</li>
 </ul>
 <button id="closeHelp" class="closeHelp" type="button">FECHAR REGRAS</button>
 </div></div>
 
 <script>
-const suits=[['♠','black'],['♣','black'],['♥','red'],['♦','red']];
-const ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-let deck=[], hands=[], active=0, dealer=[], roundOver=true, reveal=false;
-let score={p:0,d:0,r:0};
-let saldo=0, challengePoints=10, roundForce=null, roundSettled=false;
-
-function fmt(n){return Number(n||0).toLocaleString('pt-BR')}
+'use strict';
+const $=id=>document.getElementById(id);
+const suits=['♠','♥','♦','♣'],ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+let balance=0,pending=0,shoe=[],dealer=[],hands=[],active=0,phase='betting',rounds=0,history=[],insurance=0,insuranceOffered=false,roundToken=0;
+const fmt=n=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
 async function persist(){
   if(window.clubWallet){
-    await clubWallet.set(saldo);
-    saldo=Number(clubWallet.credits||saldo);
+    await clubWallet.set(balance);
+    balance=Number(clubWallet.credits||balance);
   }
   render();
 }
-function makeDeck(){
-  deck=[];
-  for(let d=0;d<6;d++) for(const [s,c] of suits) for(const r of ranks) deck.push({r,s,c});
-  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
-}
-function draw(){if(deck.length<30)makeDeck();return deck.pop()}
-function value(cards){
-  let t=0,a=0;
-  for(const c of cards){if(c.r==='A'){t+=11;a++} else if(['J','Q','K'].includes(c.r))t+=10; else t+=+c.r}
-  while(t>21&&a){t-=10;a--}
-  return t;
-}
-function pairType(cards){
-  if(cards.length!==2||cards[0].r!==cards[1].r)return null;
-  if(cards[0].s===cards[1].s)return 'Perfect Pair';
-  if(cards[0].c===cards[1].c)return 'Par da mesma cor';
-  return 'Par misto';
-}
-function isNatural21(cards){
-  if(cards.length!==2)return false;
-  const rs=cards.map(c=>c.r);
-  return rs.includes('A') && rs.some(r=>['10','J','Q','K'].includes(r));
-}
-function splitCardValue(card){
-  if(['10','J','Q','K'].includes(card.r)) return 10;
-  if(card.r==='A') return 11;
-  return Number(card.r);
-}
-function canESplit(cards){
-  return cards.length===2 && splitCardValue(cards[0])===splitCardValue(cards[1]);
-}
-function cardHTML(c, hidden=false){
-  if(hidden)return `<div class="playing-card back" aria-hidden="true"></div>`;
-  const color=c.c==='red'?'red':'black';
-  return `<div class="playing-card ${color}">
-    <div class="corner"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+function score(cards){let total=0,aces=0;for(const c of cards){if(c.r==='A'){total+=11;aces++}else total+=['J','Q','K'].includes(c.r)?10:Number(c.r)}let soft=aces;while(total>21&&soft){total-=10;soft--}return {total,soft:soft>0};}
+function natural(cards){return cards.length===2&&score(cards).total===21;}
+function sameRankValue(a,b){const v=c=>['J','Q','K','10'].includes(c.r)?10:c.r;return v(a)===v(b)}
+function freshShoe(){shoe=[];for(let i=0;i<Number($('decks').value);i++)for(const s of suits)for(const r of ranks)shoe.push({s,r});for(let i=shoe.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shoe[i],shoe[j]]=[shoe[j],shoe[i]]}}
+function draw(){if(!shoe.length)freshShoe();return shoe.pop()}
+function cardHTML(c,hidden=false){
+  if(hidden)return '<div class="playing-card back" aria-label="Carta fechada"></div>';
+  const red=c.s==='♥'||c.s==='♦';
+  return `<div class="playing-card ${red?'red':'black'}" aria-label="${c.r} ${c.s}">
+    <div class="corner"><span>${c.r}</span><span class="pip">${c.s}</span></div>
     <div class="center-suit">${c.s}</div>
-    <div class="corner br"><span class="rank">${c.r}</span><span class="pip">${c.s}</span></div>
+    <div class="corner br"><span>${c.r}</span><span class="pip">${c.s}</span></div>
   </div>`;
 }
-function msg(t){document.getElementById('msg').textContent=t}
-function addBadge(t){
-  const el=document.getElementById('badges');
-  if(el.querySelector('.tiny'))el.innerHTML='';
-  el.innerHTML+=`<span class="badge">${t}</span>`;
-}
+function msg(t){$('message').textContent=t}
+function canAct(){return phase==='playing'&&hands[active]&&!hands[active].done}
 function render(){
-  document.getElementById('playerScore').textContent=score.p;
-  document.getElementById('dealerScore').textContent=score.d;
-  document.getElementById('rounds').textContent=score.r;
-  document.getElementById('playerCredits').textContent=fmt(saldo);
-  document.getElementById('dealerCards').innerHTML=dealer.map((c,i)=>cardHTML(c,!reveal&&i===1)).join('');
-  document.getElementById('dealerTotal').textContent=reveal?value(dealer):'?';
-  let out='';
-  hands.forEach((h,i)=>{
-    out+=`<div class="hand ${i===active&&!roundOver?'active':''}">
-      <b>Mão ${i+1}</b> · aposta ${fmt(h.stake)} ${h.done?'— encerrada':''}
-      <div class="cards">${h.cards.map(c=>cardHTML(c)).join('')}</div>
-      <div>Total: <b>${value(h.cards)}</b></div>
-    </div>`;
-  });
-  document.getElementById('hands').innerHTML=out||'<span class="tiny">Sem cartas.</span>';
-  document.getElementById('handIndicator').textContent=hands.length?`Mão ${active+1} de ${hands.length}`:'';
-  const h=hands[active];
-  const canPlay=!roundOver&&h&&!h.done;
-  document.getElementById('hitBtn').disabled=!canPlay;
-  document.getElementById('standBtn').disabled=!canPlay;
-  document.getElementById('doubleBtn').disabled=!(canPlay && h.cards.length===2 && [8,9,10,11].includes(value(h.cards)) && saldo>=h.stake);
-  document.getElementById('splitBtn').disabled=!(canPlay && canESplit(h.cards) && saldo>=challengePoints);
-  document.getElementById('nextHandBtn').disabled=roundOver||!hands.some((x,i)=>i!==active&&!x.done);
-  document.getElementById('newBtn').disabled=!roundOver;
+  $('balance').textContent=fmt(balance);
+  $('pendingBet').textContent=fmt(pending);
+  $('betTotal').textContent=fmt(hands.reduce((s,h)=>s+h.bet,0)+insurance);
+  $('rounds').textContent=rounds;
+  $('dealerCards').innerHTML=dealer.map((c,i)=>cardHTML(c,phase==='playing'&&i===1||phase==='insurance'&&i===1)).join('');
+  $('dealerScore').textContent=dealer.length?(phase==='playing'||phase==='insurance'?`Visível: ${score([dealer[0]]).total}`:`Pontos: ${score(dealer).total}`):'Aguardando';
+  $('hands').innerHTML=hands.length?hands.map((h,i)=>`<div class="hand ${canAct()&&i===active?'active':''}"><div class="hand-title">${hands.length>1?'MÃO '+(i+1):'SUA MÃO'} · ${fmt(h.bet)} créditos</div><div class="cards">${h.cards.map(c=>cardHTML(c)).join('')}</div><div class="score">${score(h.cards).total} pontos</div><div class="hand-result">${h.result||''}</div></div>`).join(''):'<div class="hand"><div class="cards"></div><span class="score">Aguardando</span></div>';
+  const bet=phase==='betting',play=canAct(),h=hands[active];
+  document.querySelectorAll('[data-chip]').forEach(b=>b.disabled=!bet);
+  $('clear').disabled=!bet||!pending;
+  $('deal').disabled=!bet||pending<=0||pending>balance;
+  $('decks').disabled=!bet;
+  $('hit').disabled=!play;
+  $('stand').disabled=!play;
+  $('double').disabled=!play||h.cards.length!==2||balance<h.bet||h.fromSplitAces;
+  $('split').disabled=!play||hands.length!==1||h.cards.length!==2||!sameRankValue(h.cards[0],h.cards[1])||balance<h.bet||h.splitDone;
+  $('insurance').disabled=phase!=='insurance'||balance<insuranceCost();
+  $('declineInsurance').disabled=phase!=='insurance';
 }
-async function newRound(){
-  if(!roundOver){msg('Termine a rodada atual primeiro.');return}
+function insuranceCost(){return hands[0]?hands[0].bet/2:0}
+async function deal(){
+  if(phase!=='betting'||pending<=0||pending>balance)return;
   if(!window.clubWallet){msg('Carregando carteira...');return}
-  const check=clubBets.validate(document.getElementById('challengeValue').value);
-  if(!check.ok){msg(check.message);return}
-  challengePoints=check.value;
-  document.getElementById('challengeValue').value=challengePoints;
-  document.getElementById('challengeStatus').textContent=`Aposta: ${challengePoints}`;
-  if(challengePoints>saldo){msg('Saldo insuficiente.');return}
-
-  saldo-=challengePoints;
+  roundToken++;if(shoe.length<52)freshShoe();
+  balance-=pending;
   await persist();
-  makeDeck();
-  dealer=[draw(),draw()];
-  hands=[{cards:[draw(),draw()],done:false,stake:challengePoints}];
-  active=0; roundOver=false; reveal=false; roundSettled=false; score.r++;
-  document.getElementById('mesa').style.display='';
-  document.getElementById('badges').innerHTML='<span class="tiny">Nenhuma ainda.</span>';
-  const pt=pairType(hands[0].cards); if(pt)addBadge(pt);
-  roundForce=null;
-  try{ roundForce=window.clubHouse?await clubHouse.nextOutcome('21'):null; }catch(_){ roundForce=null; }
-
-  if(isNatural21(hands[0].cards)){
-    hands[0].done=true;
-    addBadge('21 Natural');
-    msg('21 natural. A banca será conferida no final.');
-    advance();
-    render();
-    return;
-  }
-  msg('Sua vez: pedir, parar, Double (8–11) ou eSplit (mesmo valor).');
-  render();
+  hands=[{cards:[],bet:pending,done:false,fromSplit:false,fromSplitAces:false,splitDone:false,result:''}];
+  pending=0;dealer=[];insurance=0;insuranceOffered=false;active=0;phase='playing';
+  hands[0].cards.push(draw());dealer.push(draw());hands[0].cards.push(draw());dealer.push(draw());
+  if(dealer[0].r==='A'){phase='insurance';insuranceOffered=true;msg('Banca mostra Ás. Deseja seguro? Custa metade da aposta e paga 2:1 se houver blackjack.');render();return}
+  checkOpening();
 }
-function hit(){
-  const h=hands[active]; h.cards.push(draw());
-  if(value(h.cards)>21){h.done=true;msg('Mão passou de 21.');advance()}
-  render();
-}
-function stand(){hands[active].done=true;msg('Mão encerrada.');advance();render()}
-async function doubleAction(){
-  const h=hands[active];
-  if(!h||h.cards.length!==2||![8,9,10,11].includes(value(h.cards))){msg('Double só com total 8, 9, 10 ou 11.');return}
-  if(saldo<h.stake){msg('Saldo insuficiente para Double.');return}
-  saldo-=h.stake;
-  h.stake*=2;
-  await persist();
-  h.cards.push(draw()); h.done=true;
-  addBadge('Double');
-  msg('Double: uma carta e mão encerrada.');
-  advance(); render();
-}
-async function split(){
-  const h=hands[active];
-  if(!h||h.done||!canESplit(h.cards)){msg('eSplit só com mesmo valor de pontos.');return}
-  if(saldo<challengePoints){msg('Saldo insuficiente para eSplit.');return}
-  saldo-=challengePoints;
-  await persist();
-  const isAA=h.cards[0].r==='A';
-  const a={cards:[h.cards[0],draw()],done:isAA,stake:challengePoints};
-  const b={cards:[h.cards[1],draw()],done:isAA,stake:challengePoints};
-  hands.splice(active,1,a,b);
-  addBadge(isAA?'eSplit AA':'eSplit');
-  const pa=pairType(a.cards), pb=pairType(b.cards); if(pa)addBadge(pa); if(pb)addBadge(pb);
-  if(isAA){msg('AA dividido: cada mão encerrou.');advance()}
-  else msg('eSplit realizado.');
-  render();
-}
-function advance(){
-  const nxt=hands.findIndex((h,i)=>i>active&&!h.done);
-  if(nxt>=0){active=nxt;return}
-  const any=hands.findIndex(h=>!h.done);
-  if(any>=0){active=any;return}
-  dealerTurn();
-}
-function nextHand(){
-  const idx=hands.findIndex((h,i)=>i!==active&&!h.done);
-  if(idx>=0){active=idx;msg('Outra mão selecionada.');render()}
-}
-function tirarCarta(pred){
-  if(typeof pred==='function' && deck.length){
-    const idx=deck.findIndex(pred);
-    if(idx>=0) return deck.splice(idx,1)[0];
-  }
-  return draw();
-}
-function dealerTurn(){
-  reveal=true;
-  if(!isNatural21(dealer)){
-    const force=roundForce;
-    // Melhor mão do jogador <=21 para guiar a força
-    let best=0;
-    for(const h of hands){ const v=value(h.cards); if(v<=21&&v>best) best=v; }
-    while(value(dealer)<17){
-      if(force==='bank' && best>0){
-        dealer.push(tirarCarta((c)=>{
-          const t=value(dealer.concat([c]));
-          return t<=21 && t>=best;
-        }));
-      } else if(force==='player' && best>0){
-        dealer.push(tirarCarta((c)=>{
-          const t=value(dealer.concat([c]));
-          return t>21 || t<best;
-        }));
-      } else {
-        dealer.push(draw());
-      }
-    }
-  }
-  settle();
-}
-async function settle(){
-  if(roundSettled) return;
-  roundSettled=true;
-  roundOver=true;
-  const dt=value(dealer);
-  let pWins=0,dWins=0,paid=0;
-
-  if(isNatural21(dealer)){
-    dWins=hands.length;
-    addBadge('21 Legítimo da Banca');
-    msg('Banca com 21 natural — venceu todas as mãos.');
-  } else {
-    for(const h of hands){
-      const pt=value(h.cards);
-      let playerHandWins=pt<=21 && (dt>21 || pt>dt);
-      // Empate = banca; força RTP só quando ainda não há resultado claro de estouro
-      if(roundForce==='player' && pt<=21 && !playerHandWins && dt<=21){
-        // se força jogador e empate/derrota por pontos, trata como vitória do jogador
-        if(pt>=dt) playerHandWins=true;
-      }
-      if(roundForce==='bank' && playerHandWins && pt<=21 && dt<=21){
-        playerHandWins=false;
-      }
-      if(playerHandWins){
-        pWins++;
-        paid+=h.stake*2;
-      } else {
-        dWins++;
-      }
-    }
-  }
-
-  score.p+=pWins; score.d+=dWins;
-  if(paid>0){ saldo+=paid; await persist(); }
-
-  if(isNatural21(dealer)){
-    /* msg já definida */
-  } else if(pWins>dWins){
-    msg(`Você venceu ${pWins} mão(ões). Recebeu ${fmt(paid)}.`);
-  } else if(dWins>pWins){
-    msg(`Banca venceu ${dWins} mão(ões).${paid?` Você ainda recebeu ${fmt(paid)}.`:' Aposta(s) perdida(s).'}`);
-  } else {
-    msg(`Empate de mãos ${pWins}–${dWins}.${paid?` Recebeu ${fmt(paid)}.`:' Empates favorecem a banca.'}`);
-  }
-  render();
-}
-
-document.getElementById('challengeBtn').onclick=()=>{
-  const check=clubBets.validate(document.getElementById('challengeValue').value);
-  if(!check.ok){msg(check.message);return}
-  challengePoints=check.value;
-  document.getElementById('challengeValue').value=challengePoints;
-  document.getElementById('challengeStatus').textContent=`Aposta: ${challengePoints}`;
-  msg(`Aposta definida: ${challengePoints} por mão.`);
-};
-document.getElementById('newBtn').onclick=()=>newRound();
-document.getElementById('hitBtn').onclick=hit;
-document.getElementById('standBtn').onclick=stand;
-document.getElementById('doubleBtn').onclick=()=>doubleAction();
-document.getElementById('splitBtn').onclick=()=>split();
-document.getElementById('nextHandBtn').onclick=nextHand;
-document.getElementById('resetBtn').onclick=()=>{
-  if(!roundOver){msg('Termine a rodada antes de zerar o placar.');return}
-  score={p:0,d:0,r:0};hands=[];dealer=[];reveal=false;
-  msg('Placar zerado.');render();
-};
-render();
+function checkOpening(){if(natural(dealer)){finishDealerBlackjack();return}if(natural(hands[0].cards)){settle(true);return}msg('Sua vez: peça, pare, dobre ou divida quando permitido.');render()}
+async function takeInsurance(){if(phase!=='insurance'||balance<insuranceCost())return;insurance=insuranceCost();balance-=insurance;await persist();resolveInsurance()}
+function declineInsurance(){if(phase!=='insurance')return;resolveInsurance()}
+function resolveInsurance(){phase='playing';if(natural(dealer)){finishDealerBlackjack();return}if(natural(hands[0].cards)){settle(true);return}msg(insurance?'Banca sem blackjack: seguro perdido. Sua vez.':'Sem seguro. Sua vez.');render()}
+async function finishDealerBlackjack(){phase='settled';const playerNatural=natural(hands[0].cards);if(playerNatural){balance+=hands[0].bet;hands[0].result='Empate (push)'}else hands[0].result='Banca: blackjack';if(insurance)balance+=insurance*3;await persist();finishRound(playerNatural?'Ambos têm blackjack: empate.':insurance?'Banca tem blackjack. Seguro pagou 2:1.':'Banca tem blackjack.')}
+function hit(){if(!canAct())return;const h=hands[active];h.cards.push(draw());const s=score(h.cards).total;if(s>21){h.done=true;h.result='Estourou';advance()}else if(s===21){h.done=true;advance()}else{msg(`Mão ${active+1}: ${s} pontos. Peça ou pare.`);render()}}
+function stand(){if(!canAct())return;hands[active].done=true;advance()}
+async function doubleDown(){if(!canAct())return;const h=hands[active];if(h.cards.length!==2||balance<h.bet||h.fromSplitAces)return;balance-=h.bet;h.bet*=2;await persist();h.cards.push(draw());h.done=true;if(score(h.cards).total>21)h.result='Estourou';advance()}
+async function split(){if(!canAct())return;const h=hands[active];if(h.cards.length!==2||hands.length!==1||!sameRankValue(h.cards[0],h.cards[1])||balance<h.bet)return;balance-=h.bet;await persist();const second=h.cards.pop(),aces=h.cards[0].r==='A';h.fromSplit=true;h.fromSplitAces=aces;h.splitDone=true;const other={cards:[second],bet:h.bet,done:false,fromSplit:true,fromSplitAces:aces,splitDone:true,result:''};hands.push(other);h.cards.push(draw());other.cards.push(draw());if(aces){h.done=true;other.done=true;msg('Áses divididos: uma carta para cada mão.');settle()}else{msg('Par dividido. Jogue a primeira mão.');render()}}
+function advance(){const next=hands.findIndex((h,i)=>i>active&&!h.done);if(next>=0){active=next;msg(`Sua vez na mão ${active+1}.`);render();return}settle()}
+async function settle(playerBlackjack=false){if(phase==='settled')return;phase='settled';const live=hands.some(h=>score(h.cards).total<=21);if(live&&!playerBlackjack){while(score(dealer).total<17)dealer.push(draw())}const ds=score(dealer).total;let net=0;for(const h of hands){const ps=score(h.cards).total;let payout=0;if(ps>21){h.result='Perdeu (estourou)'}else if(playerBlackjack&&!h.fromSplit){payout=h.bet*2.5;h.result='BLACKJACK 3:2'}else if(ds>21||ps>ds){payout=h.bet*2;h.result='Vitória 1:1'}else if(ps===ds){payout=h.bet;h.result='Empate (push)'}else h.result='Banca venceu';balance+=payout;net+=payout-h.bet}net-=insurance;await persist();finishRound(`Rodada encerrada. ${net>0?'Ganho':net<0?'Perda':'Resultado'}: ${net>0?'+':''}${fmt(net)} créditos.`)}
+function finishRound(t){phase='settled';rounds++;const net=hands.reduce((s,h)=>s+(h.result==='BLACKJACK 3:2'?h.bet*1.5:h.result==='Vitória 1:1'?h.bet:h.result==='Empate (push)'?0:-h.bet),0)+(insurance&&natural(dealer)?insurance*2:-insurance);history.unshift({n:rounds,net,results:hands.map(h=>h.result).join(' / ')});history=history.slice(0,15);$('history').innerHTML=history.map(x=>`<li>#${x.n} · ${x.results} · <strong style="color:${x.net>=0?'#ffd91a':'#ff8a8a'}">${x.net>0?'+':''}${fmt(x.net)}</strong></li>`).join('');msg(t+' Prepare a próxima aposta.');phase='betting';render()}
+async function reset(){if(phase==='playing'||phase==='insurance'){if(!confirm('Reiniciar agora descarta a rodada atual. Continuar?'))return}roundToken++;balance=await(window.clubWallet?clubWallet.refresh():Promise.resolve(balance));pending=0;dealer=[];hands=[];active=0;insurance=0;phase='betting';rounds=0;history=[];freshShoe();$('history').innerHTML='<li>Nenhuma rodada concluída.</li>';msg('Mesa reiniciada. Selecione suas fichas.');render()}
+document.querySelectorAll('[data-chip]').forEach(b=>b.addEventListener('click',()=>{const amount=Number(b.dataset.chip);if(phase!=='betting')return;if(pending+amount>balance){msg('Saldo insuficiente para aumentar a aposta.');return}pending+=amount;msg(`Aposta preparada: ${fmt(pending)} créditos.`);render()}));
+$('clear').onclick=()=>{pending=0;render();msg('Aposta limpa.')};
+$('deal').onclick=()=>deal();
+$('hit').onclick=hit;
+$('stand').onclick=stand;
+$('double').onclick=()=>doubleDown();
+$('split').onclick=()=>split();
+$('insurance').onclick=()=>takeInsurance();
+$('declineInsurance').onclick=declineInsurance;
+$('reset').onclick=()=>reset();
+$('decks').onchange=()=>{freshShoe();render()};
+freshShoe();render();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/config.js?v=9"></script>
-<script src="../js/auth.js?v=26"></script>
+<script src="../js/config.js?v=10"></script>
+<script src="../js/auth.js?v=28"></script>
 <script src="../js/house.js?v=4"></script>
 <script src="../js/bets.js?v=2"></script>
-<script src="../js/gate.js?v=15"></script>
+<script src="../js/gate.js?v=16"></script>
 <script>
 window.clubWalletReady.then((w)=>{
   if(!w||w.sealed) return;
-  saldo=Number(w.credits||0);
+  balance=Number(w.credits||0);
   render();
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
