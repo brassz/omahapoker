@@ -246,6 +246,7 @@ body{margin:0;min-height:100vh}
         <div class="cfgStat"><span>STATUS</span><b id="cfgStatus">—</b></div>
         <div class="cfgStat"><span>APOSTAS CONTADAS</span><b id="cfgCounter">0</b></div>
         <div class="cfgStat"><span>RTP REALIZADO</span><b id="cfgRealized">—</b></div>
+        <div class="cfgStat"><span>APOSTA MÁX.</span><b id="cfgMaxBetDisplay">200</b></div>
       </div>
       <div class="cfgGrid">
         <div class="cfgField">
@@ -258,6 +259,10 @@ body{margin:0;min-height:100vh}
         <div class="cfgField">
           <label for="cfgRtp">RTP do jogador (%)</label>
           <input id="cfgRtp" type="number" min="0" max="100" step="1" value="20">
+        </div>
+        <div class="cfgField">
+          <label for="cfgMaxBet">Aposta máxima (0 a 5000)</label>
+          <input id="cfgMaxBet" type="number" min="0" max="5000" step="1" value="200">
         </div>
       </div>
       <div class="cfgActions" style="margin-top:12px">
@@ -606,9 +611,11 @@ body{margin:0;min-height:100vh}
     const realized = c > 0 ? Math.round((wins / c) * 1000) / 10 : null;
     $('cfgEnabled').value = settings.enabled ? '1' : '0';
     $('cfgRtp').value = rtpSafe;
+    $('cfgMaxBet').value = Math.max(0, Math.min(5000, Number(settings.max_bet) || 200));
     $('cfgStatus').textContent = settings.enabled ? 'ATIVA' : 'OFF';
     $('cfgCounter').textContent = fmt(c);
     $('cfgRealized').textContent = realized == null ? '—' : `${realized}% (${fmt(wins)} vit.)`;
+    $('cfgMaxBetDisplay').textContent = fmt(Number(settings.max_bet) || 200);
     renderMaintenance(settings);
     renderRtpTable();
   }
@@ -1096,21 +1103,26 @@ body{margin:0;min-height:100vh}
   $('cfgSave').onclick = async () => {
     const enabled = $('cfgEnabled').value === '1';
     const rtpPercent = Math.floor(Number($('cfgRtp').value));
+    const maxBet = Math.floor(Number($('cfgMaxBet').value));
     if (!(rtpPercent >= 0 && rtpPercent <= 100)) {
       setMsg('Informe um RTP válido (0 a 100).', 'err');
       return;
     }
+    if (!(maxBet >= 0 && maxBet <= 5000)) {
+      setMsg('Aposta máxima deve ser de 0 a 5000.', 'err');
+      return;
+    }
     try {
-      const s = await omahaAuth.adminUpdateGameSettings({ enabled, rtpPercent });
+      const s = await omahaAuth.adminUpdateGameSettings({ enabled, rtpPercent, maxBet });
       renderSettings(s);
       setMsg(
         enabled
-          ? `Manipulação geral salva: RTP ${rtpPercent}% (salas sem configuração própria).`
-          : `Manipulação geral desativada. Salas com "próprio = SIM" usam o RTP da própria linha.`,
+          ? `Manipulação geral salva: RTP ${rtpPercent}%, aposta máx. ${maxBet} (salas sem configuração própria).`
+          : `Manipulação geral desativada. Aposta máx. ${maxBet}. Salas com "próprio = SIM" usam o RTP da própria linha.`,
         'ok'
       );
     } catch (err) {
-      setMsg(err?.message || 'Falha ao salvar. Rode o SQL supabase/game-settings.sql no Supabase.', 'err');
+      setMsg(err?.message || 'Falha ao salvar. Rode o SQL supabase/max-bet.sql no Supabase.', 'err');
     }
   };
 

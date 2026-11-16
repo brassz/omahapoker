@@ -276,11 +276,14 @@ shoe=deck();setSaldo();updateStats();
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=16"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w||w.sealed) return;
   saldo=Number(w.credits||0);
   setSaldo();
   updateStats();
+  await clubBets.loadFromSettings();
+  $('valor').max=clubBets.MAX;
+  document.querySelector('.sub').textContent=`Jogador · Banca · Empate · aposta 2 a ${clubBets.MAX}`;
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};

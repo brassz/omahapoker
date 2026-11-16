@@ -526,11 +526,13 @@
       return setInterval(tick, intervalMs);
     },
 
-    async adminUpdateGameSettings({ enabled, rtpPercent }) {
+    async adminUpdateGameSettings({ enabled, rtpPercent, maxBet }) {
       const rtp = Math.floor(Number(rtpPercent));
+      const mb = Math.floor(Number(maxBet));
       const { data, error } = await client.rpc('admin_update_game_settings', {
         p_enabled: !!enabled,
         p_rtp_percent: Math.max(0, Math.min(100, Number.isFinite(rtp) ? rtp : 20)),
+        p_max_bet: Number.isFinite(mb) ? Math.max(0, Math.min(5000, mb)) : 200,
       });
       if (error) throw error;
       return data;
