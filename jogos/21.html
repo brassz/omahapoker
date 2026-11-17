@@ -249,23 +249,43 @@ function render(){
 function insuranceCost(){return hands[0]?hands[0].bet/2:0}
 function dealForForce(force){
   if(!force){const p1=draw(),d1=draw(),p2=draw(),d2=draw();return{p:[p1,p2],d:[d1,d2]};}
+  const scenarios=[];
+  if(force==='bank'){
+    scenarios.push(
+      (ps,ds,pNat,dNat)=>dNat&&!pNat,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps>=12&&ps<=16&&ds>=7,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ds>=17&&ds<=21&&ps<ds,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps>=17&&ps<=19&&ds>=ps+1&&ds<=21,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps<=11&&ds>=7,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps>=13&&ps<=16&&ds>=2&&ds<=6
+    );
+  }else{
+    scenarios.push(
+      (ps,ds,pNat,dNat)=>pNat&&!dNat,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps>=18&&ps<=21&&ds<ps,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ds>=2&&ds<=6&&ps>=9&&ps<=11,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ds>=2&&ds<=6&&ps>=12,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps===11,
+      (ps,ds,pNat,dNat)=>!pNat&&!dNat&&ps>=19&&ds>=17
+    );
+  }
+  const pick=scenarios[Math.floor(Math.random()*scenarios.length)];
   for(let t=0;t<80;t++){
     if(shoe.length<52)freshShoe();
     const p1=shoe.pop(),d1=shoe.pop(),p2=shoe.pop(),d2=shoe.pop();
     const p=[p1,p2],d=[d1,d2];
     const ps=score(p).total,ds=score(d).total;
     const pNat=natural(p),dNat=natural(d);
-    let ok=false;
-    if(force==='bank'){
-      if(dNat&&!pNat)ok=true;
-      else if(!pNat&&!dNat&&ds>=17&&ds<=21&&ps<=16)ok=true;
-      else if(!pNat&&!dNat&&ps>=12&&ps<=16&&ds>=7)ok=true;
-    }else if(force==='player'){
-      if(pNat&&!dNat)ok=true;
-      else if(!pNat&&!dNat&&ps>=18&&ps<=21)ok=true;
-      else if(!pNat&&!dNat&&ds<=16&&ps>=17)ok=true;
-    }
-    if(ok)return{p,d};
+    if(pick(ps,ds,pNat,dNat))return{p,d};
+    freshShoe();
+  }
+  for(let t=0;t<40;t++){
+    if(shoe.length<52)freshShoe();
+    const p1=shoe.pop(),d1=shoe.pop(),p2=shoe.pop(),d2=shoe.pop();
+    const p=[p1,p2],d=[d1,d2];
+    const ps=score(p).total,ds=score(d).total;
+    const pNat=natural(p),dNat=natural(d);
+    if(scenarios.some(fn=>fn(ps,ds,pNat,dNat)))return{p,d};
     freshShoe();
   }
   const p1=draw(),d1=draw(),p2=draw(),d2=draw();return{p:[p1,p2],d:[d1,d2]};
