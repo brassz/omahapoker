@@ -201,7 +201,7 @@ select{background:#090614;border:1px solid #445;border-radius:8px;padding:8px;co
 'use strict';
 const $=id=>document.getElementById(id);
 const suits=['♠','♥','♦','♣'],ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-let balance=0,pending=0,shoe=[],dealer=[],hands=[],active=0,phase='betting',rounds=0,history=[],insurance=0,insuranceOffered=false,roundToken=0;
+let balance=0,pending=0,shoe=[],dealer=[],hands=[],active=0,phase='betting',rounds=0,history=[],insurance=0,insuranceOffered=false,roundToken=0,roundForce=null;
 const fmt=n=>Number(n||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
 async function persist(){
   if(window.clubWallet){
@@ -247,15 +247,41 @@ function render(){
   $('declineInsurance').disabled=phase!=='insurance';
 }
 function insuranceCost(){return hands[0]?hands[0].bet/2:0}
+function dealForForce(force){
+  if(!force){const p1=draw(),d1=draw(),p2=draw(),d2=draw();return{p:[p1,p2],d:[d1,d2]};}
+  for(let t=0;t<80;t++){
+    if(shoe.length<52)freshShoe();
+    const p1=shoe.pop(),d1=shoe.pop(),p2=shoe.pop(),d2=shoe.pop();
+    const p=[p1,p2],d=[d1,d2];
+    const ps=score(p).total,ds=score(d).total;
+    const pNat=natural(p),dNat=natural(d);
+    let ok=false;
+    if(force==='bank'){
+      if(dNat&&!pNat)ok=true;
+      else if(!pNat&&!dNat&&ds>=17&&ds<=21&&ps<=16)ok=true;
+      else if(!pNat&&!dNat&&ps>=12&&ps<=16&&ds>=7)ok=true;
+    }else if(force==='player'){
+      if(pNat&&!dNat)ok=true;
+      else if(!pNat&&!dNat&&ps>=18&&ps<=21)ok=true;
+      else if(!pNat&&!dNat&&ds<=16&&ps>=17)ok=true;
+    }
+    if(ok)return{p,d};
+    freshShoe();
+  }
+  const p1=draw(),d1=draw(),p2=draw(),d2=draw();return{p:[p1,p2],d:[d1,d2]};
+}
 async function deal(){
   if(phase!=='betting'||pending<=0||pending>balance)return;
   if(!window.clubWallet){msg('Carregando carteira...');return}
   roundToken++;if(shoe.length<52)freshShoe();
   balance-=pending;
   await persist();
+  roundForce=null;
+  try{roundForce=window.clubHouse?await clubHouse.nextOutcome('21'):null;}catch(_){roundForce=null;}
   hands=[{cards:[],bet:pending,done:false,fromSplit:false,fromSplitAces:false,splitDone:false,result:''}];
   pending=0;dealer=[];insurance=0;insuranceOffered=false;active=0;phase='playing';
-  hands[0].cards.push(draw());dealer.push(draw());hands[0].cards.push(draw());dealer.push(draw());
+  const dealt=dealForForce(roundForce);
+  hands[0].cards=dealt.p;dealer=dealt.d;
   if(dealer[0].r==='A'){phase='insurance';insuranceOffered=true;msg('Banca mostra Ás. Deseja seguro? Custa metade da aposta e paga 2:1 se houver blackjack.');render();return}
   checkOpening();
 }

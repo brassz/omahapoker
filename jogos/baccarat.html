@@ -203,12 +203,31 @@ button:disabled{opacity:.45;cursor:not-allowed}
 const naipes=['♠','♥','♦','♣'], ranks=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const $=id=>document.getElementById(id);
 const money=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-let saldo=0,tipo=null,rodada=false,hist=[],shoe=[],rounds=0,results={player:0,banker:0,tie:0};
+let saldo=0,tipo=null,rodada=false,hist=[],shoe=[],rounds=0,results={player:0,banker:0,tie:0},roundForce=null;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function valorCarta(r){return r==='A'?1:['10','J','Q','K'].includes(r)?0:Number(r)}
 function deck(){const d=[];for(let x=0;x<8;x++)for(const n of naipes)for(const r of ranks)d.push({r,n,v:valorCarta(r)});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
 function pontos(mao){return mao.reduce((s,c)=>s+c.v,0)%10}
 function bankerDraw(total,third){if(third==null)return total<=5;if(total<=2)return true;if(total===3)return third!==8;if(total===4)return third>=2&&third<=7;if(total===5)return third>=4&&third<=7;if(total===6)return third===6||third===7;return false}
+function simBaccarat(s){
+  const j=[s.pop()],b=[s.pop()];j.push(s.pop());b.push(s.pop());
+  const ij=pontos(j),ib=pontos(b);let third=null;
+  if(ij<8&&ib<8){
+    if(ij<=5){const c=s.pop();j.push(c);third=c.v}
+    if(bankerDraw(ib,third))b.push(s.pop());
+  }
+  const pj=pontos(j),pb=pontos(b);
+  return pj>pb?'player':pb>pj?'banker':'tie';
+}
+function dealBaccaratForForce(force){
+  if(!force)return;
+  for(let t=0;t<80;t++){
+    const sim=[...shoe];
+    const winner=simBaccarat(sim);
+    if((force==='player'&&winner==='player')||(force==='bank'&&winner==='banker'))return;
+    shoe=deck();
+  }
+}
 function cartaHTML(c){
   const red=c.n==='♥'||c.n==='♦';
   return `<div class="playing-card ${red?'red':'black'}">
@@ -247,6 +266,9 @@ $('jogar').addEventListener('click',async()=>{
   if(shoe.length<16){shoe=deck();msg('Novo sapato de oito baralhos embaralhado.');await delay(350)}
   saldo=Math.round((saldo-aposta)*100)/100;
   await persist();
+  roundForce=null;
+  try{roundForce=window.clubHouse?await clubHouse.nextOutcome('baccarat'):null;}catch(_){roundForce=null;}
+  dealBaccaratForForce(roundForce);
   const j=[shoe.pop()],b=[shoe.pop()];j.push(shoe.pop());b.push(shoe.pop());
   render(j,b);msg('Cartas iniciais distribuídas...');await delay(650);
   const initialJ=pontos(j),initialB=pontos(b);let third=null;
