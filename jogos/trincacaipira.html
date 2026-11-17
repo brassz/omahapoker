@@ -67,7 +67,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <body>
 <main class="app">
   <h1 class="club-rainbow">TRINCA CAIPIRA</h1>
-  <div class="sub">3 dados · Par · Trinca · Sequência</div>
+  <div class="sub">3 dados · Par · Trinca · Sequência · <span id="maxBetInfo">aposta 2 a 200</span></div>
   <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
 
   <section class="panel">
@@ -81,8 +81,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
         <strong id="betShow">10</strong>
       </div>
     </div>
-    <label for="betAmount">Valor da rodada (2 a 200)</label>
-    <input id="betAmount" type="number" min="2" max="200" step="1" value="10">
+    <label for="betAmount" id="betLabel">Valor da rodada (2 a 200)</label>
+    <input id="betAmount" type="number" min="2" max="5000" step="1" value="10">
     <div class="pay">Par 1,5× · Trinca 2× · Sequência 2,5× · Sem combinação = banca</div>
     <div class="status" id="status">Defina a aposta e jogue.</div>
   </section>
@@ -289,10 +289,19 @@ render();
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w||w.sealed) return;
   playerBalance=Number(w.credits||0);
   render();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`aposta 2 a ${clubBets.MAX}`;
+    const bl=document.getElementById('betLabel');
+    if(bl) bl.textContent=`Valor da rodada (2 a ${clubBets.MAX})`;
+    const bi=document.getElementById('betAmount');
+    if(bi) bi.max=clubBets.MAX;
+  }
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};

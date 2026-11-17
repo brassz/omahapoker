@@ -88,7 +88,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
   <div class="top">
     <h1 class="club-rainbow">CARIBBEAN STUD</h1>
-    <div class="sub">Jogador × Banca · aposta 2 a 200 · disputa 2×</div>
+    <div class="sub" id="maxBetInfo">Jogador × Banca · aposta 2 a 200 · disputa 2×</div>
     <div class="score">
       <div><b id="playerCredits">0</b><span>SALDO</span></div>
       <div><b id="round">0</b><span>RODADAS</span></div>
@@ -105,9 +105,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
     <div class="betpanel">
       <div class="betrow">
         <label for="bet">APOSTA</label>
-        <input id="bet" type="number" min="2" max="200" value="10" inputmode="numeric">
+        <input id="bet" type="number" min="2" max="5000" value="10" inputmode="numeric">
       </div>
-      <div class="betnote">Aposta inicial 2–200. Para disputar, a segunda aposta é automaticamente o dobro.</div>
+      <div class="betnote" id="betNote">Aposta inicial 2–200. Para disputar, a segunda aposta é automaticamente o dobro.</div>
     </div>
 
     <div class="message" id="message">Defina a aposta e toque em NOVA RODADA.</div>
@@ -135,7 +135,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div id="helpModal" class="helpModal"><div class="helpCard">
 <h2>❓ COMO JOGAR — CARIBBEAN STUD</h2>
 <ul>
-  <li>Defina a aposta (2 a 200) e toque em <b>NOVA RODADA</b>.</li>
+  <li id="ruleAposta">Defina a aposta (2 a 200) e toque em <b>NOVA RODADA</b>.</li>
   <li>Você recebe 5 cartas; a banca mostra só 1.</li>
   <li><b>DISPUTAR 2×</b> coloca o dobro do ante e revela a banca.</li>
   <li><b>DESISTIR</b> perde só o ante.</li>
@@ -341,10 +341,21 @@ render(false);
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=16"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w||w.sealed) return;
   playerCredits=Number(w.credits||0);
   updatePanel();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`Jogador × Banca · aposta 2 a ${clubBets.MAX} · disputa 2×`;
+    const bn=document.getElementById('betNote');
+    if(bn) bn.textContent=`Aposta inicial 2–${clubBets.MAX}. Para disputar, a segunda aposta é automaticamente o dobro.`;
+    const bi=document.getElementById('bet');
+    if(bi) bi.max=clubBets.MAX;
+    const ra=document.getElementById('ruleAposta');
+    if(ra) ra.innerHTML=`Defina a aposta (2 a ${clubBets.MAX}) e toque em <b>NOVA RODADA</b>.`;
+  }
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};

@@ -279,10 +279,10 @@ body{display:flex;flex-direction:column}
 
     <div class="amount-row">
       <div>
-        <label class="label">VALOR DA APOSTA</label>
+        <label class="label" id="maxBetInfo">VALOR DA APOSTA (2 a 200)</label>
         <div class="amount-box">
           <div class="coin">$</div>
-          <input id="amount" type="number" min="2" max="200" value="10">
+          <input id="amount" type="number" min="2" max="5000" value="10">
         </div>
       </div>
       <div>
@@ -338,7 +338,7 @@ body{display:flex;flex-direction:column}
       <li><b>Jogador 1 (azul):</b> paga 1 para 1 se o Jogador 1 vencer.</li>
       <li><b>Jogador 2 (vermelho):</b> paga 1 para 1 se o Jogador 2 vencer.</li>
       <li><b>Empate:</b> não há aposta de empate. Se as pontuações forem iguais, a aposta é <b>devolvida</b>.</li>
-      <li>Aposta mínima 2 e máxima 200 créditos por aposta. Total máximo por rodada: 200.</li>
+      <li id="ruleMaxBet">Aposta mínima 2 e máxima 200 créditos por aposta. Total máximo por rodada: 200.</li>
     </ul>
     <button class="closeHelp" id="closeHelp" type="button">FECHAR REGRAS</button>
   </div>
@@ -351,7 +351,7 @@ body{display:flex;flex-direction:column}
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=17"></script>
 <script>
-const BET_MAX = 200;
+let BET_MAX = 200;
 const PAYOUT = { player: 2, banker: 2 };
 const NAMES = { player: 'Jogador 1', banker: 'Jogador 2', tie: 'Empate' };
 
@@ -648,11 +648,21 @@ renderBetStatus();
 updatePending();
 renderCredits();
 
-window.clubWalletReady.then(w => {
+window.clubWalletReady.then(async w => {
   if (!w) return;
   if (w.sealed) return;
   credits = Number(w.credits || 0);
   renderCredits();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`VALOR DA APOSTA (2 a ${clubBets.MAX})`;
+    const rb=document.getElementById('ruleMaxBet');
+    if(rb) rb.textContent=`Aposta mínima 2 e máxima ${clubBets.MAX} créditos por aposta. Total máximo por rodada: ${clubBets.MAX}.`;
+    BET_MAX=clubBets.MAX;
+    const ai=document.getElementById('amount');
+    if(ai) ai.max=clubBets.MAX;
+  }
 });
 </script>
 </body>

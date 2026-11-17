@@ -62,7 +62,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <body>
 <main class="app">
   <h1>🃏 RONDA 🃏</h1>
-  <div class="sub">A primeira carta-base que repetir vence</div>
+  <div class="sub">A primeira carta-base que repetir vence · <span id="maxBetInfo">aposta 2 a 200</span></div>
   <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
 
   <section class="panel">
@@ -73,7 +73,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <section class="panel">
     <div style="text-align:center;font-weight:900">APOSTA DO JOGADOR</div>
     <div class="row">
-      <input id="bet" type="number" min="2" max="200" value="100">
+      <input id="bet" type="number" min="2" max="5000" value="100">
     </div>
     <div class="row">
       <button onclick="setBet(2)">2</button>
@@ -369,11 +369,18 @@ renderCredits();renderHistory();
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w)return;
   if(w.sealed) return;
   credits=Number(w.credits||0);
   renderCredits();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`aposta 2 a ${clubBets.MAX}`;
+    const bi=document.getElementById('bet');
+    if(bi) bi.max=clubBets.MAX;
+  }
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm){ oh.onclick=()=>{hm.style.display='block'}; }

@@ -125,7 +125,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="top">
     <div>
       <h1 class="club-rainbow">♠ BACCARAT ♦</h1>
-      <div class="sub">Jogador · Banca · Empate · aposta 2 a 200</div>
+      <div class="sub" id="maxBetInfo">Jogador · Banca · Empate · aposta 2 a 200</div>
     </div>
     <div class="credito">
       <div class="label">SALDO</div>
@@ -158,7 +158,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <div class="controles">
     <div class="linha">
       <label for="valor">Aposta:</label>
-      <input class="valor" id="valor" type="number" min="2" max="200" value="20" inputmode="numeric">
+      <input class="valor" id="valor" type="number" min="2" max="5000" value="20" inputmode="numeric">
       <button class="btn-primary" id="jogar" type="button">DISTRIBUIR CARTAS</button>
       <button class="btn-secondary" id="nova" type="button">NOVA RODADA</button>
     </div>

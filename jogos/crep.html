@@ -106,6 +106,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <body>
 <main class="app">
 <h1>🎲 Crep</h1>
+<div style="text-align:center;font-size:11px;font-weight:800;color:#d8e7ff;margin-bottom:6px" id="maxBetInfo">Aposta máxima: 200</div>
 <button type="button" id="openHelp" class="helpBtn">❓ COMO JOGAR / REGRAS</button>
 
 <section class="card dashboard">
@@ -123,8 +124,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 <section class="card">
   <h2>1. Aposta inicial</h2>
-  <label for="baseBet">Valor da aposta (fica presa e dobra a cada vitória)</label>
-  <input id="baseBet" type="number" min="2" max="200" step="1" value="100">
+  <label for="baseBet" id="baseBetLabel">Valor da aposta (fica presa e dobra a cada vitória)</label>
+  <input id="baseBet" type="number" min="2" max="5000" step="1" value="100">
   <p class="lockNote" id="lockHint">Ex.: 100 → ganhou → 200 presa → ganhou → 400 presa… até encerrar ou perder.</p>
 </section>
 
@@ -148,8 +149,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
     <h3 id="pointTitle">🎯 Aposta no ponto</h3>
     <p id="pointText">Aguarde a banca definir o ponto. Esta aposta é opcional.</p>
     <div id="pointPay" class="pay">Pagamento: —</div>
-    <label for="pointBet">Valor no ponto (opcional, 2 a 200)</label>
-    <input id="pointBet" type="number" min="2" max="200" step="1" value="" placeholder="Deixe vazio para não apostar" disabled>
+    <label for="pointBet" id="pointBetLabel">Valor no ponto (opcional, 2 a 200)</label>
+    <input id="pointBet" type="number" min="2" max="5000" step="1" value="" placeholder="Deixe vazio para não apostar" disabled>
   </div>
 </section>
 
@@ -546,11 +547,22 @@ update();
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w)return;
   if(w.sealed) return;
   playerBalance=Number(w.credits||0);
   update();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mx=clubBets.MAX;
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`Aposta máxima: ${mx}`;
+    const bl=document.getElementById('baseBetLabel');
+    if(bl) bl.textContent=`Valor da aposta (fica presa e dobra a cada vitória)`;
+    const pl=document.getElementById('pointBetLabel');
+    if(pl) pl.textContent=`Valor no ponto (opcional, 2 a ${mx})`;
+    ['baseBet','pointBet'].forEach(id=>{const el=document.getElementById(id);if(el)el.max=mx;});
+  }
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm){ oh.onclick=()=>{hm.style.display='block'}; }

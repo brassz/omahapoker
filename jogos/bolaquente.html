@@ -171,9 +171,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <div class="status" id="status">Toque em um número de 1 a 20.</div>
     </div>
     <div class="card">
-      <div class="label">2. APOSTA (2 A 200)</div>
+      <div class="label" id="maxBetInfo">2. APOSTA (2 A 200)</div>
       <div class="row">
-        <input id="bet" type="number" min="2" max="200" value="10">
+        <input id="bet" type="number" min="2" max="5000" value="10">
         <button id="play" class="goldbtn" type="button">JOGAR</button>
         <button id="newRound" class="secondary" type="button">NOVA RODADA</button>
       </div>
@@ -416,10 +416,17 @@ renderCredits();
 <script src="../js/bets.js?v=2"></script>
 <script src="../js/gate.js?v=15"></script>
 <script>
-window.clubWalletReady.then((w)=>{
+window.clubWalletReady.then(async(w)=>{
   if(!w||w.sealed) return;
   credits=Number(w.credits||0);
   renderCredits();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`2. APOSTA (2 A ${clubBets.MAX})`;
+    const bi=document.getElementById('bet');
+    if(bi) bi.max=clubBets.MAX;
+  }
 });
 const hm=document.getElementById('helpModal'), oh=document.getElementById('openHelp'), ch=document.getElementById('closeHelp');
 if(oh&&hm) oh.onclick=()=>{hm.style.display='block'};

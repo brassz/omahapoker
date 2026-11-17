@@ -209,10 +209,10 @@ body{display:flex;flex-direction:column}
     <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
     <div class="amount-row">
       <div>
-        <label class="label">Valor da aposta (2 a 200)</label>
+        <label class="label" id="maxBetInfo">Valor da aposta (2 a 200)</label>
         <div class="amount-box">
           <span class="coin">C</span>
-          <input id="amount" type="number" inputmode="numeric" min="2" max="200" step="1" value="" placeholder="Digite o valor">
+          <input id="amount" type="number" inputmode="numeric" min="2" max="5000" step="1" value="" placeholder="Digite o valor">
         </div>
       </div>
     </div>
@@ -228,9 +228,9 @@ body{display:flex;flex-direction:column}
 <div id="helpModal" class="helpModal"><div class="helpCard">
   <h2>❓ COMO JOGAR — ROLETA</h2>
   <ul>
-    <li>Informe o valor (2 a 200) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.</li>
+    <li id="ruleValor">Informe o valor (2 a 200) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.</li>
     <li>Apostas só na cor: vermelho/preto pagam <b>2x</b>; verde paga <b>15x</b> (chance ≈ 0,25%).</li>
-    <li>Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de 200 e é debitado ao girar.</li>
+    <li id="ruleTotal">Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de 200 e é debitado ao girar.</li>
   </ul>
   <button type="button" class="closeHelp" id="closeHelp">FECHAR REGRAS</button>
 </div></div>
@@ -266,7 +266,7 @@ let pendingBets=[];
 let spinning=false;
 let history=[slots[3],slots[10],slots[12],slots[0],slots[7],slots[2],slots[13],slots[4],slots[11]];
 
-const BET_MAX=200;
+let BET_MAX=200;
 
 function money(v){
   return Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2});
@@ -332,11 +332,11 @@ function addBet(color){
     if(!check.ok){ message.textContent=check.message; return; }
     value=check.value;
   } else if(!(value>=2 && value<=BET_MAX)){
-    message.textContent="A aposta deve ser de 2 a 200.";
+    message.textContent=`A aposta deve ser de 2 a ${BET_MAX}.`;
     return;
   }
   if(pendingTotal()+value>BET_MAX){
-    message.textContent="O total das apostas nesta rodada não pode passar de 200.";
+    message.textContent=`O total das apostas nesta rodada não pode passar de ${BET_MAX}.`;
     return;
   }
   pendingBets.push({color, amount:value});
@@ -446,7 +446,7 @@ async function spin(){
   }
   const total=pendingBets.reduce((a,b)=>a+b.amount,0);
   if(total>BET_MAX){
-    message.textContent="O total das apostas nesta rodada não pode passar de 200.";
+    message.textContent=`O total das apostas nesta rodada não pode passar de ${BET_MAX}.`;
     return;
   }
   if(total>credits){
@@ -527,11 +527,23 @@ updatePending();
 buildTrack();
 renderCredits();
 
-window.clubWalletReady.then(w=>{
+window.clubWalletReady.then(async w=>{
   if(!w) return;
   if(w.sealed) return;
   credits=Number(w.credits||0);
   renderCredits();
+  if(window.clubBets){
+    await clubBets.loadFromSettings();
+    const mi=document.getElementById('maxBetInfo');
+    if(mi) mi.textContent=`Valor da aposta (2 a ${clubBets.MAX})`;
+    const rv=document.getElementById('ruleValor');
+    if(rv) rv.innerHTML=`Informe o valor (2 a ${clubBets.MAX}) e adicione apostas em <b>vermelho</b>, <b>verde</b> ou <b>preto</b>.`;
+    const rt=document.getElementById('ruleTotal');
+    if(rt) rt.textContent=`Pode juntar várias apostas na mesma rodada. O total (soma de todas) não pode passar de ${clubBets.MAX} e é debitado ao girar.`;
+    BET_MAX=clubBets.MAX;
+    const ai=document.getElementById('amount');
+    if(ai) ai.max=clubBets.MAX;
+  }
 });
 </script>
 </body>
