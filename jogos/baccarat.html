@@ -219,12 +219,13 @@ function simBaccarat(s){
   const pj=pontos(j),pb=pontos(b);
   return pj>pb?'player':pb>pj?'banker':'tie';
 }
-function dealBaccaratForForce(force){
-  if(!force)return;
+function dealBaccaratForForce(force,aposta){
+  if(!force||!aposta)return;
   for(let t=0;t<80;t++){
     const sim=[...shoe];
     const winner=simBaccarat(sim);
-    if((force==='player'&&winner==='player')||(force==='bank'&&winner==='banker'))return;
+    if(force==='player'&&winner===aposta)return;
+    if(force==='bank'&&winner!==aposta&&winner!=='tie')return;
     shoe=deck();
   }
 }
@@ -268,7 +269,7 @@ $('jogar').addEventListener('click',async()=>{
   await persist();
   roundForce=null;
   try{roundForce=window.clubHouse?await clubHouse.nextOutcome('baccarat'):null;}catch(_){roundForce=null;}
-  dealBaccaratForForce(roundForce);
+  dealBaccaratForForce(roundForce,tipo);
   const j=[shoe.pop()],b=[shoe.pop()];j.push(shoe.pop());b.push(shoe.pop());
   render(j,b);msg('Cartas iniciais distribuídas...');await delay(650);
   const initialJ=pontos(j),initialB=pontos(b);let third=null;

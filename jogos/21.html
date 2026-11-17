@@ -19,9 +19,9 @@ h1 small{display:block;font-size:11px;letter-spacing:4px;color:#d8e7ff}
 .table{
   position:relative;border:6px solid #855f25;
   box-shadow:0 15px 45px #0009,inset 0 0 0 3px #b18a4c;
-  border-radius:45% 45% 24% 24%/26% 26% 17% 17%;min-height:475px;
+  border-radius:45% 45% 24% 24%/26% 26% 17% 17%;min-height:380px;
   background:radial-gradient(ellipse at 50% 48%,#0a2e44,#0a0614 60%);
-  padding:28px 20px 22px;display:flex;flex-direction:column;align-items:center;
+  padding:20px 14px 16px;display:flex;flex-direction:column;align-items:center;
   justify-content:space-between;overflow:hidden;
   animation:clubNeonGlow 1.8s ease-in-out infinite;
   border-color:#17c8ff;
@@ -30,21 +30,21 @@ h1 small{display:block;font-size:11px;letter-spacing:4px;color:#d8e7ff}
 .table>*{position:relative;z-index:1}
 .dealer,.player{text-align:center;width:100%}
 .label{color:#ffd91a;font-size:13px;font-weight:800;letter-spacing:2px}
-.cards{display:flex;justify-content:center;gap:5px;min-height:106px;margin:9px 0;flex-wrap:wrap}
+.cards{display:flex;justify-content:center;gap:4px;min-height:86px;margin:6px 0;flex-wrap:wrap}
 .playing-card{
-  position:relative;height:103px;width:72px;border-radius:9px;overflow:hidden;padding:0;
+  position:relative;height:82px;width:58px;border-radius:8px;overflow:hidden;padding:0;
   background:#fff!important;color:#111!important;border:1.5px solid #c8c8c8!important;
-  box-shadow:0 5px 11px #0008!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;
+  box-shadow:0 4px 8px #0008!important;font-family:Georgia,'Times New Roman',serif;font-weight:700;
   animation:deal .28s ease,none!important;
   display:flex;flex-direction:column;justify-content:space-between;
 }
 .playing-card .corner{
-  position:absolute;top:4px;left:5px;z-index:2;width:20px;text-align:center;line-height:.85;font-size:17px
+  position:absolute;top:3px;left:4px;z-index:2;width:18px;text-align:center;line-height:.85;font-size:14px
 }
-.playing-card .corner.br{top:auto;left:auto;bottom:4px;right:5px;transform:rotate(180deg)}
-.playing-card .corner .pip{display:block;font-size:12px;margin-top:1px}
+.playing-card .corner.br{top:auto;left:auto;bottom:3px;right:4px;transform:rotate(180deg)}
+.playing-card .corner .pip{display:block;font-size:10px;margin-top:1px}
 .playing-card .center-suit{
-  position:absolute;inset:0;display:grid;place-items:center;font-size:30px;line-height:1
+  position:absolute;inset:0;display:grid;place-items:center;font-size:24px;line-height:1
 }
 .playing-card.black{color:#111!important}
 .playing-card.red{color:#d40000!important}
@@ -61,22 +61,22 @@ h1 small{display:block;font-size:11px;letter-spacing:4px;color:#d8e7ff}
 .arc{font-size:clamp(14px,2.2vw,23px);letter-spacing:3px;font-weight:900;color:#ffd91a;text-align:center;text-shadow:0 0 14px #ffd91a88}
 .message{background:#060912;border:1px solid #17c8ff44;border-radius:12px;padding:10px 16px;text-align:center;max-width:660px;font-weight:650;font-size:14px;animation:clubNeonGlow 1.8s ease-in-out infinite}
 .hands{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
-.hand{min-width:150px;padding:8px;border:2px solid transparent;border-radius:15px;background:#060912}
+.hand{min-width:130px;padding:6px;border:2px solid transparent;border-radius:12px;background:#060912}
 .hand.active{border-color:#ffd91a;background:#ffffff12}
 .hand-title{font-size:12px;color:#d8e7ff}
-.hand .cards{min-height:88px}
-.hand .playing-card{width:60px;height:86px;font-size:16px}
-.hand .playing-card .center-suit{font-size:24px}
-.hand .playing-card .corner{font-size:14px}
+.hand .cards{min-height:68px}
+.hand .playing-card{width:48px;height:68px;font-size:13px}
+.hand .playing-card .center-suit{font-size:20px}
+.hand .playing-card .corner{font-size:12px}
 .hand-result{font-size:12px;color:#ffd91a;min-height:16px}
-.controls{margin-top:14px;background:#0a0614;border:2px solid #17c8ff66;border-radius:18px;padding:18px;animation:clubNeonGlow 1.6s ease-in-out infinite}
-.chips-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.controls{margin-top:10px;background:#0a0614;border:2px solid #17c8ff66;border-radius:18px;padding:12px;animation:clubNeonGlow 1.6s ease-in-out infinite}
+.chips-row{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}
 .chip{
-  width:64px!important;height:64px!important;border-radius:50%!important;
-  border:5px dashed #fff9!important;
-  box-shadow:0 4px 12px #0008,inset 0 0 0 3px #ffffff65!important;
+  width:50px!important;height:50px!important;border-radius:50%!important;
+  border:4px dashed #fff9!important;
+  box-shadow:0 3px 8px #0008,inset 0 0 0 2px #ffffff65!important;
   font-weight:900!important;color:#fff!important;
-  text-shadow:0 1px 3px #000;cursor:pointer;font-size:14px!important;
+  text-shadow:0 1px 3px #000;cursor:pointer;font-size:13px!important;
   background-size:auto!important;animation:none!important;
   padding:0!important;display:grid;place-items:center;
 }
@@ -85,10 +85,10 @@ h1 small{display:block;font-size:11px;letter-spacing:4px;color:#d8e7ff}
 .chip:nth-child(3){background:#198254!important}
 .chip:nth-child(4){background:#3d354f!important}
 .chip:nth-child(5){background:#ac842c!important}
-.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-button{border:0;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:1000;cursor:pointer;color:#120018;min-height:44px}
+.actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+button{border:0;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:1000;cursor:pointer;color:#120018;min-height:38px}
 button:disabled{opacity:.45;cursor:not-allowed}
-.btn{border:1px solid #17c8ff44;background:#0a2e44;color:#fff;padding:12px 18px;border-radius:11px;font-weight:800}
+.btn{border:1px solid #17c8ff44;background:#0a2e44;color:#fff;padding:9px 14px;border-radius:10px;font-weight:800}
 .btn.primary{background:linear-gradient(90deg,#17c8ff,#ff4fd8,#ffd91a);background-size:200% 100%;animation:clubRainbowShift 2.8s linear infinite;color:#120018;border:2px solid #fff8}
 .btn.warn{background:linear-gradient(180deg,#7a3000,#ff8c15);border:2px solid #ffb866;color:#fff}
 .btn.danger{background:linear-gradient(180deg,#b40000,#ff3434);border:2px solid #ff8a8a;color:#fff}
@@ -109,19 +109,32 @@ select{background:#090614;border:1px solid #445;border-radius:8px;padding:8px;co
 .closeHelp{width:100%;background:#d32f2f;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:900;cursor:pointer;margin-top:12px}
 @media(max-width:650px){
   .top{justify-content:center}
-  .table{border-width:5px;min-height:440px;padding:20px 6px;border-radius:34% 34% 15% 15%/12% 12% 8% 8%}
-  .table:before{inset:15px 12px}
-  .playing-card{width:57px;height:82px;font-size:16px}
-  .playing-card .center-suit{font-size:24px}
-  .hand .playing-card{width:43px;height:68px;font-size:13px;padding:4px}
-  .hand .playing-card .center-suit{font-size:18px}
-  .hand{min-width:125px;padding:5px}
-  .arc{font-size:13px;letter-spacing:1px}
+  .table{border-width:4px;min-height:320px;padding:14px 6px 10px;border-radius:34% 34% 15% 15%/12% 12% 8% 8%}
+  .table:before{inset:10px 8px}
+  .cards{min-height:68px;gap:3px}
+  .playing-card{width:46px;height:66px}
+  .playing-card .corner{font-size:12px}
+  .playing-card .center-suit{font-size:20px}
+  .hand .playing-card{width:38px;height:56px;font-size:11px}
+  .hand .playing-card .center-suit{font-size:16px}
+  .hand .playing-card .corner{font-size:10px}
+  .hand .cards{min-height:56px}
+  .hand{min-width:100px;padding:4px}
+  .arc{font-size:12px;letter-spacing:1px}
+  .message{padding:7px 10px;font-size:12px}
   .bottom-grid{grid-template-columns:1fr}
-  .chip{width:54px;height:54px;font-size:13px}
-  .btn{padding:10px 12px;font-size:13px}
+  .chip{width:42px!important;height:42px!important;font-size:11px!important}
+  .chips-row{gap:5px;margin:6px 0}
+  .btn{padding:8px 10px;font-size:12px}
+  .controls{padding:10px 8px}
+  .actions{gap:4px;margin-top:8px}
   .stats{justify-content:center}
-  .stat{min-width:100px}
+  .stat{min-width:90px;padding:7px 10px}
+  .stat strong{font-size:17px}
+  .score{font-size:11px;padding:3px 8px}
+  .label{font-size:11px}
+  .betline{font-size:12px}
+  .settings{font-size:11px;gap:6px;margin-top:10px}
 }
 </style>
 </head>
